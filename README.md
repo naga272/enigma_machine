@@ -3,7 +3,7 @@
 ## Descrizione
 
 Sistema operativo che emula il comportamento della macchina Enigma.
-Una volta avviato con un virtualizzatore, cliccando i tasti della tastiera verranno visualizzati a schermo
+Una volta avviato con un virtualizzatore, cliccando i tasti della tastiera verranno visualizzati a schermo seguendo l'algoritmo della macchina Enigma
 crittografati 
 
 ## requisiti
