@@ -1,7 +1,5 @@
 # EnigmaOS
 
-![EnigmaOS Banner](https://your-image-link.com/banner.png) <!-- Replace with an actual image link -->
-
 ## 🔐 About
 
 **EnigmaOS** is an operating system that emulates the behavior of the **Enigma machine**. Once launched in a virtualizer, key presses on your keyboard will be displayed on the screen, encrypted according to the Enigma machine's algorithm.
