@@ -1,26 +1,31 @@
 # EnigmaOS
 
-## 🔐 About
+## 🔐 About the project
 
-**EnigmaOS** is an operating system that emulates the behavior of the **Enigma machine**. Once launched in a virtualizer, key presses on your keyboard will be displayed on the screen, encrypted according to the Enigma machine's algorithm.
+**EnigmaOS** è un sistema operativo che emula il comportamento della macchina Enigma. Una volta avviato tramite virtualizzatore come qemu o virtual box, si aprirà una schermata dove sarà possibile premere dei tasti tramite la tastiera hw. I tasti premuti vengono criptati secondo il criterio dell'algoritmo della macchina Enigma vera e propria.
+
+
+## Funzionamento della macchina enigma
+Fu un dispositivo elettromeccanico per cifrare messaggi che fu usato dai tedeschi durante la seconda guerra mondiale. 
+All'epoca veniva considerata una delle macchine migliori per la crittografia, un vero rompicapo.
+
+
 
 ## ⚙️ Requirements
 
-Before running EnigmaOS, ensure you have the following:
-
 - A **32-bit or higher** CPU architecture
-- **QEMU** virtualizer
-- **C cross compiler** (Refer to [OSDev Wiki](https://wiki.osdev.org/GCC_Cross-Compiler) for installation and setup)
+- **QEMU** virtualizzatore
+- **C cross compiler** (guarda [OSDev Wiki](https://wiki.osdev.org/GCC_Cross-Compiler) per il setup)
 - **NASM** assembler
-- **Make** command (installable via `apt` on Debian-based systems)
+- **Make** comando (installabile tramite `apt` su Unix-like system)
 
-## 🚀 Installation & Execution
+## 🚀 Installazione e Esecuzione
 
-1. Grant execution permissions to the `bash.sh` script and run it:
+1. Givva i permessi al file `bash.sh` script e eseguilo:
    ```sh
    chmod +x bash.sh && ./bash.sh
    ```
-   *(This will automatically compile EnigmaOS.)*
+   *(questo produrrà in automatico i file binari)*
 
 2. Run the OS in QEMU:
    ```sh
@@ -29,13 +34,8 @@ Before running EnigmaOS, ensure you have the following:
 
 ## 📜 License
 
-This project is open-source. Feel free to explore, modify, and improve it.
+Questo progetto è open-source, siete liberi di modificare come volete il progetto
 
 ## 👤 Author
 
-- **naga272**  
-
----
-
-_Enjoy cryptographic nostalgia with EnigmaOS! 🛡️🔢_
-
+- **naga272**
