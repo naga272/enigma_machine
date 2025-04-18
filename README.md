@@ -36,6 +36,11 @@ All'epoca veniva considerata una delle macchine migliori per la crittografia, un
 
 Questo progetto è open-source, siete liberi di modificare come volete il progetto
 
+
+## Tags
+
+EnigmaMachine encryption ww2 nasm gcc
+
 ## 👤 Author
 
 - **naga272**
