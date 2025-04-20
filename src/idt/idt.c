@@ -1,23 +1,4 @@
 
-#include "config.h"
-#include "idt/idt.h"
-#include "io/io.h"
-#include "stdlib/stdlib.h"
-#include "enigma/enigma.h"
-
-
-struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
-struct idtr_desc idtr_descriptor;                       // rappresenta il registro idtr (interrupt descriptor table register)
-
-// si trova in idt.asm (carica la idt)
-extern void idt_load(struct idtr_desc* ptr);
-
-// from video/video.c - video.h
-extern size_t actual_color_terminal;
-extern void print(const uchar*);
-extern void terminal_writechar(const uchar, int);
-
-
 /*
 *   GESTIONE DEGLI INTERRUPT: 
 *   Quando si verifica un interrupt, il processore cerca la corrispondente voce nella IDT e chiama la funzione di gestione specificata. 
@@ -25,21 +6,35 @@ extern void terminal_writechar(const uchar, int);
 *   che a sua volta chiama int21h_handler per gestire l'evento.
 */
 
-
 /*
 * funzioni di gestione degli interrupt (descritte in idt.asm):
 *   - no_interrupt():   e' un handler generico per interrupt non gestiti
 *   - int21h():         e' specifico per l'interrupt 0x21, che è tipicamente associato alla tastiera.
-*   - idt_zero():       gestisce l'interrupt 0, divisione per 0
 */
-extern void no_interrupt();
-extern void int21h();
 
 
-void idt_zero()
-{
-    print((const uchar*) "error! non puoi dividere un numero per 0 >_<");
-}
+#include "config.h"
+
+#include "video/video.h"
+#define ACQUISISCI_FLAGS
+#include "idt/idt.h"
+#include "io/io.h"
+#include "stdlib/stdlib.h"
+
+#include "enigma/keyboard.h"    // definizione tastiera itialiana standard QZERTY
+#include "enigma/enigma.h"
+
+
+struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
+struct idtr_desc idtr_descriptor;                       // rappresenta il registro idtr (interrupt descriptor table register)
+
+
+// funzioni che si trovano in idt.asm 
+extern uchar core_enigma(uchar container);
+extern void* memset(void *ptr, int c, size_t n);
+extern void idt_load(struct idtr_desc* ptr); // (carica la idt)
+extern void no_interrupt(); // usato per l'assegnamento di una funzione di default agli interrupt
+extern void int21h();       // interrupt per la tastiera
 
 
 void no_interrupt_handler()
@@ -52,21 +47,8 @@ void no_interrupt_handler()
     outb(0x20, 0x20);
 }
 
-
-/*
-    NB: DO KISS - Dennis Ritchie
-*/
-
-
-extern uchar container;
-extern uchar keyboard_map_QZERTY[128];  // tastiera standard italiana
-extern const uchar alfabeto[26];
-extern const uchar plugboard[20][2];
-extern uchar *rotore1;
-extern uchar *rotore2;
-extern uchar *rotore3;
-extern u8 count_rotore1, count_rotore2;
-
+uchar bff_cmd_line[SIZE_COMMAND_SHELL];
+size_t x = 0;
 
 void int21h_handler()
 {
@@ -75,78 +57,61 @@ void int21h_handler()
     *   Quando viene premuto un tasto, questa funzione stampa un messaggio e invia un EOI al PIC. 
     */
     
-    // insb(0x60) legge il codice del tasto dalla porta 0x60
+    // insb(0x60) legge il codice del tasto dalla porta 0x60 (in al, 0x60)
     // per poi convertirlo nel codice del tasto in un carattere
-    // keyboard_map definita in enigma.h
+    // keyboard_map_<tipo tastiera> definita in enigma.h (sono definite solo QZERTY e QWERTY)
 
-    disable_interrupts();
+    uchar c = keyboard_map_QZERTY[insb(0x60)];
 
-    uchar c_crypt;
-    // cattura il segnale da tastiera e lo mappo
-    container = keyboard_map_QZERTY[insb(0x60)] - 32;
+    if (flag_x_colour_shell != 0) {
 
-    if (container >= (u8) 'A' && container <= (u8) 'Z') {
-        /*  
-        *   ight, fino a qui sono sopravvisuto, questo controllo serve a evitare un bug per gli interrupt 
-        *   (prende dei caratteri che non vengono letti da tastiera). Dato che a me servono solo i caratteri 
-        *   da 'A' alla 'Z', posso risolverla facilmente (ricorda: DO KISS).
-        */
+        if (c != '\n')
+            c -= 32;
 
-        // passaggio alla plugboard
-        c_crypt = m_plugboard(container);
-
-        // passaggio al primo rotore
-        c_crypt = rotore1[(u8) c_crypt - (u8) 'A'];
-        rotore1 = gira_rotore(rotore1);
-        count_rotore1++;
-
-        // passaggio al secondo rotore
-        c_crypt = rotore2[(u8) c_crypt - (u8) 'A'];
-
-        // passaggio al terzo rotore
-        c_crypt = rotore3[(u8) c_crypt - (u8) 'A'];
-    
-        if (count_rotore1 == 26) {
-            count_rotore1 = 1;
-            count_rotore2++;
-            rotore2 = gira_rotore(rotore2);
-        
-            if (count_rotore2 == 26) {
-                count_rotore2 = 1;
-                rotore2 = gira_rotore(rotore3);
-            }
+        if (c >= 'A' && c <= 'Z') {
+            terminal_writechar(c, actual_color_terminal);
+            bff_cmd_line[x] = c;
+            x++;
         }
-    
-        // FINE FASE ROTORI
-    
-        // INIZIO FASE RIFLETTORE
-    
-        c_crypt = m_riflettore(c_crypt);
 
-        
-        // FINE FASE RIFLETTORE
-    
-        // INIZIO FASE ROTORI REVERSE
-    
-        // passaggio al terzo rotore
-        c_crypt = rotore3[(u8) c_crypt - (u8) 'A'];
-        
-        // passaggio al secondo rotore
-        c_crypt = rotore2[(u8) c_crypt - (u8) 'A'];
-        
-        // passaggio al primo rotore
-        c_crypt = rotore1[(u8) c_crypt - (u8) 'A'];
-        
-        // END FASE ROTORI REVERSE
+        if (c == '\n') {
+            print((uchar*) "\nparola criptata: ");
 
-        // INIZIO FASE PLUGBOARD
-        c_crypt = m_plugboard(c_crypt);
+            for (size_t i = 0; bff_cmd_line[i] != 0; i++) {
+                terminal_writechar(core_enigma(bff_cmd_line[i]), actual_color_terminal);
+            }
 
-        // OUTPUT FINALE
-        terminal_writechar(c_crypt, actual_color_terminal);
-    } 
+            memset((void*) bff_cmd_line, 0, SIZE_COMMAND_SHELL);
+            x = 0;
+            print((uchar*) "\nparola da criptare: ");
+        }
+    } else {
+        switch (c) {
+            case '1':
+                terminal_initialize(BG_BLU_C_WHITE);
+                flag_x_colour_shell++;
+                print((uchar*) "parola da criptare: ");
+                break;
+            
+            case '2':
+                terminal_initialize(BG_BIANCO_C_NERO);
+                flag_x_colour_shell++;
+                print((uchar*) "parola da criptare: ");
+                break;
 
-    enable_interrupts();
+            case '3':
+                terminal_initialize(BG_NERO_C_BIANCO);
+                flag_x_colour_shell++;
+                print((uchar*) "parola da criptare: ");
+                break;
+
+            default:
+                print((uchar*) "error! devi premere un tasto tra l'1 e il 3\n");
+                print((uchar*) "scegli colore: ");
+                break;
+        }
+    }
+
     outb(0x20, 0x20);
 }
 
@@ -176,7 +141,6 @@ void idt_init()
     for (int i = 0; i < OS_TOTAL_INTERRUPTS; i++)
         idt_set(i, no_interrupt);
 
-    idt_set(0, idt_zero);
     idt_set(0x21, int21h);
 
     // Load the interrupt descriptor table

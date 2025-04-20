@@ -1,5 +1,8 @@
 #include "stdlib/stdlib.h"
 
+void* current_address = (void*) (0x1000000);
+
+
 void* memset(void *ptr, int c, size_t n)
 {
     char *ptr_t = (char*) ptr;

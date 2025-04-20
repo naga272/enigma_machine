@@ -2,7 +2,7 @@
 #define IDT_H
 
 #include <stdint.h>
-
+#include <stddef.h>
 
 /*
 * L'interrupt descriptor table descrive come gli interrupt vengono chiamati in protected mode.
@@ -45,5 +45,29 @@ void idt_init();
 void enable_interrupts();
 void disable_interrupts();
 
+
+/*
+    Enigma algorithm
+    NB: Keep it semple, Stupid - Dennis Ritchie
+*/
+
+extern const uchar alfabeto[26];
+extern const uchar plugboard[20][2];
+extern uchar *rotore1;
+extern uchar *rotore2;
+extern uchar *rotore3;
+extern u8 count_rotore1, count_rotore2;
+
+
+// from video/video.c - video.h
+extern size_t actual_color_terminal;
+extern void print(const uchar*);
+extern void terminal_writechar(const uchar, int);
+extern void terminal_initialize(int);
+
+
+#ifdef ACQUISISCI_FLAGS
+    char flag_x_colour_shell = 0;
+#endif
 
 #endif

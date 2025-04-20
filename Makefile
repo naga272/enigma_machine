@@ -11,6 +11,17 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=/dev/zero bs=512 count=100 >> ./bin/os.bin
 
 
+iso: ./bin/os.bin
+	mkdir -p ./iso/boot/grub
+	cp ./bin/os.bin ./iso/boot/os.bin
+	echo 'menuentry "My OS" {' > ./iso/boot/grub/grub.cfg
+	echo '  multiboot /boot/os.bin' >> ./iso/boot/grub/grub.cfg
+	echo '  boot' >> ./iso/boot/grub/grub.cfg
+	echo '}' >> ./iso/boot/grub/grub.cfg
+	grub-mkrescue -o ./bin/os.iso ./iso
+	rm -rf ./iso
+
+
 ./bin/boot.bin: ./src/boot/boot.asm
 	nasm -f bin ./src/boot/boot.asm -o ./bin/boot.bin
 
@@ -53,11 +64,13 @@ all: ./bin/boot.bin ./bin/kernel.bin
 
 
 ./build/enigma/enigma.o: ./src/enigma/enigma.c
+	# nasm -f elf -g ./src/enigma/enigma.asm -o ./build/enigma/enigma.o
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/enigma/enigma.c -o ./build/enigma/enigma.o
 
 
 run:
 	qemu-system-x86_64 -hda ./bin/os.bin
+
 
 clean:
 	clear
@@ -65,4 +78,4 @@ clean:
 	rm -rf ./bin/kernel.bin
 	rm -rf ./bin/os.bin
 	rm -rf ${FILES}
-	rm -rf ./build/kerne
+	rm -rf ./build/kernel

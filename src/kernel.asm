@@ -6,6 +6,17 @@ extern kernel_main
 CODE_SEG equ 0x08
 DATA_SEG equ 0x10
 
+; === MULTIBOOT HEADER ===
+; e' richiesto per la ISO da GRUB
+;section .multiboot
+;    align 4
+;    dd 0x1BADB002        ; Multiboot magic number
+;    dd 0                 ; Flags (0 = nessun indirizzo richiesto)
+;    dd -(0x1BADB002 + 0) ; Checksum (deve risultare 0 sommando i tre valori sopra)
+
+
+section .text
+
 _start:
     mov ax, DATA_SEG
     mov ds, ax

@@ -8,6 +8,7 @@
     #define OS_TOTAL_INTERRUPTS 512  // l'os ha 512 interrupts totali
 #endif
 
+#define SIZE_COMMAND_SHELL 1024
 
 #include <stdint.h>
 
@@ -21,4 +22,5 @@ typedef uint32_t u32;
 typedef int32_t i32;
 
 typedef unsigned char uchar;
+
 #endif

@@ -1,13 +1,10 @@
 #include "stdlib/stdlib.h"
 
 #define settings_video
-
 #include "video/video.h"
 
-#undef settings_video
 
-
-uint16_t set_char_terminal(char c, char colour)
+uint16_t set_char_terminal(uchar c, char colour)
 {
     /*
     *   abbiamo un unsigned int a 16 bit.
@@ -19,7 +16,7 @@ uint16_t set_char_terminal(char c, char colour)
 }
 
 
-void terminal_put_char(int x, int y, char c, char colour)
+void terminal_put_char(int x, int y, uchar c, char colour)
 {
     /*
     *   Stampa un carattere c di colore colour alla colonna x della riga y del monitor
@@ -33,7 +30,7 @@ void terminal_put_char(int x, int y, char c, char colour)
 }
 
 
-void terminal_writechar(char c, char colour)
+void terminal_writechar(uchar c, char colour)
 {
     /*
     *   A differenza di terminal_put_char non posso decidere in quale colonna / riga mettere un carattere
@@ -43,6 +40,13 @@ void terminal_writechar(char c, char colour)
         case '\n':
             terminal_col = 0;
             terminal_row++;
+            break;
+
+        case '\t':
+            for (u8 i = 0; i != 4; i++)
+                terminal_put_char(terminal_col, terminal_row, ' ', colour);            
+
+            terminal_col += 4;
             break;
 
         default:
@@ -58,25 +62,29 @@ void terminal_writechar(char c, char colour)
 }
 
 
-void print(const unsigned char* string)
+void print(const uchar* string)
 {
     /*
     * Stampa in output una stringa
     */
-    for(size_t i = 0; string[i] != '\0'; i++)
+    for (size_t i = 0; string[i] != '\0'; i++)
         terminal_writechar(string[i], actual_color_terminal);
 }
 
 
-void terminal_initialize()
+void terminal_initialize(int colore)
 {
     /*
     *   Funzione usata all'interno di kernel.c nella funzione kernel_main.
     *   setta lo screen col colore nero
     **/
     video_mem = (uint16_t*) (0xb8000);
-    
+    actual_color_terminal = colore;
+
     for (int y = 0; y < VGA_HEIGHT; y++) 
         for (int x = 0; x < VGA_WIDTH; x++) 
-            terminal_put_char(x, y, ' ', NERO);
+            terminal_put_char(x, y, ' ', colore);
+    
+    terminal_row = 0;
+    terminal_col = 0;
 }

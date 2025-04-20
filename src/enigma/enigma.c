@@ -1,11 +1,14 @@
 
-#define ENIGMA_SET  // rende possibile la dichiarazione di variabili 
+#define ENIGMA_SET  // rende possibile la dichiarazione di variabili di enigma/enigma.h
 #include "enigma/enigma.h"
-#include "string/string.h"
 #include "stdlib/stdlib.h"
 
+static inline const uchar m_plugboard(const uchar);
+static inline const uchar m_riflettore(const uchar);
+static inline uchar* gira_rotore(uchar*);
 
-const uchar m_plugboard(const uchar c)
+
+static inline const uchar m_plugboard(const uchar c)
 {
     /*
         FASE Plugboard:
@@ -49,7 +52,7 @@ const uchar m_plugboard(const uchar c)
 }
 
 
-const uchar m_riflettore(const uchar c)
+static inline const uchar m_riflettore(const uchar c)
 {
     // stesso concetto della plugboaqrd
     for (size_t i = 0; i < 26; i++) {
@@ -65,8 +68,8 @@ const uchar m_riflettore(const uchar c)
 }
 
 
-uchar* gira_rotore(uchar *rotore) {
-    // rotore mantiene l'indirizzo dell'inizio dell'array
+static inline uchar* gira_rotore(uchar *rotore) {
+    // @*rotore: mantiene l'indirizzo dell'inizio dell'array
     
     uchar *tmp_mem_rotore = rotore;
     char last = tmp_mem_rotore[LENROTORE - 1];
@@ -77,4 +80,47 @@ uchar* gira_rotore(uchar *rotore) {
     
     tmp_mem_rotore[0] = last;
     return rotore; 
+}
+
+
+uchar core_enigma(uchar container)
+{
+    container = m_plugboard(container);
+
+    // INIZIO FASE ROTORI 
+    container = rotore1[(u8) container - (u8) 'A'];
+    rotore1 = gira_rotore(rotore1);
+    count_rotore1++;
+
+    // passaggio al secondo rotore
+    container = rotore2[(u8) container - (u8) 'A'];
+
+    // passaggio al terzo rotore
+    container = rotore3[(u8) container - (u8) 'A'];
+
+    if (count_rotore1 == 26) {
+        count_rotore1 = 1;
+        count_rotore2++;
+        rotore2 = gira_rotore(rotore2);
+    
+        if (count_rotore2 == 26) {
+            count_rotore2 = 1;
+            rotore2 = gira_rotore(rotore3);
+        }
+    }
+
+    // INIZIO FASE RIFLETTORE 
+    container = m_riflettore(container);
+
+    // INIZIO FASE ROTORI REVERSE   
+    container = rotore1[(u8) container - (u8) 'A'];
+
+    container = rotore2[(u8) container - (u8) 'A'];
+    
+    container = rotore3[(u8) container - (u8) 'A'];        
+
+    // INIZIO FASE PLUGBOARD 
+    container = m_plugboard(container);
+
+    return container;
 }
