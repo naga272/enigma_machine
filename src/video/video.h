@@ -4,12 +4,13 @@
 /*
 
 ---------------------> asse x
-|. P(actual_video_row; actual_video_col)
+| C(actual_video_row; actual_video_col)
 |    
 |
 |
 v asse y
 
+C = posizione cursore
 */
 
 #include "config.h"
@@ -54,6 +55,7 @@ u16 terminal_col    = 0;  // tiene traccia della colonna del monitor da dove sto
 
 #define VGA_WIDTH   80
 #define VGA_HEIGHT  100
+#define NUM_SPACE_TAB 4
 
 #ifdef prototype_fun_print
 

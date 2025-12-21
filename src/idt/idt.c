@@ -28,7 +28,6 @@
 struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
 struct idtr_desc idtr_descriptor;                       // rappresenta il registro idtr (interrupt descriptor table register)
 
-
 // funzioni che si trovano in idt.asm 
 extern uchar core_enigma(uchar container);
 extern void* memset(void *ptr, int c, size_t n);
@@ -47,71 +46,104 @@ void no_interrupt_handler()
     outb(0x20, 0x20);
 }
 
-uchar bff_cmd_line[SIZE_COMMAND_SHELL];
-size_t x = 0;
 
+u8 lock = 0;
+u8 flag_x_colour_shell = 0;
+static inline void try_the_answer(uchar c)
+{
+    if (c < '1' || c > '3') {
+        if (!lock) {
+            print(
+                (uchar*) " \nerror! devi premere un tasto tra l'1 e il 3\n"
+                "scegli colore: "
+            );
+            lock = 1;
+            return;
+        }
+    }
+
+    switch (c) {
+        case '1':
+            terminal_initialize(BG_BLU_C_WHITE);
+            flag_x_colour_shell++;
+            print((uchar*) "parola da criptare: ");
+            break;
+
+        case '2':
+            terminal_initialize(BG_BIANCO_C_NERO);
+            flag_x_colour_shell++;
+            print((uchar*) "parola da criptare: ");
+            break;
+
+        case '3':
+            terminal_initialize(BG_NERO_C_BIANCO);
+            flag_x_colour_shell++;
+            print((uchar*) "parola da criptare: ");
+            break;
+
+        default:
+            break;
+    }
+}
+
+
+uchar bff_cmd_line[SIZE_COMMAND_SHELL];
+size_t idx_buffer = 0;
 void int21h_handler()
 {
     /*
     *   Funzione che gestisce l'interrupt 0x21 (tastiera). 
     *   Quando viene premuto un tasto, questa funzione stampa un messaggio e invia un EOI al PIC. 
     */
-    
+
     // insb(0x60) legge il codice del tasto dalla porta 0x60 (in al, 0x60)
     // per poi convertirlo nel codice del tasto in un carattere
     // keyboard_map_<tipo tastiera> definita in enigma.h (sono definite solo QZERTY e QWERTY)
 
-    uchar c = keyboard_map_QZERTY[insb(0x60)];
+    u8 scancode = insb(0x60);
 
-    if (flag_x_colour_shell != 0) {
+    if (scancode & 0x80)
+        goto out;
 
-        if (c != '\n')
-            c -= 32;
+    uchar c = keyboard_map_QZERTY[scancode];
 
-        if (c >= 'A' && c <= 'Z') {
+    if (c == '\b') {
+        if (idx_buffer > 0) {
+            idx_buffer--;
+            bff_cmd_line[idx_buffer] = 0;
             terminal_writechar(c, actual_color_terminal);
-            bff_cmd_line[x] = c;
-            x++;
         }
-
-        if (c == '\n') {
-            print((uchar*) "\nparola criptata: ");
-
-            for (size_t i = 0; bff_cmd_line[i] != 0; i++) {
-                terminal_writechar(core_enigma(bff_cmd_line[i]), actual_color_terminal);
-            }
-
-            memset((void*) bff_cmd_line, 0, SIZE_COMMAND_SHELL);
-            x = 0;
-            print((uchar*) "\nparola da criptare: ");
-        }
-    } else {
-        switch (c) {
-            case '1':
-                terminal_initialize(BG_BLU_C_WHITE);
-                flag_x_colour_shell++;
-                print((uchar*) "parola da criptare: ");
-                break;
-            
-            case '2':
-                terminal_initialize(BG_BIANCO_C_NERO);
-                flag_x_colour_shell++;
-                print((uchar*) "parola da criptare: ");
-                break;
-
-            case '3':
-                terminal_initialize(BG_NERO_C_BIANCO);
-                flag_x_colour_shell++;
-                print((uchar*) "parola da criptare: ");
-                break;
-
-            default:
-                print((uchar*) "error! devi premere un tasto tra l'1 e il 3\n");
-                print((uchar*) "scegli colore: ");
-                break;
-        }
+        goto out;
     }
 
+    if (flag_x_colour_shell == 0) {
+        try_the_answer(c);
+        // a quanto pare va in deadlock l'os finche non finisce l'interrupt.
+        // Quindi in ogni caso deve passare da outb(0x20, 0x20)
+        goto out;
+    }
+
+    if (c == '\n') {
+        print((uchar*) "\nparola criptata: ");
+
+        for (size_t i = 0; bff_cmd_line[i] != 0; i++)
+            terminal_writechar(core_enigma(bff_cmd_line[i]), actual_color_terminal);
+
+        memset((void*) bff_cmd_line, 0, idx_buffer);
+        idx_buffer = 0;
+
+        print((uchar*) "\nparola da criptare: ");
+        goto out;
+    }
+
+    c -= 32;
+    if (c >= 'A' && c <= 'Z') {
+        terminal_writechar(c, actual_color_terminal);
+        bff_cmd_line[idx_buffer] = c;
+        idx_buffer++;
+    }
+
+out:
     outb(0x20, 0x20);
 }
 

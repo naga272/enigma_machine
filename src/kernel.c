@@ -7,6 +7,7 @@
 
 extern uchar bff_cmd_line[SIZE_COMMAND_SHELL];
 
+
 uchar start_msg[] = "\
 =============================================================\n\
 |Welcome to my EnigmaOs!                                    |\n\
@@ -21,15 +22,15 @@ uchar start_msg[] = "\
 
 void init_shell() 
 {
+    terminal_initialize(BG_BIANCO_C_NERO);
     print((uchar*) start_msg);
 }
 
 
 void kernel_main()
 {
-    terminal_initialize(BG_BIANCO_C_NERO);
-    init_shell();
     idt_init();
     enable_interrupts();
     memset((void*) bff_cmd_line, 0, SIZE_COMMAND_SHELL);
+    init_shell();
 }

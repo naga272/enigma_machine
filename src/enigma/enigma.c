@@ -40,13 +40,13 @@ static inline const uchar m_plugboard(const uchar c)
         La 'O' rimane invariata perche' non e' mappata nella tabella.
     */
 
-    for (size_t i = 0; i < 20; i++) {
-        if (c == plugboard[i][0]) {
-            return plugboard[i][1]; 
-        } else if (c == plugboard[i][1]) {
+    for (size_t i = 0; i < 20; i++)
+        if (c == plugboard[i][0])
+            return plugboard[i][1];
+ 
+        else if (c == plugboard[i][1])
             return plugboard[i][0];
-        }
-    }
+
     // caso in cui il carattere non e' mappato, restituisco il carattere c normale
     return c; 
 }
@@ -68,18 +68,29 @@ static inline const uchar m_riflettore(const uchar c)
 }
 
 
-static inline uchar* gira_rotore(uchar *rotore) {
+static inline uchar* gira_rotore(uchar *rotore)
+{
     // @*rotore: mantiene l'indirizzo dell'inizio dell'array
     
     uchar *tmp_mem_rotore = rotore;
     char last = tmp_mem_rotore[LENROTORE - 1];
     
-    for (size_t i = LENROTORE - 1; i > 0; i--) {
+    for (size_t i = LENROTORE - 1; i > 0; i--)
         tmp_mem_rotore[i] = tmp_mem_rotore[i - 1];
-    }
     
     tmp_mem_rotore[0] = last;
     return rotore; 
+}
+
+
+static inline uchar rotor_reverse(uchar *rotor, uchar c)
+{
+    for (u8 i = 0; i < 26; i++)
+        if (rotor[i] == c)
+            return 'A' + i;
+
+    // non dovrebbe accadere ma non si sa mai
+    return c; 
 }
 
 
@@ -105,7 +116,7 @@ uchar core_enigma(uchar container)
     
         if (count_rotore2 == 26) {
             count_rotore2 = 1;
-            rotore2 = gira_rotore(rotore3);
+            rotore3 = gira_rotore(rotore3);
         }
     }
 
@@ -113,11 +124,9 @@ uchar core_enigma(uchar container)
     container = m_riflettore(container);
 
     // INIZIO FASE ROTORI REVERSE   
-    container = rotore1[(u8) container - (u8) 'A'];
-
-    container = rotore2[(u8) container - (u8) 'A'];
-    
-    container = rotore3[(u8) container - (u8) 'A'];        
+    container = rotor_reverse(rotore3, container);
+    container = rotor_reverse(rotore2, container);
+    container = rotor_reverse(rotore1, container);
 
     // INIZIO FASE PLUGBOARD 
     container = m_plugboard(container);

@@ -66,8 +66,4 @@ extern void terminal_writechar(const uchar, int);
 extern void terminal_initialize(int);
 
 
-#ifdef ACQUISISCI_FLAGS
-    char flag_x_colour_shell = 0;
-#endif
-
 #endif

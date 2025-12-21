@@ -2,6 +2,10 @@
 
 #define settings_video
 #include "video/video.h"
+#include "io/io.h"
+
+
+void terminal_writechar(uchar c, char colour);
 
 
 uint16_t set_char_terminal(uchar c, char colour)
@@ -30,6 +34,74 @@ void terminal_put_char(int x, int y, uchar c, char colour)
 }
 
 
+static inline void write_new_line()
+{
+    if (terminal_row == VGA_HEIGHT)
+        terminal_row = 0;
+    else
+        terminal_row++;
+
+    terminal_col = 0;
+}
+
+
+static inline void write_tab(uchar c, char colour)
+{
+    for (u8 i = 0; i != NUM_SPACE_TAB; i++)
+        terminal_put_char(terminal_col, terminal_row, ' ', colour);            
+
+    terminal_col += NUM_SPACE_TAB;
+}
+
+
+static inline void write_normal_char(uchar c, char colour)
+{
+    terminal_put_char(terminal_col, terminal_row, c, colour);
+    terminal_col++;
+
+    if (terminal_col == VGA_WIDTH) {
+        terminal_col = 0;
+        terminal_row++;
+    }
+}
+
+
+static inline void cursor_back()
+{
+
+}
+
+
+static inline void erase_at_cursor(char colour)
+{
+    
+}
+
+
+static inline void vga_update_cursor()
+{
+    
+}
+
+
+static inline void go_back(char colour)
+{
+    cursor_back();
+    erase_at_cursor(actual_color_terminal);
+    vga_update_cursor();
+
+    if (terminal_col == 0) {
+        terminal_col = VGA_WIDTH;
+        terminal_row--;
+        return;
+    }
+
+    terminal_col--;
+    terminal_writechar(' ', colour);
+    terminal_col--;
+}
+
+
 void terminal_writechar(uchar c, char colour)
 {
     /*
@@ -38,25 +110,16 @@ void terminal_writechar(uchar c, char colour)
 
     switch (c) {
         case '\n':
-            terminal_col = 0;
-            terminal_row++;
+            write_new_line();
             break;
-
         case '\t':
-            for (u8 i = 0; i != 4; i++)
-                terminal_put_char(terminal_col, terminal_row, ' ', colour);            
-
-            terminal_col += 4;
+            write_tab(c, colour);
             break;
-
+        case '\b':
+            go_back(colour);
+            break;
         default:
-            terminal_put_char(terminal_col, terminal_row, c, colour);
-            terminal_col++;
-
-            if (terminal_col == VGA_WIDTH) {
-                terminal_col = 0;
-                terminal_row++;
-            }
+            write_normal_char(c, colour);
             break;
     }
 }
