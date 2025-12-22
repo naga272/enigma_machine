@@ -1,14 +1,11 @@
+#include "config.h"
 
 #define ENIGMA_SET  // rende possibile la dichiarazione di variabili di enigma/enigma.h
 #include "enigma/enigma.h"
 #include "stdlib/stdlib.h"
 
-static inline const uchar m_plugboard(const uchar);
-static inline const uchar m_riflettore(const uchar);
-static inline uchar* gira_rotore(uchar*);
 
-
-static inline const uchar m_plugboard(const uchar c)
+O3 static inline const uchar m_plugboard(const uchar c)
 {
     /*
         FASE Plugboard:
@@ -40,7 +37,7 @@ static inline const uchar m_plugboard(const uchar c)
         La 'O' rimane invariata perche' non e' mappata nella tabella.
     */
 
-    for (size_t i = 0; i < 20; i++)
+    for (size_t i = 0; i < LENPLUGBOARD; i++)
         if (c == plugboard[i][0])
             return plugboard[i][1];
  
@@ -52,7 +49,7 @@ static inline const uchar m_plugboard(const uchar c)
 }
 
 
-static inline const uchar m_riflettore(const uchar c)
+O3 static inline const uchar m_riflettore(const uchar c)
 {
     // stesso concetto della plugboaqrd
     for (size_t i = 0; i < 26; i++) {
@@ -83,42 +80,54 @@ static inline uchar* gira_rotore(uchar *rotore)
 }
 
 
-static inline uchar rotor_reverse(uchar *rotor, uchar c)
+O3 static inline uchar rotor_reverse(uchar *rotor, uchar c)
 {
     for (u8 i = 0; i < 26; i++)
         if (rotor[i] == c)
             return 'A' + i;
 
-    // non dovrebbe accadere ma non si sa mai
+    // metti caso che sono sfigato, non si sa mai
     return c; 
 }
 
 
-uchar core_enigma(uchar container)
+O3 static inline void update_stato_rotori()
+{
+    rotore1 = gira_rotore(rotore1);
+    count_rotore1++;
+
+    if (count_rotore1 == LENROTORE) {
+        // il primo rotore ha completato un giro,
+        // quindi deve tornare a 1 e gira di 1
+        // il secondo rotore
+        count_rotore1 = 1;
+        count_rotore2++;
+        rotore2 = gira_rotore(rotore2);
+    
+        if (count_rotore2 == LENROTORE) {
+            // il secondo rotore ha completato un giro,
+            // quindi deve tornare a 1 e gira di 1
+            // il terzo rotore
+            count_rotore2 = 1;
+            rotore3 = gira_rotore(rotore3);
+        }
+    }
+}
+
+
+O3 uchar core_enigma(uchar container)
 {
     container = m_plugboard(container);
 
-    // INIZIO FASE ROTORI 
+    // INIZIO FASE ROTORI
     container = rotore1[(u8) container - (u8) 'A'];
-    rotore1 = gira_rotore(rotore1);
-    count_rotore1++;
+    update_stato_rotori();
 
     // passaggio al secondo rotore
     container = rotore2[(u8) container - (u8) 'A'];
 
     // passaggio al terzo rotore
     container = rotore3[(u8) container - (u8) 'A'];
-
-    if (count_rotore1 == 26) {
-        count_rotore1 = 1;
-        count_rotore2++;
-        rotore2 = gira_rotore(rotore2);
-    
-        if (count_rotore2 == 26) {
-            count_rotore2 = 1;
-            rotore3 = gira_rotore(rotore3);
-        }
-    }
 
     // INIZIO FASE RIFLETTORE 
     container = m_riflettore(container);

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "io/io.h"
 
 /*
 * L'interrupt descriptor table descrive come gli interrupt vengono chiamati in protected mode.
@@ -15,7 +16,7 @@
 * @type_attr:   tipi e attributi dell'entry. definisce il tipo di gate(interrupt gate e trap gate) e i privilegi richiesti
 * @offset_2:    la "parte alta" dell'indirizzo della routine da eseguire
 *
-* 
+*
 * Invece la struct @idtr_desc rappresenta lo stato del registro idtr (interrupt descriptor table register)
 * La struct @idtr_desc DEVE AVERE IL SEGUENTE ORDINE:
 * @limit:   grandezza max della idt (sizeof(idt_desc[OS_TOTAL_INTERRUPTS]) - 1)
@@ -33,7 +34,7 @@ struct idt_desc
     uint16_t offset_2; // Offset bits 16-31
 } __attribute__((packed));
 
- 
+
 struct idtr_desc
 {
     uint16_t limit; // Size of descriptor table -1
@@ -65,5 +66,6 @@ extern void print(const uchar*);
 extern void terminal_writechar(const uchar, int);
 extern void terminal_initialize(int);
 
+#define EOI outb(0x20, 0x20)
 
 #endif

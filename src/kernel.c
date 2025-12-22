@@ -20,14 +20,14 @@ uchar start_msg[] = "\
 >>> number: ";
 
 
-void init_shell() 
+O3 void init_shell() 
 {
     terminal_initialize(BG_BIANCO_C_NERO);
     print((uchar*) start_msg);
 }
 
 
-void kernel_main()
+O3 void kernel_main()
 {
     idt_init();
     enable_interrupts();

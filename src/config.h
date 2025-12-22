@@ -23,4 +23,7 @@ typedef int32_t i32;
 
 typedef unsigned char uchar;
 
+#define O3 __attribute__((optimize("O3")))
+
+
 #endif

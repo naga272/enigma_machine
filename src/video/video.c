@@ -1,5 +1,6 @@
-#include "stdlib/stdlib.h"
+#include "config.h"
 
+#include "stdlib/stdlib.h"
 #define settings_video
 #include "video/video.h"
 #include "io/io.h"
@@ -8,7 +9,7 @@
 void terminal_writechar(uchar c, char colour);
 
 
-uint16_t set_char_terminal(uchar c, char colour)
+O3 uint16_t set_char_terminal(uchar c, char colour)
 {
     /*
     *   abbiamo un unsigned int a 16 bit.
@@ -20,7 +21,7 @@ uint16_t set_char_terminal(uchar c, char colour)
 }
 
 
-void terminal_put_char(int x, int y, uchar c, char colour)
+O3 void terminal_put_char(int x, int y, uchar c, char colour)
 {
     /*
     *   Stampa un carattere c di colore colour alla colonna x della riga y del monitor
@@ -34,7 +35,7 @@ void terminal_put_char(int x, int y, uchar c, char colour)
 }
 
 
-static inline void write_new_line()
+O3 static inline void write_new_line()
 {
     if (terminal_row == VGA_HEIGHT)
         terminal_row = 0;
@@ -45,7 +46,7 @@ static inline void write_new_line()
 }
 
 
-static inline void write_tab(uchar c, char colour)
+O3 static inline void write_tab(uchar c, char colour)
 {
     for (u8 i = 0; i != NUM_SPACE_TAB; i++)
         terminal_put_char(terminal_col, terminal_row, ' ', colour);            
@@ -54,7 +55,7 @@ static inline void write_tab(uchar c, char colour)
 }
 
 
-static inline void write_normal_char(uchar c, char colour)
+O3 static inline void write_char(uchar c, char colour)
 {
     terminal_put_char(terminal_col, terminal_row, c, colour);
     terminal_col++;
@@ -66,29 +67,19 @@ static inline void write_normal_char(uchar c, char colour)
 }
 
 
-static inline void cursor_back()
+O3 static inline void vga_update_cursor()
 {
+    u16 pos = terminal_row * VGA_WIDTH + terminal_col;
+    outb(0x3d4, 0x0f);
+    outb(0x3d5, (u8) (pos & 0xff));
 
+    outb(0x3d4, 0x0e);
+    outb(0x3d5, (u8) ((pos >> 8) & 0xff));
 }
 
 
-static inline void erase_at_cursor(char colour)
+O3 static inline void go_back(char colour)
 {
-    
-}
-
-
-static inline void vga_update_cursor()
-{
-    
-}
-
-
-static inline void go_back(char colour)
-{
-    cursor_back();
-    erase_at_cursor(actual_color_terminal);
-    vga_update_cursor();
 
     if (terminal_col == 0) {
         terminal_col = VGA_WIDTH;
@@ -102,7 +93,7 @@ static inline void go_back(char colour)
 }
 
 
-void terminal_writechar(uchar c, char colour)
+O3 void terminal_writechar(uchar c, char colour)
 {
     /*
     *   A differenza di terminal_put_char non posso decidere in quale colonna / riga mettere un carattere
@@ -119,13 +110,14 @@ void terminal_writechar(uchar c, char colour)
             go_back(colour);
             break;
         default:
-            write_normal_char(c, colour);
+            write_char(c, colour);
             break;
     }
+    vga_update_cursor();
 }
 
 
-void print(const uchar* string)
+O3 void print(const uchar* string)
 {
     /*
     * Stampa in output una stringa
@@ -135,7 +127,7 @@ void print(const uchar* string)
 }
 
 
-void terminal_initialize(int colore)
+O3 void terminal_initialize(int colore)
 {
     /*
     *   Funzione usata all'interno di kernel.c nella funzione kernel_main.

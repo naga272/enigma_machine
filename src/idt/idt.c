@@ -18,7 +18,6 @@
 #include "video/video.h"
 #define ACQUISISCI_FLAGS
 #include "idt/idt.h"
-#include "io/io.h"
 #include "stdlib/stdlib.h"
 
 #include "enigma/keyboard.h"    // definizione tastiera itialiana standard QZERTY
@@ -36,20 +35,27 @@ extern void no_interrupt(); // usato per l'assegnamento di una funzione di defau
 extern void int21h();       // interrupt per la tastiera
 
 
-void no_interrupt_handler()
+/*
+*   Usati per memorizzare i caratteri da criptare
+*/
+uchar bff_cmd_line[SIZE_COMMAND_SHELL];
+size_t idx_buffer = 0;
+
+
+O3 void no_interrupt_handler()
 {
     /*
     *   Funzione che viene chiamata quando viene generato un interrupt non gestito. 
     *   Invia un segnale di "End of Interrupt" (EOI) al PIC (Programmable Interrupt Controller) 
     *   per indicare che l'interrupt è stato gestito.
     */
-    outb(0x20, 0x20);
+    EOI;
 }
 
 
 u8 lock = 0;
 u8 flag_x_colour_shell = 0;
-static inline void try_the_answer(uchar c)
+O3 static inline void try_the_answer(uchar c)
 {
     if (c < '1' || c > '3') {
         if (!lock) {
@@ -87,9 +93,31 @@ static inline void try_the_answer(uchar c)
 }
 
 
-uchar bff_cmd_line[SIZE_COMMAND_SHELL];
-size_t idx_buffer = 0;
-void int21h_handler()
+O3 static inline void start_encryption()
+{
+    print((uchar*) "\nparola criptata: ");
+
+    for (size_t i = 0; bff_cmd_line[i] != 0; i++)
+        terminal_writechar(core_enigma(bff_cmd_line[i]), actual_color_terminal);
+
+    memset((void*) bff_cmd_line, 0, idx_buffer);
+    idx_buffer = 0;
+
+    print((uchar*) "\nparola da criptare: ");
+}
+
+
+O3 static inline void do_backspace(uchar c)
+{
+    if (idx_buffer > 0) {
+        idx_buffer--;
+        bff_cmd_line[idx_buffer] = 0;
+        terminal_writechar(c, actual_color_terminal);
+    }
+}
+
+
+O3 void int21h_handler()
 {
     /*
     *   Funzione che gestisce l'interrupt 0x21 (tastiera). 
@@ -102,17 +130,13 @@ void int21h_handler()
 
     u8 scancode = insb(0x60);
 
-    if (scancode & 0x80)
-        goto out;
+    if (RELEASE_KEY(scancode))
+        goto out;   // ignora il rilascio tasti
 
     uchar c = keyboard_map_QZERTY[scancode];
 
-    if (c == '\b') {
-        if (idx_buffer > 0) {
-            idx_buffer--;
-            bff_cmd_line[idx_buffer] = 0;
-            terminal_writechar(c, actual_color_terminal);
-        }
+    if (CHAR_BACKSPACE(c)) {
+        do_backspace(c);
         goto out;
     }
 
@@ -123,16 +147,8 @@ void int21h_handler()
         goto out;
     }
 
-    if (c == '\n') {
-        print((uchar*) "\nparola criptata: ");
-
-        for (size_t i = 0; bff_cmd_line[i] != 0; i++)
-            terminal_writechar(core_enigma(bff_cmd_line[i]), actual_color_terminal);
-
-        memset((void*) bff_cmd_line, 0, idx_buffer);
-        idx_buffer = 0;
-
-        print((uchar*) "\nparola da criptare: ");
+    if (CHAR_END_PHRASE(c)) {
+        start_encryption();
         goto out;
     }
 
@@ -144,11 +160,11 @@ void int21h_handler()
     }
 
 out:
-    outb(0x20, 0x20);
+    EOI;
 }
 
 
-void idt_set(int interrupt_no, void* address)
+O3 void idt_set(int interrupt_no, void* address)
 {
     /*
     *   @interrupt_no:  Numero dell'interrupt
@@ -163,7 +179,7 @@ void idt_set(int interrupt_no, void* address)
 }
 
 
-void idt_init()
+O3 void idt_init()
 {
     memset(idt_descriptors, 0, sizeof(idt_descriptors)); // azzero tutti i campi della tabella
     

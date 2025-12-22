@@ -6,11 +6,12 @@
 
 
 #define LENROTORE 26
-
+#define LENPLUGBOARD 20
+#define LENRIFLETTORE 26
 
 #ifdef ENIGMA_SET
 
-const uchar plugboard[20][2] = {
+const uchar plugboard[LENPLUGBOARD][2] = {
     {'A', 'Z'}, {'Z', 'A'},
     {'B', 'Y'}, {'Y', 'B'},
     {'C', 'X'}, {'X', 'C'},
@@ -44,7 +45,7 @@ uchar *rotore1 = (uchar*) "EKMFLGDQVZNTOWYHXUSPAIBRCJ";
 uchar *rotore2 = (uchar*) "AJDKSIRUXBLHWTMCQGZNPYFVOE";
 uchar *rotore3 = (uchar*) "BDFHJLCPRTXVZNYEIWGAKMUSQO";
 
-uchar riflettore[26][2] = {
+uchar riflettore[LENRIFLETTORE][2] = {
     {'A', 'Y'}, {'Y', 'A'},
     {'B', 'R'}, {'R', 'B'},
     {'C', 'U'}, {'U', 'C'},

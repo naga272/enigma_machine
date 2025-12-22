@@ -4,14 +4,17 @@
 
 #include "config.h"
 
-#define CAPS_LOCK_SCANCODE  0x3A // caps lock key scancode
+#define CAPS_LOCK_SCANCODE  0x3A        // caps lock key scancode
+#define RELEASE_KEY(x)      (x & 0x80)  // release key pressed
+#define SHIFT_LEFT_PRESS    0x2A        // scancode maiusc left key press 
+#define SHIFT_RIGHT_PRESS   0x36        // scancode maiusc right key press
 
-#define SHIFT_LEFT_PRESS    0x2A // scancode maiusc left key press 
-#define SHIFT_RIGHT_PRESS   0x36 // scancode maiusc right key press
+#define SHIFT_LEFT_RELEASE  0xAA        // scancode maiusc left key release
+#define SHIFT_RIGHT_RELEASE 0xB6        // scancode maiusc right key release
 
-#define SHIFT_LEFT_RELEASE  0xAA // scancode maiusc left key release
-#define SHIFT_RIGHT_RELEASE 0xB6 // scancode maiusc right key release
 
+#define CHAR_END_PHRASE(x)  (x == '\n')
+#define CHAR_BACKSPACE(x)   (x == '\b')
 
 uchar keyboard_map_QZERTY[128] = {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '\'', 141, '\b', '\t', /* 0x00 - 0x0F */
