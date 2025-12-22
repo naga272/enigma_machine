@@ -8,7 +8,7 @@ _start:
     jmp short start
     nop
 
- times 33 db 0
+times 33 db 0
  
 start:
     jmp 0:step2
@@ -29,7 +29,7 @@ step2:
     or eax, 0x1
     mov cr0, eax
     jmp CODE_SEG:load32
-    
+
 ; GDT
 gdt_start:
 gdt_null:
@@ -57,16 +57,18 @@ gdt_data:      ; DS, SS, ES, FS, GS
 gdt_end:
 
 gdt_descriptor:
-    dw gdt_end - gdt_start-1
+    dw gdt_end - gdt_start - 1
     dd gdt_start
- 
- [BITS 32]
- load32:
+
+
+[BITS 32]
+load32:
     mov eax, 1
     mov ecx, 100
     mov edi, 0x0100000
     call ata_lba_read
     jmp CODE_SEG:0x0100000
+
 
 ata_lba_read:
     mov ebx, eax, ; Backup the LBA
@@ -127,5 +129,5 @@ ata_lba_read:
     ; End of reading sectors into memory
     ret
 
-times 510-($ - $$) db 0
+times 510 - ($ - $$) db 0
 dw 0xAA55

@@ -40,7 +40,7 @@ C = posizione cursore
 #define BG_BLU_C_WHITE      (BLU << 4)      | BIANCO
 #define BG_BIANCO_C_NERO    (BIANCO << 4)   | NERO
 #define BG_NERO_C_BIANCO    (NERO << 4)     | BIANCO 
-
+#define BG_NERO_C_VERDE     (NERO << 4)     | VERDE 
 
 #ifdef settings_video
 
@@ -62,8 +62,10 @@ u16 terminal_col    = 0;  // tiene traccia della colonna del monitor da dove sto
 uint16_t set_char_terminal(char, char);
 void terminal_put_char(int, int, char, char);
 void terminal_writechar(char, char);
-void print(const unsigned char*);
+void print(const uchar*);
+void printk(const uchar*);
 void terminal_initialize();
+void panic(const uchar*);
 
 #endif
 

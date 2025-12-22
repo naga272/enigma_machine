@@ -27,18 +27,18 @@
 
 struct idt_desc
 {
-    uint16_t offset_1; // Offset bits 0 - 15
-    uint16_t selector; // Selector thats in our GDT
-    uint8_t zero; // Does nothing, unused set to zero
-    uint8_t type_attr; // Descriptor type and attributes
-    uint16_t offset_2; // Offset bits 16-31
+    uint16_t offset_1;  // Offset bits 0 - 15
+    uint16_t selector;  // Selector thats in our GDT
+    uint8_t zero;       // Does nothing, unused set to zero
+    uint8_t type_attr;  // Descriptor type and attributes
+    uint16_t offset_2;  // Offset bits 16-31
 } __attribute__((packed));
 
 
 struct idtr_desc
 {
-    uint16_t limit; // Size of descriptor table -1
-    uint32_t base; // Base address of the start of the interrupt descriptor table
+    uint16_t limit;     // Size of descriptor table -1
+    uint32_t base;      // Base address of the start of the interrupt descriptor table
 } __attribute__((packed));
 
 
@@ -63,8 +63,10 @@ extern u8 count_rotore1, count_rotore2;
 // from video/video.c - video.h
 extern size_t actual_color_terminal;
 extern void print(const uchar*);
+extern void printk(const uchar*);
 extern void terminal_writechar(const uchar, int);
 extern void terminal_initialize(int);
+extern void panic(const uchar*);
 
 #define EOI outb(0x20, 0x20)
 

@@ -7,6 +7,7 @@
 
 
 void terminal_writechar(uchar c, char colour);
+void terminal_initialize(int colore);
 
 
 O3 uint16_t set_char_terminal(uchar c, char colour)
@@ -35,38 +36,6 @@ O3 void terminal_put_char(int x, int y, uchar c, char colour)
 }
 
 
-O3 static inline void write_new_line()
-{
-    if (terminal_row == VGA_HEIGHT)
-        terminal_row = 0;
-    else
-        terminal_row++;
-
-    terminal_col = 0;
-}
-
-
-O3 static inline void write_tab(uchar c, char colour)
-{
-    for (u8 i = 0; i != NUM_SPACE_TAB; i++)
-        terminal_put_char(terminal_col, terminal_row, ' ', colour);            
-
-    terminal_col += NUM_SPACE_TAB;
-}
-
-
-O3 static inline void write_char(uchar c, char colour)
-{
-    terminal_put_char(terminal_col, terminal_row, c, colour);
-    terminal_col++;
-
-    if (terminal_col == VGA_WIDTH) {
-        terminal_col = 0;
-        terminal_row++;
-    }
-}
-
-
 O3 static inline void vga_update_cursor()
 {
     u16 pos = terminal_row * VGA_WIDTH + terminal_col;
@@ -78,9 +47,35 @@ O3 static inline void vga_update_cursor()
 }
 
 
+O3 static inline void update_cursor_on_x_y_pos(u16 y, u16 x)
+{
+    u16 pos = y * VGA_WIDTH + x;
+    outb(0x3d4, 0x0f);
+    outb(0x3d5, (u8) (pos & 0xff));
+
+    outb(0x3d4, 0x0e);
+    outb(0x3d5, (u8) ((pos >> 8) & 0xff));
+}
+
+
+O3 static inline void write_new_line()
+{
+    terminal_row++;
+    terminal_col = 0;
+}
+
+
+O3 static inline void write_tab(uchar c, char colour)
+{
+    for (u8 i = 0; i != NUM_SPACE_TAB; i++)
+        terminal_put_char(terminal_col + i, terminal_row, ' ', colour);            
+
+    terminal_col += NUM_SPACE_TAB;
+}
+
+
 O3 static inline void go_back(char colour)
 {
-
     if (terminal_col == 0) {
         terminal_col = VGA_WIDTH;
         terminal_row--;
@@ -90,6 +85,16 @@ O3 static inline void go_back(char colour)
     terminal_col--;
     terminal_writechar(' ', colour);
     terminal_col--;
+}
+
+
+O3 static inline void write_char(uchar c, char colour)
+{
+    terminal_put_char(terminal_col, terminal_row, c, colour);
+    terminal_col++;
+
+    if (terminal_col == VGA_WIDTH)
+        write_new_line();
 }
 
 
@@ -113,6 +118,12 @@ O3 void terminal_writechar(uchar c, char colour)
             write_char(c, colour);
             break;
     }
+
+    if (terminal_row >= VGA_HEIGHT - 1) {
+        terminal_initialize(actual_color_terminal);
+        terminal_row = 0;
+    }
+
     vga_update_cursor();
 }
 
@@ -124,6 +135,51 @@ O3 void print(const uchar* string)
     */
     for (size_t i = 0; string[i] != '\0'; i++)
         terminal_writechar(string[i], actual_color_terminal);
+}
+
+
+u8 log_level = 3;
+
+#ifndef max_level_log
+#define max_level_log 3
+#endif
+
+#ifndef max_level_log_char
+#define max_level_log_char (char) max_level_log + 48
+#endif
+
+O3 void printk(const uchar* msg)
+{
+    if (!(msg[0] == '<' && msg[1] >= '0' && msg[1] <= '3' && msg[2] == '>')) {
+        printk((uchar*) KWARN "errore formattazione printk!!\n");
+        return;
+    }
+
+    u8 lvl_msg = ((u8) msg[1]) - 48;
+    msg += 3; // salto "<n>"
+
+    if (lvl_msg > log_level)
+        return;
+
+    char tmp_actual_color_terminal = actual_color_terminal; 
+
+    switch (lvl_msg) {
+        case 0:
+            actual_color_terminal = ROSSO;
+            break;
+        case 1:
+            actual_color_terminal = GIALLO;
+            break;
+        case 2:
+            actual_color_terminal = BLU_CHIARO;
+            break;    
+        case 3:
+            actual_color_terminal = BIANCO;
+            break;
+    }
+
+    print(msg);
+    actual_color_terminal = tmp_actual_color_terminal;
 }
 
 
@@ -142,4 +198,31 @@ O3 void terminal_initialize(int colore)
     
     terminal_row = 0;
     terminal_col = 0;
+}
+
+
+char* panic_face = "\n\
+             Oh no! Critical error!\n\
+         ________________________________\n\
+        (                                (\n\
+      :(                                  ):(\n\
+    :(                                      ):(\n\
+  :(            XXXX         XXXX             ):(\n\
+:(              XXXX         XXXX              ):(\n\
+:(                                              ):(\n\
+:(                                              ):(\n\
+:(                                              ):(\n\
+  :(            -----------------             ):(\n\
+    :(                                      ):(\n\
+      :(                                 ):(\n\
+        :(_______________________________(\n\
+        \n\
+";
+
+
+O3 void panic(const char* msg)
+{
+    terminal_initialize(BG_BLU_C_WHITE);
+    print((const uchar*) msg);
+    print((const uchar*) panic_face);
 }

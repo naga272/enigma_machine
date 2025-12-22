@@ -8,6 +8,7 @@
 #define LENROTORE 26
 #define LENPLUGBOARD 20
 #define LENRIFLETTORE 26
+#define GIRO_COMPLETO(rotore) (rotore == LENROTORE)
 
 #ifdef ENIGMA_SET
 

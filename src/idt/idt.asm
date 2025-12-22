@@ -3,12 +3,14 @@ section .asm
 global idt_load
 global no_interrupt
 global int21h
+global int0h
 global enable_interrupts    ; abilita interrupt (istruzione sti)
 global disable_interrupts   ; disabilita interrupt (istruzione cli)
 
 
 ; functions descitte in idt.c
 extern int21h_handler
+extern int0h_handler
 extern no_interrupt_handler
 
 
@@ -50,6 +52,17 @@ int21h:
     pushad
 
     call int21h_handler
+
+    popad
+    sti
+    iret
+
+
+int0h:
+    cli
+    pushad
+
+    call int0h_handler
 
     popad
     sti

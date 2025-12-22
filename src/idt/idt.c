@@ -16,7 +16,7 @@
 #include "config.h"
 
 #include "video/video.h"
-#define ACQUISISCI_FLAGS
+
 #include "idt/idt.h"
 #include "stdlib/stdlib.h"
 
@@ -33,6 +33,7 @@ extern void* memset(void *ptr, int c, size_t n);
 extern void idt_load(struct idtr_desc* ptr); // (carica la idt)
 extern void no_interrupt(); // usato per l'assegnamento di una funzione di default agli interrupt
 extern void int21h();       // interrupt per la tastiera
+extern void int0h();       // interrupt per la tastiera
 
 
 /*
@@ -57,10 +58,13 @@ u8 lock = 0;
 u8 flag_x_colour_shell = 0;
 O3 static inline void try_the_answer(uchar c)
 {
-    if (c < '1' || c > '3') {
+    /*
+    *   Questo codice viene usato in fase di setup per determinare il colore dello sfondo del terminale
+    *   e dei caratteri**/
+    if (c < '1' || c > '4') {
         if (!lock) {
             print(
-                (uchar*) " \nerror! devi premere un tasto tra l'1 e il 3\n"
+                (uchar*) " \nerror! devi premere un tasto tra l'1 e il 4\n"
                 "scegli colore: "
             );
             lock = 1;
@@ -72,24 +76,38 @@ O3 static inline void try_the_answer(uchar c)
         case '1':
             terminal_initialize(BG_BLU_C_WHITE);
             flag_x_colour_shell++;
-            print((uchar*) "parola da criptare: ");
+            print((uchar*) ">>> ");
             break;
 
         case '2':
             terminal_initialize(BG_BIANCO_C_NERO);
             flag_x_colour_shell++;
-            print((uchar*) "parola da criptare: ");
+            print((uchar*) ">>> ");
             break;
 
         case '3':
             terminal_initialize(BG_NERO_C_BIANCO);
             flag_x_colour_shell++;
-            print((uchar*) "parola da criptare: ");
+            print((uchar*) ">>> ");
+            break;
+
+        case '4':
+            terminal_initialize(BG_NERO_C_VERDE);
+            flag_x_colour_shell++;
+            print((uchar*) ">>> ");
             break;
 
         default:
             break;
     }
+
+    /*
+    *   Well, per qualche ragione a me sconosciuta
+    *   se metto qui sotto:
+    *       flag_x_colour_shell++;
+    *       print((uchar*) ">>> ");
+    *   si bugga, quindi lo lascio nello switch (li funziona)
+    */
 }
 
 
@@ -103,7 +121,7 @@ O3 static inline void start_encryption()
     memset((void*) bff_cmd_line, 0, idx_buffer);
     idx_buffer = 0;
 
-    print((uchar*) "\nparola da criptare: ");
+    print((uchar*) "\n>>> ");
 }
 
 
@@ -114,6 +132,19 @@ O3 static inline void do_backspace(uchar c)
         bff_cmd_line[idx_buffer] = 0;
         terminal_writechar(c, actual_color_terminal);
     }
+}
+
+
+int is_int0h_triggered = 0;
+O3 void int0h_handler()
+{
+    if (!is_int0h_triggered) {
+        panic((uchar*) "Impossibile eseguire la divisione per zero\n");
+        is_int0h_triggered++;
+    }
+
+    disable_interrupts();
+    while (1) {}
 }
 
 
@@ -134,16 +165,16 @@ O3 void int21h_handler()
         goto out;   // ignora il rilascio tasti
 
     uchar c = keyboard_map_QZERTY[scancode];
-
-    if (CHAR_BACKSPACE(c)) {
-        do_backspace(c);
-        goto out;
-    }
-
+    
     if (flag_x_colour_shell == 0) {
         try_the_answer(c);
         // a quanto pare va in deadlock l'os finche non finisce l'interrupt.
         // Quindi in ogni caso deve passare da outb(0x20, 0x20)
+        goto out;
+    }
+
+    if (CHAR_BACKSPACE(c)) {
+        do_backspace(c);
         goto out;
     }
 
@@ -179,18 +210,28 @@ O3 void idt_set(int interrupt_no, void* address)
 }
 
 
+O3 static inline void set_default_int()
+{
+    for (int i = 0; i < OS_TOTAL_INTERRUPTS; i++)
+        idt_set(i, no_interrupt);
+}
+
+
 O3 void idt_init()
 {
+    // buffer che contiene la lista di caratteri da tradurre secondo la
+    // crittografia di enigma
+    memset((void*) bff_cmd_line, 0, SIZE_COMMAND_SHELL);
+
     memset(idt_descriptors, 0, sizeof(idt_descriptors)); // azzero tutti i campi della tabella
-    
+
     idtr_descriptor.limit   = sizeof(idt_descriptors) - 1;
     idtr_descriptor.base    = (u32) idt_descriptors;
 
-    for (int i = 0; i < OS_TOTAL_INTERRUPTS; i++)
-        idt_set(i, no_interrupt);
+    set_default_int();
 
+    idt_set(0x00, int0h);
     idt_set(0x21, int21h);
-
     // Load the interrupt descriptor table
     idt_load(&idtr_descriptor);
 }

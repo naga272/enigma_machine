@@ -52,14 +52,12 @@ O3 static inline const uchar m_plugboard(const uchar c)
 O3 static inline const uchar m_riflettore(const uchar c)
 {
     // stesso concetto della plugboaqrd
-    for (size_t i = 0; i < 26; i++) {
-
+    for (size_t i = 0; i < 26; i++)
         if (c == riflettore[i][0]) 
-            return riflettore[i][1]; 
-
+            return riflettore[i][1];
+ 
         else if (c == riflettore[i][1])
             return riflettore[i][0];
-    }
 
     return c;
 }
@@ -80,7 +78,7 @@ static inline uchar* gira_rotore(uchar *rotore)
 }
 
 
-O3 static inline uchar rotor_reverse(uchar *rotor, uchar c)
+O3 static inline uchar rotore_reverse(uchar *rotor, uchar c)
 {
     for (u8 i = 0; i < 26; i++)
         if (rotor[i] == c)
@@ -96,7 +94,7 @@ O3 static inline void update_stato_rotori()
     rotore1 = gira_rotore(rotore1);
     count_rotore1++;
 
-    if (count_rotore1 == LENROTORE) {
+    if (GIRO_COMPLETO(count_rotore1)) {
         // il primo rotore ha completato un giro,
         // quindi deve tornare a 1 e gira di 1
         // il secondo rotore
@@ -104,7 +102,7 @@ O3 static inline void update_stato_rotori()
         count_rotore2++;
         rotore2 = gira_rotore(rotore2);
     
-        if (count_rotore2 == LENROTORE) {
+        if (GIRO_COMPLETO(count_rotore2)) {
             // il secondo rotore ha completato un giro,
             // quindi deve tornare a 1 e gira di 1
             // il terzo rotore
@@ -133,9 +131,9 @@ O3 uchar core_enigma(uchar container)
     container = m_riflettore(container);
 
     // INIZIO FASE ROTORI REVERSE   
-    container = rotor_reverse(rotore3, container);
-    container = rotor_reverse(rotore2, container);
-    container = rotor_reverse(rotore1, container);
+    container = rotore_reverse(rotore3, container);
+    container = rotore_reverse(rotore2, container);
+    container = rotore_reverse(rotore1, container);
 
     // INIZIO FASE PLUGBOARD 
     container = m_plugboard(container);

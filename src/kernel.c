@@ -5,9 +5,6 @@
 #include "video/video.h"
 
 
-extern uchar bff_cmd_line[SIZE_COMMAND_SHELL];
-
-
 uchar start_msg[] = "\
 =============================================================\n\
 |Welcome to my EnigmaOs!                                    |\n\
@@ -16,8 +13,9 @@ uchar start_msg[] = "\
 |  -digita 1 per un background blue and colore testo white  |\n\
 |  -digita 2 per un background bianco and colore testo nero |\n\
 |  -digita 3 per un background nero and colore testo bianco |\n\
+|  -digita 4 per un background nero and colore testo verde  |\n\
 =============================================================\n\
->>> number: ";
+>>> inserisci qui il numero: ";
 
 
 O3 void init_shell() 
@@ -31,6 +29,20 @@ O3 void kernel_main()
 {
     idt_init();
     enable_interrupts();
-    memset((void*) bff_cmd_line, 0, SIZE_COMMAND_SHELL);
     init_shell();
+
+    /*
+    === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
+    */
+
+    /*
+    asm volatile (
+        "xor %%edx, %%edx\n"
+        "mov $1, %%eax\n"
+        "div %%edx\n"
+        :
+        :
+        : "eax", "edx"
+    );
+    */
 }

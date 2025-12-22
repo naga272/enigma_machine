@@ -42,7 +42,7 @@ make run
 
 ## Dimostrazione pratica
 
-https://youtu.be/CWaiKgfZv8c
+video dimostrazione: https://youtu.be/MrmyWbp1kYI
 
 ## Fonti
 
