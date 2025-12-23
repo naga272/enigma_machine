@@ -9,7 +9,8 @@
 /*
 * funzioni di gestione degli interrupt (descritte in idt.asm):
 *   - no_interrupt():   e' un handler generico per interrupt non gestiti
-*   - int21h():         e' specifico per l'interrupt 0x21, che è tipicamente associato alla tastiera.
+*   - int0h():		e' specificato per l'interrupt 0, usato per la divisione per zero
+*   - int21h():         e' specifico per l'interrupt 0x21, che è associato alla tastiera.
 */
 
 
@@ -135,16 +136,13 @@ O3 static inline void do_backspace(uchar c)
 }
 
 
-int is_int0h_triggered = 0;
 O3 void int0h_handler()
 {
-    if (!is_int0h_triggered) {
-        panic((uchar*) "Impossibile eseguire la divisione per zero\n");
-        is_int0h_triggered++;
-    }
-
+    panic((uchar*) "Impossibile eseguire la divisione per zero\n");
     disable_interrupts();
-    while (1) {}
+    disable_cursor();
+
+    asm volatile ("hlt");
 }
 
 
@@ -235,3 +233,4 @@ O3 void idt_init()
     // Load the interrupt descriptor table
     idt_load(&idtr_descriptor);
 }
+

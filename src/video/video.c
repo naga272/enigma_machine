@@ -7,10 +7,10 @@
 
 
 void terminal_writechar(uchar c, char colour);
-void terminal_initialize(int colore);
+void terminal_initialize(u8 colore);
 
 
-O3 uint16_t set_char_terminal(uchar c, char colour)
+O3 u16 set_char_terminal(uchar c, char colour)
 {
     /*
     *   abbiamo un unsigned int a 16 bit.
@@ -183,19 +183,37 @@ O3 void printk(const uchar* msg)
 }
 
 
-O3 void terminal_initialize(int colore)
+O3 void enable_cursor(u8 start_cursor, u8 end_cursor)
+{
+	outb(0x3d4, 0x0a);
+	outb(0x3d5, (insw((char) 0x3d5) & 0xc0) | start_cursor);
+
+	outb(0x3d4, 0x08);
+	outb(0x3d5, (insw((char) 0x3d5) & 0xe0) | end_cursor);
+}
+
+
+O3 void disable_cursor()
+{
+	outb(0x3d5, 0x0A);
+	outb(0x3d4, 0x20);
+}
+
+
+O3 void terminal_initialize(u8 colore)
 {
     /*
     *   Funzione usata all'interno di kernel.c nella funzione kernel_main.
     *   setta lo screen col colore nero
     **/
-    video_mem = (uint16_t*) (0xb8000);
+    enable_cursor((u8) 0, (u8) 0);
+    video_mem = (u16*) (0xb8000);
     actual_color_terminal = colore;
 
-    for (int y = 0; y < VGA_HEIGHT; y++) 
-        for (int x = 0; x < VGA_WIDTH; x++) 
+    for (u32 y = 0; y < VGA_HEIGHT; y++) 
+        for (u32 x = 0; x < VGA_WIDTH; x++) 
             terminal_put_char(x, y, ' ', colore);
-    
+
     terminal_row = 0;
     terminal_col = 0;
 }
@@ -226,3 +244,4 @@ O3 void panic(const char* msg)
     print((const uchar*) msg);
     print((const uchar*) panic_face);
 }
+

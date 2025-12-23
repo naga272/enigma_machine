@@ -67,6 +67,10 @@ void printk(const uchar*);
 void terminal_initialize();
 void panic(const uchar*);
 
+
+void enable_cursor(u8 start_cursor, u8 end_cursor);
+void disable_cursor_cursor(u8 x, u8 y);
+
 #endif
 
 

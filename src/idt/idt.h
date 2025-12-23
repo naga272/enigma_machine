@@ -65,6 +65,7 @@ extern size_t actual_color_terminal;
 extern void print(const uchar*);
 extern void printk(const uchar*);
 extern void terminal_writechar(const uchar, int);
+extern void disable_cursor();
 extern void terminal_initialize(int);
 extern void panic(const uchar*);
 

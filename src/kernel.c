@@ -34,8 +34,6 @@ O3 void kernel_main()
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
     */
-
-    /*
     asm volatile (
         "xor %%edx, %%edx\n"
         "mov $1, %%eax\n"
@@ -44,5 +42,4 @@ O3 void kernel_main()
         :
         : "eax", "edx"
     );
-    */
 }
