@@ -117,7 +117,7 @@ O3 static inline void try_the_answer(uchar c)
 
 O3 static inline void start_encryption()
 {
-    print((uchar*) "\nparola criptata: ");
+    terminal_writechar('\n', actual_color_terminal);
 
     for (size_t i = 0; bff_cmd_line[i] != 0; i++)
         terminal_writechar(core_enigma(bff_cmd_line[i]), actual_color_terminal);
