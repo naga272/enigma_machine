@@ -37,10 +37,12 @@ C = posizione cursore
 #define BIANCO          15
 
 /* SET BACKBGROUND CON COLORE TESTO*/
-#define BG_BLU_C_WHITE      (BLU << 4)      | BIANCO
-#define BG_BIANCO_C_NERO    (BIANCO << 4)   | NERO
-#define BG_NERO_C_BIANCO    (NERO << 4)     | BIANCO 
-#define BG_NERO_C_VERDE     (NERO << 4)     | VERDE 
+// background general colour with char general colour
+#define BG_GC_C_GC(BG, C)   ((BG << 4)       | C)
+#define BG_BLU_C_WHITE      ((BLU << 4)      | BIANCO)
+#define BG_BIANCO_C_NERO    ((BIANCO << 4)   | NERO)
+#define BG_NERO_C_BIANCO    ((NERO << 4)     | BIANCO) 
+#define BG_NERO_C_VERDE     ((NERO << 4)     | VERDE)
 
 #ifdef settings_video
 
