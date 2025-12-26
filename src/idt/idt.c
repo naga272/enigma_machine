@@ -156,6 +156,7 @@ O3 static inline void do_backspace(uchar c)
 }
 
 
+u8 trigger_exception = 0;
 O3 void int0h_handler()
 {
     /*
@@ -165,15 +166,73 @@ O3 void int0h_handler()
     * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
     * a chiamare così la funzione puntata dal puntatore in IDT[0]
     * */
-    disable_interrupts();
-    disable_cursor();
-    panic((uchar*) "Impossibile eseguire la divisione per zero\n");
-    asm volatile ("hlt");
+    if (!trigger_exception)
+        trigger_exception++;
 }
 
 
+u8 num_color = 0;
 O3 void int20h_handler()
 {
+    if (!trigger_exception)
+        goto out;
+
+    if (num_color > 15)
+        num_color = 1;
+
+    switch (num_color) {
+        // ho saltato un colore perche' il colore delle scritte sono uguali al colore del bg
+        case 1:
+            actual_color_terminal = BG_GC_C_GC(BLU, NERO);
+            break;
+        case 2:
+            actual_color_terminal = BG_GC_C_GC(BLU, VERDE);
+            break;
+        case 3:
+            actual_color_terminal = BG_GC_C_GC(BLU, CIANO);
+            break;
+        case 4:
+            actual_color_terminal = BG_GC_C_GC(BLU, ROSSO);
+            break;
+        case 5:
+            actual_color_terminal = BG_GC_C_GC(BLU, VIOLA);
+            break;
+        case 6:
+            actual_color_terminal = BG_GC_C_GC(BLU, MARRONE);
+            break;
+        case 7:
+            actual_color_terminal = BG_GC_C_GC(BLU, GRIGIO);
+            break;
+        case 8:
+            actual_color_terminal = BG_GC_C_GC(BLU, GRIGIO_SCURO);
+            break;
+        case 9:
+            actual_color_terminal = BG_GC_C_GC(BLU, BLU_CHIARO);
+            break;
+        case 10:
+            actual_color_terminal = BG_GC_C_GC(BLU, VERDE_CHIARO);
+            break;
+        case 11:
+            actual_color_terminal = BG_GC_C_GC(BLU, CIANO_CHIARO);
+            break;
+        case 12:
+            actual_color_terminal = BG_GC_C_GC(BLU, ROSSO_CHIARO);
+            break;
+        case 13:
+            actual_color_terminal = BG_GC_C_GC(BLU, VIOLA_CHIARO);
+            break;
+        case 14:
+            actual_color_terminal = BG_GC_C_GC(BLU, GIALLO);
+            break;
+        case 15:
+            actual_color_terminal = BG_GC_C_GC(BLU, BIANCO);
+            break;
+    }
+
+    panic((uchar*) "Impossibile eseguire la divisione per zero\n");
+
+    num_color++;
+out:
     outb(0x20, 0x20);
 }
 
@@ -341,6 +400,19 @@ O3 void idt_set(int interrupt_no, void* address)
 }
 
 
+O3 static inline void set_timer_pit()
+{
+    #define oscilloscopio_frequenza 1193182
+    #define hz 1193182 - 1
+
+    u16 divisione = oscilloscopio_frequenza / hz;
+
+    outb(0x43, 0x36);
+    outb(0x40, divisione & 0xFF);   // low
+    outb(0x40, divisione >> 8);     // high
+}
+
+
 O3 static inline void set_default_int()
 {
     for (int i = 0; i < OS_TOTAL_INTERRUPTS; i++)
@@ -385,4 +457,6 @@ O3 void idt_init()
     
     // Load the interrupt descriptor table
     idt_load(&idtr_descriptor);
+
+    set_timer_pit();
 }

@@ -249,6 +249,7 @@ static inline void delay(volatile u32 count)
 }
 
 
+u8 panic_init = 0;
 O3 void panic(const char* msg)
 {
     /*
@@ -259,68 +260,16 @@ O3 void panic(const char* msg)
     * Se succede, disabilita tutti gli interrupt e mostra
     * la schemrata BSoD
     * */
-    terminal_initialize(BG_BLU_C_WHITE);
 
-    while (1) {
-        for (int i = 1; i < 16; i++) {
-            terminal_col = 0;
-            terminal_row = 0;
-            
-            // ho saltato un colore perche' il colore delle scritte sono uguali al colore del bg
-            switch (i) {
-                case 1:
-                    actual_color_terminal = BG_GC_C_GC(BLU, NERO);
-                    break;
-                case 2:
-                    actual_color_terminal = BG_GC_C_GC(BLU, VERDE);
-                    break;
-                case 3:
-                    actual_color_terminal = BG_GC_C_GC(BLU, CIANO);
-                    break;
-                case 4:
-                    actual_color_terminal = BG_GC_C_GC(BLU, ROSSO);
-                    break;
-                case 5:
-                    actual_color_terminal = BG_GC_C_GC(BLU, VIOLA);
-                    break;
-                case 6:
-                    actual_color_terminal = BG_GC_C_GC(BLU, MARRONE);
-                    break;
-                case 7:
-                    actual_color_terminal = BG_GC_C_GC(BLU, GRIGIO);
-                    break;
-                case 8:
-                    actual_color_terminal = BG_GC_C_GC(BLU, GRIGIO_SCURO);
-                    break;
-                case 9:
-                    actual_color_terminal = BG_GC_C_GC(BLU, BLU_CHIARO);
-                    break;
-                case 10:
-                    actual_color_terminal = BG_GC_C_GC(BLU, VERDE_CHIARO);
-                    break;
-                case 11:
-                    actual_color_terminal = BG_GC_C_GC(BLU, CIANO_CHIARO);
-                    break;
-                case 12:
-                    actual_color_terminal = BG_GC_C_GC(BLU, ROSSO_CHIARO);
-                    break;
-                case 13:
-                    actual_color_terminal = BG_GC_C_GC(BLU, VIOLA_CHIARO);
-                    break;
-                case 14:
-                    actual_color_terminal = BG_GC_C_GC(BLU, GIALLO);
-                    break;
-                case 15:
-                    actual_color_terminal = BG_GC_C_GC(BLU, BIANCO);
-                    break;
-            }
-
-            print((const uchar*) msg);
-            print((const uchar*) panic_face);
-            // print((const uchar*) "\n\n(Buon natale)");
-            disable_cursor();
-            delay(50000000); // 50.000.000
-        }
+    if (!panic_init) {
+        terminal_initialize(BG_BLU_C_WHITE);
+        panic_init++;
     }
-    
+
+    terminal_col = 0;
+    terminal_row = 0;
+
+    print((const uchar*) msg);
+    print((const uchar*) panic_face);
+    disable_cursor();    
 }

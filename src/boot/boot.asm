@@ -14,21 +14,24 @@ start:
     jmp 0:step2
 
 step2:
-    cli ; Clear Interrupts
+    cli ; disabilita interrupt
     mov ax, 0x00
     mov ds, ax
     mov es, ax
     mov ss, ax
     mov sp, 0x7c00
-    sti ; Enables Interrupts
+    sti ; riattiva interrupts
 
 .load_protected:
     cli
-    lgdt[gdt_descriptor]
+    lgdt[gdt_descriptor] ; carico la gdt all'interno del registro gdtr
+    ; switcho in protected mode
     mov eax, cr0
     or eax, 0x1
     mov cr0, eax
+
     jmp CODE_SEG:load32
+
 
 ; GDT
 gdt_start:
@@ -63,10 +66,12 @@ gdt_descriptor:
 
 [BITS 32]
 load32:
-    mov eax, 1
-    mov ecx, 100
-    mov edi, 0x0100000
+    mov eax, 1      ; comincia a leggere dal primo settore del disco
+    mov ecx, 100    ; leggi fino a 100 settori
+    mov edi, 0x0100000  ; carica i settori in ram a partire dall'indirizzo 0x0100000
     call ata_lba_read
+
+    ; esegue il codice del kernel caricato in ram
     jmp CODE_SEG:0x0100000
 
 
