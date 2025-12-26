@@ -32,9 +32,26 @@ struct idtr_desc idtr_descriptor;                       // rappresenta il regist
 extern uchar core_enigma(uchar container);
 extern void* memset(void *ptr, int c, size_t n);
 extern void idt_load(struct idtr_desc* ptr); // (carica la idt)
+
 extern void no_interrupt(); // usato per l'assegnamento di una funzione di default agli interrupt
-extern void int21h();       // interrupt per la tastiera
-extern void int0h();       // interrupt per la tastiera
+
+extern void int0h();
+extern void int20h();       
+extern void int21h();       
+extern void int22h();       
+extern void int23h();       
+extern void int24h();       
+extern void int25h();       
+extern void int26h();       
+extern void int27h();       
+extern void int28h();       
+extern void int29h();       
+extern void int2ah();       
+extern void int2bh();       
+extern void int2ch();       
+extern void int2dh();       
+extern void int2eh();       
+extern void int2fh();       
 
 
 /*
@@ -155,6 +172,12 @@ O3 void int0h_handler()
 }
 
 
+O3 void int20h_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
 O3 void int21h_handler()
 {
     /*
@@ -219,6 +242,90 @@ out:
 }
 
 
+O3 void int22h_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int23h_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int24h_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int25h_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int26h_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int27h_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int28h_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int29h_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int2ah_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int2bh_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int2ch_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int2dh_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int2eh_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
+O3 void int2fh_handler()
+{
+    outb(0x20, 0x20);
+}
+
+
 O3 void idt_set(int interrupt_no, void* address)
 {
     /*
@@ -254,9 +361,28 @@ O3 void idt_init()
 
     set_default_int();
 
-    idt_set(0x00, int0h);
-    idt_set(0x21, int21h);
+    idt_set(0x00, int0h);   // divisione per zero
 
+    /* IRQ MASTER */
+    idt_set(0x20, int20h);  // PIT timer
+    idt_set(0x21, int21h);  // tastiera
+    idt_set(0x22, int22h);  // collegamento verso lo slave
+    idt_set(0x23, int23h);  // COM2 / COM4
+    idt_set(0x24, int24h);  // COM1 / COM3
+    idt_set(0x25, int25h);  // LPT / audio
+    idt_set(0x26, int26h);  // floppy
+    idt_set(0x27, int27h);  // spurious
+    
+    /* IRQ SLAVE */
+    idt_set(0x28, int28h);  // RTC (orologio)
+    idt_set(0x29, int29h);  // redirect to irq2 del master
+    idt_set(0x2A, int2ah);  // libero
+    idt_set(0x2B, int2bh);  // libero
+    idt_set(0x2C, int2ch);  // mouse
+    idt_set(0x2D, int2dh);  // FPU
+    idt_set(0x2E, int2eh);  // IDE Primary 
+    idt_set(0x2F, int2fh);  // IDE Secondary
+    
     // Load the interrupt descriptor table
     idt_load(&idtr_descriptor);
 }
