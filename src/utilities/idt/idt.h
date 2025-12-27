@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "io/io.h"
+#include "utilities/io/io.h"
 
 /*
 * L'interrupt descriptor table descrive come gli interrupt vengono chiamati in protected mode.
@@ -46,29 +46,27 @@ void idt_init();
 void enable_interrupts();
 void disable_interrupts();
 
+// usato per l'assegnamento di una funzione di default agli interrupt 
+extern void no_interrupt();
 
-/*
-    Enigma algorithm
-    NB: Keep it semple, Stupid - Dennis Ritchie
-*/
+extern void idt_load(struct idtr_desc* ptr); // (carica IN IDTR la idt)
 
-extern const uchar alfabeto[26];
-extern const uchar plugboard[20][2];
-extern uchar *rotore1;
-extern uchar *rotore2;
-extern uchar *rotore3;
-extern u8 count_rotore1, count_rotore2;
+
+#ifndef EOI_MASTER
+#define EOI_MASTER outb(0x20, 0x20)
+#endif
+
+#ifndef EOI_SLAVE
+#define EOI_SLAVE outb(0xA0, 0x20)
+#endif
+
+
+// from stdlib/stdlib.c - stdlib.h
+extern void* memset(void *ptr, int c, size_t n);
 
 
 // from video/video.c - video.h
-extern size_t actual_color_terminal;
-extern void print(const uchar*);
-extern void printk(const uchar*);
-extern void terminal_writechar(const uchar, int);
-extern void disable_cursor();
-extern void terminal_initialize(int);
 extern void panic(const uchar*);
-
-#define EOI outb(0x20, 0x20)
+extern size_t actual_color_terminal;
 
 #endif

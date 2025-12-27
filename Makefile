@@ -1,5 +1,5 @@
 
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/io/io.asm.o ./build/stdlib/stdlib.o ./build/string/string.o ./build/video/video.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/enigma/enigma.o
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/io/io.asm.o ./build/stdlib/stdlib.o ./build/string/string.o ./build/video/video.o ./build/idt/body_int/slave/rtc_orologio.o ./build/idt/body_int/master/input_keyboard.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/enigma/enigma.o
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -39,33 +39,41 @@ iso: ./bin/os.bin
 	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -I/usr/include/python3.12 -c ./src/kernel.c -o ./build/kernel.o
 
 
-./build/io/io.asm.o: ./src/io/io.asm
-	nasm -f elf -g ./src/io/io.asm -o ./build/io/io.asm.o
+./build/io/io.asm.o: ./src/utilities/io/io.asm
+	nasm -f elf -g ./src/utilities/io/io.asm -o ./build/io/io.asm.o
 
 
-./build/video/video.o: ./src/video/video.c
-	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/video/video.c -o ./build/video/video.o
+./build/stdlib/stdlib.o: ./src/utilities/stdlib/stdlib.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/stdlib/stdlib.c -o ./build/stdlib/stdlib.o
 
 
-./build/idt/idt.asm.o: ./src/idt/idt.asm
-	nasm -f elf -g ./src/idt/idt.asm -o ./build/idt/idt.asm.o
+./build/string/string.o: ./src/utilities/string/string.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/string/string.c -o ./build/string/string.o
 
 
-./build/stdlib/stdlib.o: ./src/stdlib/stdlib.c
-	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/stdlib/stdlib.c -o ./build/stdlib/stdlib.o
+./build/video/video.o: ./src/utilities/video/video.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/video/video.c -o ./build/video/video.o
 
 
-./build/string/string.o: ./src/string/string.c
-	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/string/string.c -o ./build/string/string.o
+./build/idt/body_int/master/input_keyboard.o: ./src/utilities/idt/body_int/master/input_keyboard.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/idt/body_int/master/input_keyboard.c -o ./build/idt/body_int/master/input_keyboard.o
 
 
-./build/idt/idt.o: ./src/idt/idt.c 
-	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/idt/idt.c -o ./build/idt/idt.o
+./build/idt/body_int/slave/rtc_orologio.o: ./src/utilities/idt/body_int/slave/rtc_orologio.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/idt/body_int/slave/rtc_orologio.c -o ./build/idt/body_int/slave/rtc_orologio.o
 
 
-./build/enigma/enigma.o: ./src/enigma/enigma.c
-	# nasm -f elf -g ./src/enigma/enigma.asm -o ./build/enigma/enigma.o
-	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/enigma/enigma.c -o ./build/enigma/enigma.o
+./build/idt/idt.o: ./src/utilities/idt/idt.c 
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/idt/idt.c -o ./build/idt/idt.o
+
+
+./build/enigma/enigma.o: ./src/utilities/enigma/enigma.c
+	# nasm -f elf -g ./src/utilities/enigma/enigma.asm -o ./build/enigma/enigma.o
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/enigma/enigma.c -o ./build/enigma/enigma.o
+
+
+./build/idt/idt.asm.o: ./src/utilities/idt/idt.asm
+	nasm -f elf -g ./src/utilities/idt/idt.asm -o ./build/idt/idt.asm.o
 
 
 run:

@@ -50,4 +50,28 @@ typedef unsigned char uchar;
 #define KDBG "<3>"
 #endif
 
+/* STANDARD COLOR */
+#define NERO            0
+#define BLU             1
+#define VERDE           2
+#define CIANO           3
+#define ROSSO           4
+#define VIOLA           5
+#define MARRONE         6
+#define GRIGIO          7
+#define GRIGIO_SCURO    8
+#define BLU_CHIARO      9
+#define VERDE_CHIARO    10
+#define CIANO_CHIARO    11
+#define ROSSO_CHIARO    12
+#define VIOLA_CHIARO    13
+#define GIALLO          14
+#define BIANCO          15
+
+#define BG_GC_C_GC(BG, C)   ((BG << 4)       | C)
+#define BG_BLU_C_WHITE      ((BLU << 4)      | BIANCO)
+#define BG_BIANCO_C_NERO    ((BIANCO << 4)   | NERO)
+#define BG_NERO_C_BIANCO    ((NERO << 4)     | BIANCO) 
+#define BG_NERO_C_VERDE     ((NERO << 4)     | VERDE)
+
 #endif

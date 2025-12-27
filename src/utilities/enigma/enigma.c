@@ -1,8 +1,8 @@
 #include "config.h"
 
 #define ENIGMA_SET  // rende possibile la dichiarazione di variabili di enigma/enigma.h
-#include "enigma/enigma.h"
-#include "stdlib/stdlib.h"
+#include "utilities/enigma/enigma.h"
+#include "utilities/stdlib/stdlib.h"
 
 
 O3 static inline const uchar m_plugboard(const uchar c)

@@ -1,8 +1,8 @@
 section .asm
 
-%include "src/idt/exception_cpu.asm"
-%include "src/idt/pic/master_pic.asm"
-%include "src/idt/pic/slave_pic.asm"
+%include "src/utilities/idt/exception_cpu.asm"
+%include "src/utilities/idt/pic/master_pic.asm"
+%include "src/utilities/idt/pic/slave_pic.asm"
 
 global idt_load
 global no_interrupt

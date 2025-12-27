@@ -1,4 +1,4 @@
-#include "string/string.h"
+#include "utilities/string/string.h"
 
 unsigned char* strcat(unsigned char* ptr1, size_t size_ptr1, unsigned char* ptr2)
 {

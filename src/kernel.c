@@ -1,8 +1,8 @@
 #include "config.h"
 #include "kernel.h"
-#include "idt/idt.h"
-#include "stdlib/stdlib.h"
-#include "video/video.h"
+#include "utilities/idt/idt.h"
+#include "utilities/stdlib/stdlib.h"
+#include "utilities/video/video.h"
 
 
 uchar start_msg[] = "\

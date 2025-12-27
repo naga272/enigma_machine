@@ -1,9 +1,9 @@
 #include "config.h"
 
-#include "stdlib/stdlib.h"
+#include "utilities/stdlib/stdlib.h"
 #define settings_video
-#include "video/video.h"
-#include "io/io.h"
+#include "utilities/video/video.h"
+#include "utilities/io/io.h"
 
 
 void terminal_writechar(uchar c, char colour);
