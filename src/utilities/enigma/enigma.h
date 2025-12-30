@@ -65,9 +65,9 @@ uchar riflettore[LENRIFLETTORE][2] = {
 
 uchar container; // contenitore carattere premuto da tastiera 
 
-
-#undef ENIGMA_SET
 #endif
+
+extern uchar core_enigma(uchar container);
 
 
 #endif

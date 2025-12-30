@@ -8,10 +8,13 @@ _start:
     jmp short start
     nop
 
+
 times 33 db 0
- 
+
+
 start:
     jmp 0:step2
+
 
 step2:
     cli ; disabilita interrupt
@@ -25,6 +28,7 @@ step2:
 .load_protected:
     cli
     lgdt[gdt_descriptor] ; carico la gdt all'interno del registro gdtr
+
     ; switcho in protected mode
     mov eax, cr0
     or eax, 0x1

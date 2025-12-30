@@ -18,6 +18,7 @@
 #endif
 
 #include <stdint.h>
+#include <stddef.h>
 
 typedef uint8_t u8;
 typedef int8_t i8;
@@ -73,5 +74,12 @@ typedef unsigned char uchar;
 #define BG_BIANCO_C_NERO    ((BIANCO << 4)   | NERO)
 #define BG_NERO_C_BIANCO    ((NERO << 4)     | BIANCO) 
 #define BG_NERO_C_VERDE     ((NERO << 4)     | VERDE)
+
+#ifndef FASE_SETUP
+#define FASE_SETUP (flag_x_colour_shell == 0)
+#endif
+
+#define CHAR_END_PHRASE(x)  (x == '\n')
+#define CHAR_BACKSPACE(x)   (x == '\b')
 
 #endif

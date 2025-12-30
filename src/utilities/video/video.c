@@ -6,8 +6,20 @@
 #include "utilities/io/io.h"
 
 
-void terminal_writechar(uchar c, char colour);
-void terminal_initialize(u8 colore);
+extern uchar core_enigma(uchar);
+
+uchar buffer_line_cmd[SIZE_COMMAND_SHELL];
+size_t idx_buff = 0;
+
+
+static inline void delay(volatile u32 count)
+{
+    /*
+    * @count: indica il "timer"
+    */
+    while (count--)
+        asm volatile("nop");
+}
 
 
 O3 u16 set_char_terminal(uchar c, char colour)
@@ -47,7 +59,7 @@ O3 static inline void vga_update_cursor()
 }
 
 
-O3 static inline void update_cursor_on_x_y_pos(u16 y, u16 x)
+O3 void update_cursor_on_x_y_pos(u16 y, u16 x)
 {
     u16 pos = y * VGA_WIDTH + x;
     outb(0x3d4, 0x0f);
@@ -74,17 +86,18 @@ O3 static inline void write_tab(uchar c, char colour)
 }
 
 
-O3 static inline void go_back(char colour)
+O3 static inline void do_backspace()
 {
-    if (terminal_col == 0) {
-        terminal_col = VGA_WIDTH;
-        terminal_row--;
-        return;
-    }
+    if (idx_buff > 0) {
+        idx_buff--;
+        buffer_line_cmd[idx_buff] = 0;
 
-    terminal_col--;
-    terminal_writechar(' ', colour);
-    terminal_col--;
+        terminal_col--;
+        terminal_writechar(' ', actual_color_terminal);
+        terminal_col--;
+        // print((uchar*) buffer_line_cmd);
+        vga_update_cursor();
+    }
 }
 
 
@@ -112,7 +125,7 @@ O3 void terminal_writechar(uchar c, char colour)
             write_tab(c, colour);
             break;
         case '\b':
-            go_back(colour);
+            do_backspace(colour);
             break;
         default:
             write_char(c, colour);
@@ -121,7 +134,8 @@ O3 void terminal_writechar(uchar c, char colour)
 
     if (terminal_row >= VGA_HEIGHT - 1) {
         terminal_initialize(actual_color_terminal);
-        terminal_row = 0;
+        terminal_row = 1;
+        terminal_col = 1;
     }
 
     vga_update_cursor();
@@ -135,51 +149,6 @@ O3 void print(const uchar* string)
     */
     for (size_t i = 0; string[i] != '\0'; i++)
         terminal_writechar(string[i], actual_color_terminal);
-}
-
-
-u8 log_level = 3;
-
-#ifndef max_level_log
-#define max_level_log 3
-#endif
-
-#ifndef max_level_log_char
-#define max_level_log_char (char) max_level_log + 48
-#endif
-
-O3 void printk(const uchar* msg)
-{
-    if (!(msg[0] == '<' && msg[1] >= '0' && msg[1] <= '3' && msg[2] == '>')) {
-        printk((uchar*) KWARN "errore formattazione printk!!\n");
-        return;
-    }
-
-    u8 lvl_msg = ((u8) msg[1]) - 48;
-    msg += 3; // salto "<n>"
-
-    if (lvl_msg > log_level)
-        return;
-
-    char tmp_actual_color_terminal = actual_color_terminal; 
-
-    switch (lvl_msg) {
-        case 0:
-            actual_color_terminal = ROSSO;
-            break;
-        case 1:
-            actual_color_terminal = GIALLO;
-            break;
-        case 2:
-            actual_color_terminal = BLU_CHIARO;
-            break;    
-        case 3:
-            actual_color_terminal = BIANCO;
-            break;
-    }
-
-    print(msg);
-    actual_color_terminal = tmp_actual_color_terminal;
 }
 
 
@@ -214,8 +183,51 @@ O3 void terminal_initialize(u8 colore)
         for (u32 x = 0; x < VGA_WIDTH; x++) 
             terminal_put_char(x, y, ' ', colore);
 
-    terminal_row = 0;
+    terminal_row = 1;
     terminal_col = 0;
+
+    memset(buffer_line_cmd, 0, SIZE_COMMAND_SHELL);
+    idx_buff = 0;
+}
+
+
+void clean_bff_cmd_line()
+{
+    memset(buffer_line_cmd, 0, idx_buff);
+    idx_buff = 0;
+}
+
+
+O3 static inline void start_encryption()
+{
+    terminal_writechar('\n', actual_color_terminal);
+
+    for (size_t i = 0; buffer_line_cmd[i] != 0; i++)
+        terminal_writechar(core_enigma(buffer_line_cmd[i]), actual_color_terminal);
+
+    clean_bff_cmd_line();
+    print((uchar*) "\n>>> ");
+}
+
+
+void gestisci_char_to_write(uchar tmp_char_container)
+{
+    if (!tmp_char_container || (tmp_char_container >= '0' && tmp_char_container <= '4'))
+        return;
+
+    if (CHAR_BACKSPACE(tmp_char_container)) {
+        do_backspace();
+        return;
+    }
+
+    if (CHAR_END_PHRASE(tmp_char_container)) {
+        start_encryption();
+        return;
+    }
+
+    terminal_writechar(tmp_char_container, actual_color_terminal);
+    buffer_line_cmd[idx_buff] = tmp_char_container;
+    idx_buff++;
 }
 
 
@@ -236,17 +248,6 @@ char* panic_face = "\n\
         :(_______________________________(\n\
         \n\
 ";
-
-
-static inline void delay(volatile u32 count)
-{
-    /*
-    * mi serve per rallentare lo switch di colore delle scritte in panic()
-    * @count: indica il "timer"
-    */
-    while (count--)
-        asm volatile("nop");
-}
 
 
 u8 panic_init = 0;
@@ -272,4 +273,68 @@ O3 void panic(const char* msg)
     print((const uchar*) msg);
     print((const uchar*) panic_face);
     disable_cursor();    
+}
+
+
+/* lock serve ha bloccare il numero di messaggi per errore durante la fase di setup */
+u8 lock = 0;
+// usato per dire se la fase di setup e' finita (try_answer foo)
+u8 flag_x_colour_shell = 0;
+O3 void try_the_setup(uchar c)
+{
+    /*
+    *   Questo codice viene usato in fase di setup per determinare il colore dello sfondo del terminale
+    *   e dei caratteri
+    *   @c: contiene un numero sotto forma di char per decidere i colori
+    * **/
+    if (!c)
+        return;
+
+    if (c < '1' || c > '4') {
+        if (!lock) {
+            print(
+                (uchar*) " \nerror! devi premere un tasto tra l'1 e il 4\n"
+                "scegli colore: "
+            );
+            lock = 1;
+            return;
+        }
+    }
+
+    switch (c) {
+        case '1':
+            terminal_initialize(BG_BLU_C_WHITE);
+            flag_x_colour_shell++;
+            print((uchar*) ">>> ");
+            break;
+
+        case '2':
+            terminal_initialize(BG_BIANCO_C_NERO);
+            flag_x_colour_shell++;
+            print((uchar*) ">>> ");
+            break;
+
+        case '3':
+            terminal_initialize(BG_NERO_C_BIANCO);
+            flag_x_colour_shell++;
+            print((uchar*) ">>> ");
+            break;
+
+        case '4':
+            terminal_initialize(BG_NERO_C_VERDE);
+            flag_x_colour_shell++;
+            print((uchar*) ">>> ");
+            break;
+
+        default:
+            break;
+    }
+
+    /*
+    *   Well, per qualche ragione a me sconosciuta
+    *   se metto qui sotto:
+    *       flag_x_colour_shell++;
+    *       print((uchar*) ">>> ");
+    *   si bugga, quindi lo lascio nello switch (li funziona)
+    */
 }

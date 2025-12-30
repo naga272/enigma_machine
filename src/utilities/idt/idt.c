@@ -12,16 +12,18 @@
 #include "utilities/stdlib/stdlib.h"
 
 #include "utilities/idt/idt.h"
-#include "utilities/idt/interrupts_num.h"
+#include "utilities/idt/body_int/master/pit.h"
+#include "utilities/idt/body_int/slave/rtc_orologio.h"
 
 
-// usato in int20h_handler
-u8 num_color = 0;
+struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
+struct idtr_desc idtr_descriptor;                       // rappresenta il registro idtr (interrupt descriptor table register)
+
+// usato in int20_handler per incrementare il flag t->rtc_dirty
+u8 ticks_int20_rtc = 0;
 
 // usato per la gestione di eccezioni triggherate dalla cpu
 u8 trigger_exception = 0;
-struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
-struct idtr_desc idtr_descriptor;                       // rappresenta il registro idtr (interrupt descriptor table register)
 
 
 O3 void no_interrupt_handler()
@@ -131,13 +133,6 @@ O3 void int8h_handler()
 
 O3 void int9h_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -145,13 +140,6 @@ O3 void int9h_handler()
 
 O3 void intah_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -159,13 +147,6 @@ O3 void intah_handler()
 
 O3 void intbh_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -173,13 +154,6 @@ O3 void intbh_handler()
 
 O3 void intch_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -187,26 +161,13 @@ O3 void intch_handler()
 
 O3 void intdh_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
 
+
 O3 void inteh_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -214,13 +175,6 @@ O3 void inteh_handler()
 
 O3 void intfh_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -228,13 +182,6 @@ O3 void intfh_handler()
 
 O3 void int10h_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -242,13 +189,6 @@ O3 void int10h_handler()
 
 O3 void int11h_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -256,13 +196,6 @@ O3 void int11h_handler()
 
 O3 void int12h_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -270,13 +203,6 @@ O3 void int12h_handler()
 
 O3 void int13h_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -284,13 +210,6 @@ O3 void int13h_handler()
 
 O3 void int14h_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -298,13 +217,6 @@ O3 void int14h_handler()
 
 O3 void int15h_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -312,13 +224,6 @@ O3 void int15h_handler()
 
 O3 void int16h_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -326,13 +231,6 @@ O3 void int16h_handler()
 
 O3 void int17h_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -340,13 +238,6 @@ O3 void int17h_handler()
 
 O3 void int18h_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -354,13 +245,6 @@ O3 void int18h_handler()
 
 O3 void int19h_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -368,13 +252,6 @@ O3 void int19h_handler()
 
 O3 void int1ah_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -382,13 +259,6 @@ O3 void int1ah_handler()
 
 O3 void int1bh_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -396,13 +266,6 @@ O3 void int1bh_handler()
 
 O3 void int1ch_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -410,13 +273,6 @@ O3 void int1ch_handler()
 
 O3 void int1dh_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -424,13 +280,6 @@ O3 void int1dh_handler()
 
 O3 void int1eh_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -438,13 +287,6 @@ O3 void int1eh_handler()
 
 O3 void int1fh_handler()
 {
-    /*
-    * Questo interrupt viene triggherato quando viene eseguita una divisione
-    * per zero.
-    * Prima di eseguire la DIV la cpu esegue dei controlli per verificare la validità
-    * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
-    * a chiamare così la funzione puntata dal puntatore in IDT[0]
-    * */
     if (!trigger_exception)
         trigger_exception++;
 }
@@ -452,64 +294,23 @@ O3 void int1fh_handler()
 
 O3 void int20h_handler()
 {
+    /*
+    Triggherata dal PIT, se è stato triggherata una eccezione dalla cpu
+    esegue la funzione do_pit()
+    */
+
+    if (ticks_int20_rtc >= 20) {
+        set_rtc_dirty(&t, 1);
+        ticks_int20_rtc = 0;
+    }
+
+    ticks_int20_rtc++;
+
     if (!trigger_exception)
         goto out;
 
-    if (num_color > 15)
-        num_color = 1;
+    do_pit();
 
-    switch (num_color) {
-        // ho saltato un colore perche' il colore delle scritte sono uguali al colore del bg
-        case 1:
-            actual_color_terminal = BG_GC_C_GC(BLU, NERO);
-            break;
-        case 2:
-            actual_color_terminal = BG_GC_C_GC(BLU, VERDE);
-            break;
-        case 3:
-            actual_color_terminal = BG_GC_C_GC(BLU, CIANO);
-            break;
-        case 4:
-            actual_color_terminal = BG_GC_C_GC(BLU, ROSSO);
-            break;
-        case 5:
-            actual_color_terminal = BG_GC_C_GC(BLU, VIOLA);
-            break;
-        case 6:
-            actual_color_terminal = BG_GC_C_GC(BLU, MARRONE);
-            break;
-        case 7:
-            actual_color_terminal = BG_GC_C_GC(BLU, GRIGIO);
-            break;
-        case 8:
-            actual_color_terminal = BG_GC_C_GC(BLU, GRIGIO_SCURO);
-            break;
-        case 9:
-            actual_color_terminal = BG_GC_C_GC(BLU, BLU_CHIARO);
-            break;
-        case 10:
-            actual_color_terminal = BG_GC_C_GC(BLU, VERDE_CHIARO);
-            break;
-        case 11:
-            actual_color_terminal = BG_GC_C_GC(BLU, CIANO_CHIARO);
-            break;
-        case 12:
-            actual_color_terminal = BG_GC_C_GC(BLU, ROSSO_CHIARO);
-            break;
-        case 13:
-            actual_color_terminal = BG_GC_C_GC(BLU, VIOLA_CHIARO);
-            break;
-        case 14:
-            actual_color_terminal = BG_GC_C_GC(BLU, GIALLO);
-            break;
-        case 15:
-            actual_color_terminal = BG_GC_C_GC(BLU, BIANCO);
-            break;
-    }
-
-    panic((uchar*) "Impossibile eseguire la divisione per zero\n");
-
-    num_color++;
 out:
     EOI_MASTER;
 }
@@ -592,6 +393,9 @@ O3 void int27h_handler()
 
 O3 void int28h_handler()
 {
+    // weeell, for some reason doesn't work, traferito tutto in int20h xD 
+    outb(0x70, 0x0C);
+    insb(0x71);        // ACK RTC
     /*
     * RTC orologio
     ****/
@@ -649,14 +453,14 @@ O3 void int2fh_handler()
 }
 
 
-O3 void idt_set(int interrupt_no, void* address)
+O3 static inline void idt_set(int interrupt_no, void* address)
 {
     /*
     *   @interrupt_no:  Numero dell'interrupt
     *   @address:       Puntatore a funzione che viene triggerato dopo un'evento
     */
     struct idt_desc* desc = &idt_descriptors[interrupt_no]; // rappresenta un singolo interrupt
-    desc->offset_1  = (u32) address & 0x0000ffff;       
+    desc->offset_1  = (u32) address & 0x0000ffff;
     desc->selector  = KERNEL_CODE_SELECTOR;
     desc->zero      = 0x00;
     desc->type_attr = 0xEE;
@@ -664,23 +468,18 @@ O3 void idt_set(int interrupt_no, void* address)
 }
 
 
-O3 static inline void set_timer_pit()
-{
-    #define oscilloscopio_frequenza 1193182
-    #define hz 1193182 - 1
-
-    u16 divisione = oscilloscopio_frequenza / hz;
-
-    outb(0x43, 0x36);
-    outb(0x40, divisione & 0xFF);   // low
-    outb(0x40, divisione >> 8);     // high
-}
-
-
 O3 static inline void set_default_int()
 {
     for (int i = 0; i < OS_TOTAL_INTERRUPTS; i++)
         idt_set(i, no_interrupt);
+}
+
+
+O3 static inline void init_value_hardware()
+{
+    init_hardware_pit();
+
+    init_hardware_rtc();
 }
 
 
@@ -697,7 +496,7 @@ O3 void idt_init()
 
     set_default_int();
 
-    /* ECCEZIONI DELLA CPU */
+    /* ECCEZIONI TRIGGHERATE DELLA CPU */
     idt_set(0x00, int0h);   // divisione per zero
     idt_set(0x01, int1h);   // debug
     idt_set(0x02, int2h);   // IMI
@@ -750,9 +549,9 @@ O3 void idt_init()
     idt_set(0x2D, int2dh);  // FPU
     idt_set(0x2E, int2eh);  // IDE Primary 
     idt_set(0x2F, int2fh);  // IDE Secondary
-    
+
     // Load the interrupt descriptor table
     idt_load(&idtr_descriptor);
 
-    set_timer_pit();
+    init_value_hardware();
 }

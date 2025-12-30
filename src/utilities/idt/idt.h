@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "utilities/io/io.h"
+#include "utilities/idt/interrupts_num.h"
 
 /*
 * L'interrupt descriptor table descrive come gli interrupt vengono chiamati in protected mode.
@@ -47,9 +48,8 @@ void enable_interrupts();
 void disable_interrupts();
 
 // usato per l'assegnamento di una funzione di default agli interrupt 
-extern void no_interrupt();
-
-extern void idt_load(struct idtr_desc* ptr); // (carica IN IDTR la idt)
+void no_interrupt();
+void idt_load(struct idtr_desc* ptr); // (carica IN IDTR la idt)
 
 
 #ifndef EOI_MASTER
@@ -60,13 +60,7 @@ extern void idt_load(struct idtr_desc* ptr); // (carica IN IDTR la idt)
 #define EOI_SLAVE outb(0xA0, 0x20)
 #endif
 
-
 // from stdlib/stdlib.c - stdlib.h
 extern void* memset(void *ptr, int c, size_t n);
-
-
-// from video/video.c - video.h
-extern void panic(const uchar*);
-extern size_t actual_color_terminal;
 
 #endif
