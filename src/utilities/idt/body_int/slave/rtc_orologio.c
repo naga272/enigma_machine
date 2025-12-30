@@ -78,25 +78,25 @@ O3 void do_rtc()
 
 O3 void init_hardware_rtc()
 {
-    // 1. PRIMA rimuovi la maschera di IRQ8 sul PIC slave
-    outb(0xA1, insb(0xA1) & ~0x01);  // Sblocca IRQ8 (bit 0)
-    
-    // 2. Sblocca anche IRQ2 sul master per il cascading
-    outb(0x21, insb(0x21) & ~0x04);  // Sblocca IRQ2 (bit 2)
-    
-    // 3. Configura il RTC
+    // per far funzionare l'IRQ8 devo prima abilitare IRQ2 
+    outb(0x21, insb(0x21) & ~0x04);
+
+    // poi sblocco irq8
+    outb(0xA1, insb(0xA1) & ~0x01);
+
+    // configurazione RTC
     outb(0x70, 0x8B);
     u8 regB = insb(0x71);
     outb(0x70, 0x8B);
     outb(0x71, regB | 0x40);  // Abilita periodic interrupt (bit 6)
-    
-    // 4. Imposta la frequenza (OBLIGATORIO!)
+
+    // impostazione della frequenza
     outb(0x70, 0x8A);
     u8 regA = insb(0x71);
     outb(0x70, 0x8A);
     outb(0x71, (regA & 0xF0) | 0x0F);  // 2Hz (valore 15)
     
-    // 5. Leggi register C per pulire eventuali interrupt pending
+    // bisogna leggere register C per pulire eventuali interrupt in coda
     outb(0x70, 0x0C);
     insb(0x71);
 }

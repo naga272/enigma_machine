@@ -392,13 +392,13 @@ O3 void int27h_handler()
 
 
 O3 void int28h_handler()
-{
-    // weeell, for some reason doesn't work, traferito tutto in int20h xD 
+{ 
     outb(0x70, 0x0C);
     insb(0x71);        // ACK RTC
     /*
     * RTC orologio
-    ****/
+    * weeell, for some reason doesn't work, traferito tutto in int20h lol
+    * ***/
     EOI_SLAVE;
     EOI_MASTER;
 }
