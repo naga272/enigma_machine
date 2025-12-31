@@ -22,13 +22,17 @@ Questo sistema operativo è un omaggio all'enigma della seconda guerra mondiale,
 - Algoritmo di cifratura fedele alla logica Enigma.
 - Interfaccia interattiva minimale.
 
+## Funzionalità aggiuntive
+
+Ho aggiunto dei comandi base come `QUIT` e `REBOOT` per spegnere o riavviare la macchina.
+
 ## Requisiti
 
 - [x] **Cross C compiler**
 - [x] **NASM** assembler 
 - [x] **Make** 
 - [x] **QEMU**
-- [ ] Preferibilmente Macchina Linux (su Windows provateci pure ma vi dico che e' un bagno di sangue)
+- [ ] Macchina Linux
 
 
 ## Come Compilare ed Eseguire
@@ -42,7 +46,7 @@ make run
 
 ## Dimostrazione pratica
 
-video dimostrazione: https://youtu.be/-zRdcrr9HHw
+video dimostrazione: https://youtu.be/zVVVOAszV_c
 
 ## Fonti
 

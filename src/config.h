@@ -82,4 +82,5 @@ typedef unsigned char uchar;
 #define CHAR_END_PHRASE(x)  (x == '\n')
 #define CHAR_BACKSPACE(x)   (x == '\b')
 
+
 #endif

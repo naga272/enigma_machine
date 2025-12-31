@@ -1,3 +1,4 @@
+#define OS_X_QEMU
 #include "config.h"
 #include "kernel.h"
 #include "utilities/idt/idt.h"
@@ -5,6 +6,7 @@
 #include "utilities/video/video.h"
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
 #include "utilities/idt/body_int/master/input_keyboard.h"
+#include "utilities/io/io.h"
 
 
 uchar start_msg[] = "\
@@ -79,6 +81,19 @@ O3 static inline void render_time()
 }
 
 
+O3 static inline void trigger_BsOD()
+{
+    asm volatile (
+        "xor %%edx, %%edx\n"
+        "mov $1, %%eax\n"
+        "div %%edx\n"
+        :
+        :
+        : "eax", "edx"
+    );
+}
+
+
 O3 static inline void main()
 {
     if (FASE_SETUP) {
@@ -94,18 +109,7 @@ O3 static inline void main()
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
     */
-
-    
-    asm volatile (
-        "xor %%edx, %%edx\n"
-        "mov $1, %%eax\n"
-        "div %%edx\n"
-        :
-        :
-        : "eax", "edx"
-    );
-    
-    asm volatile("hlt");
+   trigger_BsOD();
 }
 
 
@@ -118,6 +122,8 @@ O3 void kernel_main()
 
     asm volatile("sti");
 
-    while (1)
+    while (1) {
         main();
+        asm volatile("hlt");
+    }
 }

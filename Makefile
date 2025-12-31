@@ -1,5 +1,5 @@
 
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/io/io.asm.o ./build/stdlib/stdlib.o ./build/string/string.o ./build/video/video.o ./build/idt/body_int/master/pit.o ./build/idt/body_int/slave/rtc_orologio.o ./build/idt/body_int/master/input_keyboard.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/enigma/enigma.o
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/io/io.asm.o ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/idt/body_int/master/pit.o ./build/idt/body_int/slave/rtc_orologio.o ./build/idt/body_int/master/input_keyboard.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/enigma/enigma.o
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -50,6 +50,12 @@ iso: ./bin/os.bin
 
 ./build/string/string.o: ./src/utilities/string/string.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/string/string.c -o ./build/string/string.o
+
+####
+
+
+./build/shell/command.o: ./src/utilities/shell/command.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/shell/command.c -o ./build/shell/command.o
 
 
 ./build/video/video.o: ./src/utilities/video/video.c

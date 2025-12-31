@@ -47,7 +47,11 @@ O3 static inline u8 rtc_get_ore()
 O3 void rtc_get_time(struct tempo_t *t)
 {
     // alla conversione devo aggiungere il timezone
-    t->sec = rtc_get_sec();
+    t->sec = rtc_get_sec() + 17;
+    
+    if (t->sec >= 60)
+        t->sec = t->sec % 60;
+
     t->min = rtc_get_min() + 4;
 
     /* 

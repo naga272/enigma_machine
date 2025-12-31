@@ -2,8 +2,9 @@
 
 #include "utilities/stdlib/stdlib.h"
 #define settings_video
-#include "utilities/video/video.h"
 #include "utilities/io/io.h"
+#include "utilities/video/video.h"
+#include "utilities/shell/command.h"
 
 
 extern uchar core_enigma(uchar);
@@ -221,7 +222,9 @@ void gestisci_char_to_write(uchar tmp_char_container)
     }
 
     if (CHAR_END_PHRASE(tmp_char_container)) {
-        start_encryption();
+        if (!try_execute_comm(buffer_line_cmd))
+            start_encryption();
+
         return;
     }
 
