@@ -9,30 +9,6 @@
 #include "utilities/io/io.h"
 
 
-uchar start_msg[] = "\
-=============================================================\n\
-|Welcome to my EnigmaOs!                                    |\n\
-|author: naga272                                            |\n\
-|Set a colour for your shell:                               |\n\
-|  -digita 1 per un background blue and colore testo white  |\n\
-|  -digita 2 per un background bianco and colore testo nero |\n\
-|  -digita 3 per un background nero and colore testo bianco |\n\
-|  -digita 4 per un background nero and colore testo verde  |\n\
-=============================================================\n\
->>> inserisci qui il numero: ";
-
-
-// struct che contiene .sec, .min, .ore
-struct tempo_t t;
-
-// formattazione orario in prima riga
-uchar time_formatted[9];
-
-// usato in modo provvisorio per aggiornare il timer (finche non capisco il problema
-// in IRQ#8)
-u8 first_rendering = 1;
-
-
 O3 void init_shell()
 {
     terminal_initialize(BG_BIANCO_C_NERO);
@@ -48,26 +24,39 @@ O3 static inline void render_time()
     if (tmp_char_container)
         return;
 
+    // update dats nella struct @t
     rtc_get_time(&t);
-    // t = (struct tempo_t*) get_tempo();
 
     u8 tmp_terminal_col = terminal_col;
     u8 tmp_terminal_row = terminal_row;
 
-    terminal_col = VGA_WIDTH - 9;
+    terminal_col = VGA_WIDTH - SIZEOFARR(time_formatted);
     terminal_row = 0;
 
-    time_formatted[0] = '0' + (t.ore / 10);
-    time_formatted[1] = '0' + (t.ore % 10);
-    time_formatted[2] = ':';
+    time_formatted[0] = giorni_settimana[t.giorno][0];
+    time_formatted[1] = giorni_settimana[t.giorno][1];
+    time_formatted[2] = giorni_settimana[t.giorno][2];
+    time_formatted[3] = '/';
     
-    time_formatted[3] = '0' + (t.min / 10);
-    time_formatted[4] = '0' + (t.min % 10);
-    time_formatted[5] = ':';
+    time_formatted[4] = '0' + (t.mese / 10);
+    time_formatted[5] = '0' + (t.mese % 10);
+    time_formatted[6] = '/';
+
+    time_formatted[7] = '0' + (t.anno / 10);
+    time_formatted[8] = '0' + (t.anno % 10);
+    time_formatted[9] = ' ';
+
+    time_formatted[10] = '0' + (t.ore / 10);
+    time_formatted[11] = '0' + (t.ore % 10);
+    time_formatted[12] = ':';
     
-    time_formatted[6] = '0' + (t.sec / 10);
-    time_formatted[7] = '0' + (t.sec % 10);
-    time_formatted[8] = '\0';
+    time_formatted[13] = '0' + (t.min / 10);
+    time_formatted[14] = '0' + (t.min % 10);
+    time_formatted[15] = ':';
+    
+    time_formatted[16] = '0' + (t.sec / 10);
+    time_formatted[17] = '0' + (t.sec % 10);
+    time_formatted[18] = '\0';
 
     print((uchar*) time_formatted);
 
@@ -100,7 +89,7 @@ O3 static inline void main()
         try_the_setup(tmp_char_container);
         return;
     }
-    
+
     gestisci_char_to_write(tmp_char_container);
     tmp_char_container = 0;
 
@@ -121,7 +110,6 @@ O3 void kernel_main()
     init_shell();
 
     asm volatile("sti");
-
     while (1) {
         main();
         asm volatile("hlt");

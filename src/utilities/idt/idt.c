@@ -14,6 +14,7 @@
 #include "utilities/idt/idt.h"
 #include "utilities/idt/body_int/master/pit.h"
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
+#include "utilities/idt/body_int/syscalls/syscall.h"
 
 
 struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
@@ -345,11 +346,12 @@ O3 void int21h_handler()
     /* insb(0x60)
     * la cpu si va a leggere dal buffer del controller della tastiera il char.
     * Se il buffer è stato svuotato completamente, il PIC abbassa IRQ#1.
+    * NB: 0x60 è il gate per il buffer del controller, non del controlle (lui ha la gate 0x64)
     */
     u8 scancode = insb(0x60);
 
+    // in input_keyboard.c
     gestisci_scancode_from_controller(scancode);
-
 out:
     EOI_MASTER;
 }
@@ -392,13 +394,10 @@ O3 void int27h_handler()
 
 
 O3 void int28h_handler()
-{ 
+{
     outb(0x70, 0x0C);
-    insb(0x71);        // ACK RTC
-    /*
-    * RTC orologio
-    * weeell, for some reason doesn't work, traferito tutto in int20h lol
-    * ***/
+    insb(0x71);  // ACK, valore ignorato
+
     EOI_SLAVE;
     EOI_MASTER;
 }
@@ -453,6 +452,13 @@ O3 void int2fh_handler()
 }
 
 
+/* SYSCALLS FOR USER */
+O3 void int80h_handler(struct regs_t *r)
+{
+    do_int80h(r);
+}
+
+
 O3 static inline void idt_set(int interrupt_no, void* address)
 {
     /*
@@ -475,11 +481,50 @@ O3 static inline void set_default_int()
 }
 
 
+O3 static inline void init_slave_pic()
+{
+    // per l'abilitazione dello slave:
+    // https://github.com/szhou42/osdev/blob/master/src/kernel/drivers/pic.c
+    /* Grazie mille a szhou42, senza di lui non ci sarei mai davvero arrivato. */
+    #define PIC1            0x20
+    #define PIC2            0xA0
+
+    #define PIC1_DATA       PIC1 + 1
+    #define PIC2_DATA       PIC2 + 1
+
+    #define PIC1_COMMAND    PIC1
+    #define PIC2_COMMAND    PIC2
+    #define ICW1            0x11
+
+    outb(PIC1_COMMAND, ICW1);
+    outb(PIC2_COMMAND, ICW1);
+
+    // ICW2, irq 0 to 7 is mapped to 0x20 to 0x27, irq 8 to F is mapped to 28 to 2F
+    outb(PIC1_DATA, 0x20);
+    outb(PIC2_DATA, 0x28);
+
+    // ICW3, connect master pic with slave pic
+    outb(PIC1_DATA, 0x4);
+    outb(PIC2_DATA, 0x2);
+
+    // ICW4, set x86 mode
+    outb(PIC1_DATA, 1);
+    outb(PIC2_DATA, 1);
+
+    // clear the mask register
+    outb(PIC1_DATA, 0);
+    outb(PIC2_DATA, 0);
+}
+
+
 O3 static inline void init_value_hardware()
 {
-    init_hardware_pit();
+    idt_load(&idtr_descriptor);
 
-    init_hardware_rtc();
+    init_slave_pic();
+    init_hardware_rtc();     // configura tutto il RTC
+    init_hardware_pit();     // PIT opzionale
+    enable_interrupts();     // abilita IF globali
 }
 
 
@@ -550,8 +595,7 @@ O3 void idt_init()
     idt_set(0x2E, int2eh);  // IDE Primary 
     idt_set(0x2F, int2fh);  // IDE Secondary
 
-    // Load the interrupt descriptor table
-    idt_load(&idtr_descriptor);
+    idt_set(0x80, int80h);  // syscall
 
     init_value_hardware();
 }

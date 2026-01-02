@@ -3,7 +3,7 @@
 
 O3 uchar* strcat(uchar* ptr1, size_t size_ptr1, uchar* ptr2)
 {
-    // concatenazione di due vettori di uchar
+    // mov ptr1, ptr2
     for (size_t i = 0; i < size_ptr1; i++)
         ptr1[i] = ptr2[i];
 
@@ -14,7 +14,7 @@ O3 uchar* strcat(uchar* ptr1, size_t size_ptr1, uchar* ptr2)
 u8 strcmp(const uchar* a, const uchar* b)
 {
     // per i miei scopi non mi serve sapere se una stringa e maggiore dell'altra etc...
-    // voglio sapere solo se sono uguali
+    // voglio sapere solo se sono uguali (1) oppure no (0)
 
     while (*a && *b) {
         if (*a != *b)
@@ -31,7 +31,6 @@ u8 strcmp(const uchar* a, const uchar* b)
 O3 char* itoa(int value, char* buf)
 {
     // int to array (inverso di atoi)
-
     char* p = buf;
     int sign = value;
 

@@ -234,7 +234,7 @@ void gestisci_char_to_write(uchar tmp_char_container)
 }
 
 
-char* panic_face = "\n\
+static char* panic_face = "\n\
 \t\t\tOh no! Critical error!\n\
          ________________________________\n\
         (                                (\n\
@@ -281,7 +281,7 @@ O3 void panic(const char* msg)
 
 /* lock serve ha bloccare il numero di messaggi per errore durante la fase di setup */
 u8 lock = 0;
-// usato per dire se la fase di setup e' finita (try_answer foo)
+// usato per dire se la fase di setup e' finita (try_the_setup foo)
 u8 flag_x_colour_shell = 0;
 O3 void try_the_setup(uchar c)
 {

@@ -63,4 +63,13 @@ void idt_load(struct idtr_desc* ptr); // (carica IN IDTR la idt)
 // from stdlib/stdlib.c - stdlib.h
 extern void* memset(void *ptr, int c, size_t n);
 
+
+struct regs_t {
+    u32 ds;
+    u32 edi, esi, ebp, esp, ebx, edx, ecx, eax;
+    u32 int_no, err_code;
+    u32 eip, cs, eflags, useresp, ss;
+};
+
+
 #endif

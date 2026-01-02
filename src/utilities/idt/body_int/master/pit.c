@@ -82,12 +82,8 @@ O3 void init_hardware_pit()
     *   Vado a dire sostanzialmente a ogni quanto deve fare una determinata
     *   azione.
     * **/
-    #define oscilloscopio_frequenza 1193182
-    #define hz 1193182 - 1
-
-    u16 divisione = oscilloscopio_frequenza / hz;
 
     outb(0x43, 0x36);
-    outb(0x40, divisione & 0xFF);   // low
-    outb(0x40, divisione >> 8);     // high
+    outb(0x40, PIT_DIV & 0xFF);         // low
+    outb(0x40, (PIT_DIV >> 8) & 0xff);  // high
 }

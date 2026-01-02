@@ -24,7 +24,7 @@ Questo sistema operativo è un omaggio all'enigma della seconda guerra mondiale,
 
 ## Funzionalità aggiuntive
 
-Ho aggiunto dei comandi base come `QUIT` e `REBOOT` per spegnere o riavviare la macchina.
+Ho aggiunto dei comandi base come `QUIT` e `RELOAD` per spegnere o riavviare la macchina.
 
 ## Requisiti
 
@@ -46,10 +46,11 @@ make run
 
 ## Dimostrazione pratica
 
-video dimostrazione: https://youtu.be/nrGHRabnLBs
+video dimostrazione: https://youtu.be/d0VKkzzq-lU
 
 ## Fonti
 
 - Wikipedia: https://en.wikipedia.org/wiki/Enigma_machine
 - OsDev: https://wiki.osdev.org/Expanded_Main_Page
 - Kernel source code Linux: https://github.com/torvalds/linux/
+- szhou42: https://github.com/szhou42/osdev

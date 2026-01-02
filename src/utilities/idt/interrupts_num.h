@@ -52,5 +52,7 @@ extern void int2ch();
 extern void int2dh();       
 extern void int2eh();       
 extern void int2fh();     
+/* SYSCALLS */
+extern void int80h();
 
 #endif
