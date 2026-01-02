@@ -26,19 +26,19 @@ O3 static inline u8 bcd_to_bin(u8 v)
 }
 
 
-O3 static inline u8 rtc_get_sec()
+O3 static inline u8 rtc_get_sec_utc()
 {
     return bcd_to_bin(rtc_read(0x00));
 }
 
 
-O3 static inline u8 rtc_get_min()
+O3 static inline u8 rtc_get_min_utc()
 {
     return bcd_to_bin(rtc_read(0x02));
 }
 
 
-O3 static inline u8 rtc_get_ore()
+O3 static inline u8 rtc_get_ore_utc()
 {
     return bcd_to_bin(rtc_read(0x04));
 }
@@ -47,12 +47,12 @@ O3 static inline u8 rtc_get_ore()
 O3 void rtc_get_time(struct tempo_t *t)
 {
     // alla conversione devo aggiungere il timezone
-    t->sec = rtc_get_sec() + 17;
-    
+    t->sec = rtc_get_sec_utc() + 17;
+
     if (t->sec >= 60)
         t->sec = t->sec % 60;
 
-    t->min = rtc_get_min() + 4;
+    t->min = rtc_get_min_utc() + 4;
 
     /* 
     *   se t->min si trova a 59 e faccio + 4 esce fuori 63,
@@ -61,7 +61,7 @@ O3 void rtc_get_time(struct tempo_t *t)
     if (t->min >= 60)
         t->min = t->min % 60;
 
-    t->ore = rtc_get_ore() + 1;
+    t->ore = rtc_get_ore_utc() + 1;
 
     if (t->ore >= 24)
         t->ore = t->ore % 24;

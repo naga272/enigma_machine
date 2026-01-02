@@ -14,6 +14,7 @@ struct tempo_t{
     u8 rtc_dirty;
 };
 
+
 extern struct tempo_t t;
 extern void set_rtc_dirty(struct tempo_t *t, u8 new_value);
 extern void rtc_get_time(struct tempo_t *t);
