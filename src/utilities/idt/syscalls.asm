@@ -24,6 +24,9 @@ int80h:
     push esp              ; passa puntatore a regs_t
     call int80h_handler
 
+    ; rimpiazzo eax salvato da pusha
+    add esp, 4
+    mov [esp + 28], eax
     pop gs
     pop fs
     pop es

@@ -1,36 +1,51 @@
 #include "config.h"
 #include "utilities/idt/body_int/syscalls/syscall.h"
 #include "utilities/idt/idt.h"
-
+#include "config.h"
 
 #define READ 0
 #define WRITE 1
 
-#define REAL_TOTAL_INT_CREATED 1
+#define REAL_TOTAL_INT_CREATED 4
 
 
-void read(struct regs_t *r)
+i32 read(struct regs_t *r)
 {
 
+    return 0;
 }
 
 
-void write(struct regs_t *r)
+i32 write(struct regs_t *r)
 {
-
+    return 0;
 }
 
 
-void (*elenco_ptr_syscalls[512])(struct regs_t *) = {
+i32 open(struct regs_t *r)
+{
+    return 0;
+}
+
+
+i32 close(struct regs_t *r)
+{
+    return 0;
+}
+
+
+i32 (*elenco_ptr_syscalls[OS_TOTAL_INTERRUPTS])(struct regs_t *) = {
     read,
     write,
+    open,
+    close
 };
 
 
-O3 void do_int80h(struct regs_t *r)
+O3 i32 do_int80h(struct regs_t *r)
 {
-    if (r->eax > REAL_TOTAL_INT_CREATED)
-        return;     // invalid no syscall
+    if (r->eax > REAL_TOTAL_INT_CREATED - 1)
+        return -ENOSYS;     // invalid no syscall
 
-    elenco_ptr_syscalls[r->eax](r);
+    return elenco_ptr_syscalls[r->eax](r);
 }

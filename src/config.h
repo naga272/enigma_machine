@@ -84,4 +84,8 @@ typedef unsigned char uchar;
 
 #define SIZEOFARR(x) (sizeof(x) / sizeof(x[0]))
 
+
+
+#define ENOSYS 38
+
 #endif

@@ -6,7 +6,6 @@
 #include "utilities/video/video.h"
 #include "utilities/shell/command.h"
 
-
 extern uchar core_enigma(uchar);
 
 uchar buffer_line_cmd[SIZE_COMMAND_SHELL];
@@ -234,27 +233,24 @@ void gestisci_char_to_write(uchar tmp_char_container)
 }
 
 
-static char* panic_face = "\n\
-\t\t\tOh no! Critical error!\n\
-         ________________________________\n\
-        (                                (\n\
-      :(                                  ):(\n\
-    :(                                      ):(\n\
-  :(            XXXX         XXXX             ):(\n\
-:(              XXXX         XXXX              ):(\n\
-:(                                              ):(\n\
-:(                                              ):(\n\
-:(                                              ):(\n\
-  :(            -----------------             ):(\n\
-    :(                                      ):(\n\
-      :(                                 ):(\n\
-        :(_______________________________(\n\
-        \n\
-";
+void print_hex(uint32_t val) {
+    unsigned char hex[11]; // "0x" + 8 cifre + '\0'
+    hex[0] = '0';
+    hex[1] = 'x';
+    
+    for (int i = 0; i < 8; i++) {
+        uint8_t nibble = (val >> (28 - i * 4)) & 0xF;
+        if (nibble < 10)
+            hex[2 + i] = '0' + nibble;
+        else
+            hex[2 + i] = 'A' + (nibble - 10);
+    }
+    hex[10] = '\0';
+    print(hex);
+}
 
 
-u8 panic_init = 0;
-O3 void panic(const char* msg)
+O3 void panic(const uchar* msg, struct regs_t* status_reg)
 {
     /*
     * In un os normale, la panic foo deve avviarsi solo quando le cose stanno andando
@@ -273,9 +269,63 @@ O3 void panic(const char* msg)
     terminal_col = 0;
     terminal_row = 0;
 
-    print((const uchar*) msg);
-    print((const uchar*) panic_face);
-    disable_cursor();    
+    // show a message that explain what happened
+    print(msg);
+
+    // show panic face
+    print(panic_face);
+
+    // show status register
+    print((uchar*) "eax=");
+    print_hex(status_reg->eax);
+    print((uchar*) "\t");
+
+    print((uchar*) "ebx=");
+    print_hex(status_reg->ebx);
+    print((uchar*) "\t");
+
+    print((uchar*) "ecx=");
+    print_hex(status_reg->ecx);
+    print((uchar*) "\t");
+
+    print((uchar*) "edx=");
+    print_hex(status_reg->edx);
+    print((uchar*) "\n");
+
+    // nuova linea
+    print((uchar*) "edi=");
+    print_hex(status_reg->edi);
+    print((uchar*) "\t");
+
+    print((uchar*) "esi=");
+    print_hex(status_reg->esi);
+    print((uchar*) "\t");
+
+    print((uchar*) "ebp=");
+    print_hex(status_reg->ebp);
+    print((uchar*) "\t");
+
+    print((uchar*) "esp=");
+    print_hex(status_reg->esp);
+    print((uchar*) "\n");
+
+    // nuova linea
+    print((uchar*) "eflags=");
+    print_hex(status_reg->eflags);
+    print((uchar*) "\t");
+
+    print((uchar*) "eip=");
+    print_hex(status_reg->eip);
+    print((uchar*) "\t");
+
+    print((uchar*) "cs=");
+    print_hex(status_reg->cs);
+    print((uchar*) "\t");
+    
+    print((uchar*) "intno=");
+    print_hex(status_reg->int_no);
+
+    disable_cursor();
 }
 
 
@@ -283,6 +333,8 @@ O3 void panic(const char* msg)
 u8 lock = 0;
 // usato per dire se la fase di setup e' finita (try_the_setup foo)
 u8 flag_x_colour_shell = 0;
+
+
 O3 void try_the_setup(uchar c)
 {
     /*

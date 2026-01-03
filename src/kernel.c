@@ -21,11 +21,22 @@ O3 static inline void render_time()
     if (!t.rtc_dirty && !first_rendering)
         return;
 
-    if (tmp_char_container)
-        return;
+    t.sec++;
 
-    // update dats nella struct @t
-    rtc_get_time(&t);
+    if (t.sec == 60) {
+        t.min++;
+        t.sec = 0;
+    }
+
+    if (t.min == 60) {
+        t.min = 0;
+        t.ore++;
+    }
+
+    if (t.ore == 24) {
+        // per evitare troppi casini, tanto capita una sola volta in 24h
+        rtc_get_time(&t);
+    }
 
     u8 tmp_terminal_col = terminal_col;
     u8 tmp_terminal_row = terminal_row;
@@ -67,8 +78,10 @@ O3 static inline void render_time()
     terminal_row = tmp_terminal_row;
     terminal_col = tmp_terminal_col;
 
+    // riporto il curose nella posizion e attuale
     update_cursor_on_x_y_pos(terminal_row, terminal_col);
 
+    // resetto il flag
     set_rtc_dirty(&t, 0);
     first_rendering = 0;
 }
@@ -113,6 +126,9 @@ O3 void kernel_main()
     enable_interrupts();
     init_shell();
 
+    // update dats nella struct @t
+    rtc_get_time(&t);
+    
     asm volatile("sti");
     while (1) {
         main();

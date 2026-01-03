@@ -108,19 +108,16 @@ O3 void set_rtc_dirty(struct tempo_t *t, u8 new_value)
 
 O3 void init_hardware_rtc()
 {
-    // Imposta rate prima di abilitare gli interrupt
-    outb(0x70, 0x8A);          // Seleziona register A
-    u8 regA = insb(0x71);      // Leggi valore attuale
+    outb(0x70, 0x8A);
+    u8 regA = insb(0x71);
     outb(0x70, 0x8A);          
     outb(0x71, (regA & 0xF0) | 0x06);  // RS=6 -> 1024 Hz
 
-    // Abilita periodic interrupt (PIE)
-    outb(0x70, 0x8B);          // Register B
+    outb(0x70, 0x8B);
     u8 regB = insb(0x71);
     outb(0x70, 0x8B);
     outb(0x71, regB | 0x40);   // Set bit 6 -> PIE
 
-    // Leggi register C per pulire eventuali interrupt pendenti
     outb(0x70, 0x0C);
     insb(0x71);
 }

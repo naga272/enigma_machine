@@ -26,6 +26,17 @@ u8 ticks_int20_rtc = 0;
 // usato per la gestione di eccezioni triggherate dalla cpu
 u8 trigger_exception = 0;
 
+uchar *ptr_map_error_msg;
+
+uchar int0h_error_msg[]     = "Critical Error! Division by zero Exception";
+uchar int2h_error_msg[]     = "Critical Error! Non Maskable Interrupt Exception";
+uchar int3h_error_msg[]     = "Critical Error! Overlflow Interrupt Exception";
+uchar int4h_error_msg[]     = "Critical Error! Overlflow Interrupt Exception";
+uchar int12h_error_msg[]    = "Critical Error! Machine check Exception";
+
+
+struct regs_t val_reg_before_disaster;
+
 
 O3 void no_interrupt_handler()
 {
@@ -38,7 +49,33 @@ O3 void no_interrupt_handler()
 }
 
 
-O3 void int0h_handler()
+O3 static inline void set_status_reg_before_disaster(struct regs_t *r)
+{
+    // save general register
+    val_reg_before_disaster.edi = r->edi;
+    val_reg_before_disaster.esi = r->esi;
+    val_reg_before_disaster.ebp = r->ebp;
+    val_reg_before_disaster.esp = r->esp;
+    val_reg_before_disaster.ebx = r->ebx;
+    val_reg_before_disaster.edx = r->edx;
+    val_reg_before_disaster.ecx = r->ecx;
+    val_reg_before_disaster.eax = r->eax;
+
+    // segment register
+    val_reg_before_disaster.gs = r->gs;
+    val_reg_before_disaster.fs = r->fs;
+    val_reg_before_disaster.es = r->es;
+    val_reg_before_disaster.ds = r->ds;
+
+    // informazioni inserite dall'handler manualmente
+    val_reg_before_disaster.int_no = r->int_no;
+    val_reg_before_disaster.eip = r->eip;
+    val_reg_before_disaster.cs = r->cs;
+    val_reg_before_disaster.eflags = r->eflags;
+}
+
+
+O3 void int0h_handler(struct regs_t *r)
 {
     /*
     * Questo interrupt viene triggherato quando viene eseguita una divisione
@@ -49,250 +86,329 @@ O3 void int0h_handler()
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    ptr_map_error_msg = int0h_error_msg;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1h_handler()
+O3 void int1h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per il debug
     * */
-    if (!trigger_exception)
-        trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int2h_handler()
+O3 void int2h_handler(struct regs_t *r)
 {
     /*
-    * Interrupt usato per IMI
+    *   Interrupt usato per NMI (Non Maskable Interrupt)
+    *   Evento generato da hardware per eventi urgenti che non possono venire ignorati.
     * */
     if (!trigger_exception)
         trigger_exception++;
+    
+    set_status_reg_before_disaster(r);
+    ptr_map_error_msg = int2h_error_msg;
 }
 
 
-O3 void int3h_handler()
+O3 void int3h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per casi di overflow
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
+    ptr_map_error_msg = int3h_error_msg;
 }
 
 
-O3 void int4h_handler()
+O3 void int4h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per Bound
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int5h_handler()
+O3 void int5h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per Invalid opcode
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int6h_handler()
+O3 void int6h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per Device not available
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int7h_handler()
+O3 void int7h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per Double fault
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int8h_handler()
+O3 void int8h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per coprocessor segment 
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int9h_handler()
+O3 void int9h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void intah_handler()
+O3 void intah_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void intbh_handler()
+O3 void intbh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void intch_handler()
+O3 void intch_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void intdh_handler()
+O3 void intdh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void inteh_handler()
+O3 void inteh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void intfh_handler()
+O3 void intfh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int10h_handler()
+O3 void int10h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int11h_handler()
+O3 void int11h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int12h_handler()
+O3 void int12h_handler(struct regs_t *r)
+{
+    /*
+    *   Machine Check
+    *   Interruzione cpu creata da errori hardware gravi rilevati dal processore
+    *   tipi di eventi errori:
+    *   - di cache (l1, l2, l3)
+    *   - bus
+    *   - TLB non recuperabili
+    *   - internal Core (execution Unit, register file)
+    *   - ECC DRAM propagati alla cpu
+    * * */
+    if (!trigger_exception)
+        trigger_exception++;
+
+    set_status_reg_before_disaster(r);
+    ptr_map_error_msg = int12h_error_msg;
+}
+
+
+O3 void int13h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int13h_handler()
+O3 void int14h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int14h_handler()
+O3 void int15h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int15h_handler()
+O3 void int16h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int16h_handler()
+O3 void int17h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int17h_handler()
+O3 void int18h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int18h_handler()
+O3 void int19h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int19h_handler()
+O3 void int1ah_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1ah_handler()
+O3 void int1bh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1bh_handler()
+O3 void int1ch_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1ch_handler()
+O3 void int1dh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1dh_handler()
+O3 void int1eh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1eh_handler()
+O3 void int1fh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1fh_handler()
-{
-    if (!trigger_exception)
-        trigger_exception++;
-}
-
-
+u8 ticks_int20_pit = 0;
 O3 void int20h_handler()
 {
     /*
@@ -300,7 +416,8 @@ O3 void int20h_handler()
     esegue la funzione do_pit()
     */
 
-    if (ticks_int20_rtc >= 20) {
+    // ogni 33,33 ms * 30 = 999 ms si aggiorna l'orario (vedi pit.h)
+    if (ticks_int20_rtc >= 30) {
         set_rtc_dirty(&t, 1);
         ticks_int20_rtc = 0;
     }
@@ -310,7 +427,18 @@ O3 void int20h_handler()
     if (!trigger_exception)
         goto out;
 
-    do_pit();
+    /* 
+    *   Questo invece serve per quando si deve chiamare la bsod,
+    *   e' un delay necessario per cambiare i colori delle scritte con una frequenza piu bassa
+    *   ogni 33,33ms * 4 si attiva do_pit() se e' avvenuta una exception della cpu
+    */
+    if (ticks_int20_pit < 4) {
+        ticks_int20_pit++;
+        goto out;
+    }
+
+    do_pit(ptr_map_error_msg, &val_reg_before_disaster);
+    ticks_int20_pit = 0;
 
 out:
     EOI_MASTER;
@@ -453,9 +581,9 @@ O3 void int2fh_handler()
 
 
 /* SYSCALLS FOR USER */
-O3 void int80h_handler(struct regs_t *r)
+O3 i32 int80h_handler(struct regs_t *r)
 {
-    do_int80h(r);
+    return do_int80h(r);
 }
 
 
@@ -544,7 +672,7 @@ O3 void idt_init()
     /* ECCEZIONI TRIGGHERATE DELLA CPU */
     idt_set(0x00, int0h);   // divisione per zero
     idt_set(0x01, int1h);   // debug
-    idt_set(0x02, int2h);   // IMI
+    idt_set(0x02, int2h);   // NMI
     idt_set(0x03, int3h);   // breackpoint
     idt_set(0x04, int4h);   // Overflow
     idt_set(0x05, int5h);   // Bound

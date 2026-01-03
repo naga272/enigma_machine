@@ -60,16 +60,32 @@ void idt_load(struct idtr_desc* ptr); // (carica IN IDTR la idt)
 #define EOI_SLAVE outb(0xA0, 0x20)
 #endif
 
+
 // from stdlib/stdlib.c - stdlib.h
 extern void* memset(void *ptr, int c, size_t n);
 
 
-struct regs_t {
+typedef struct regs_t {
     u32 ds;
-    u32 edi, esi, ebp, esp, ebx, edx, ecx, eax;
-    u32 int_no, err_code;
-    u32 eip, cs, eflags, useresp, ss;
-};
+    u32 es;
+    u32 fs;
+    u32 gs;
 
+    u32 edi;
+    u32 esi;
+    u32 ebp;
+    u32 esp;
+    u32 ebx;
+    u32 edx;
+    u32 ecx;
+    u32 eax;
+
+    u32 int_no;
+    u32 err_code;
+
+    u32 eip;
+    u32 cs;
+    u32 eflags;
+} regs_t;
 
 #endif

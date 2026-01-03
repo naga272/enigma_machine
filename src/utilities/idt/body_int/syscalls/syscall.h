@@ -4,7 +4,7 @@
 #include "utilities/idt/idt.h"
 
 
-extern void do_int80h(struct regs_t *);
-void do_int80h(struct regs_t *);
+extern i32 do_int80h(struct regs_t *);
+i32 do_int80h(struct regs_t *);
 
 #endif

@@ -1,13 +1,14 @@
 #include "utilities/video/video.h"
 #include "utilities/idt/body_int/master/pit.h"
 #include "utilities/io/io.h"
+#include "utilities/idt/idt.h"
 
 
 // usato in int20h_handler
 u8 num_color = 0;
 
 
-O3 void do_pit()
+O3 void do_pit(uchar *msg_error, struct regs_t* status_reg)
 {
     /*
     *   Funzione chiamata da int20_handler() in pic.c
@@ -69,7 +70,7 @@ O3 void do_pit()
             break;
     }
 
-    panic("Impossibile eseguire la divisione per zero\n");
+    panic(msg_error, status_reg);
 
     num_color++;
 }
