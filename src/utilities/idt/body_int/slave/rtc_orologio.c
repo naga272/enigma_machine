@@ -50,6 +50,12 @@ O3 static inline u8 rtc_get_giorno_of_week_utc()
 }
 
 
+O3 static inline u8 rtc_get_giorno_mese_utc()
+{
+    return bcd_to_bin(rtc_read(0x07));
+}
+
+
 O3 static inline u8 rtc_get_mese_utc()
 {
     return bcd_to_bin(rtc_read(0x08));
@@ -87,7 +93,8 @@ O3 void rtc_get_time(struct tempo_t *t)
     if (t->ore >= 24)
         t->ore = t->ore % 24;
 
-    t->giorno = rtc_get_giorno_of_week_utc();
+    t->giorno_sett = rtc_get_giorno_of_week_utc();
+    t->giorno_mese = rtc_get_giorno_mese_utc();
     t->mese = rtc_get_mese_utc();
     t->anno = rtc_get_anno_utc();
 }

@@ -42,7 +42,7 @@ struct tempo_t t;
 formattazione orario in prima riga
 "ddd:MM:yyyy hh:mm:ss"
 */
-uchar time_formatted[19];
+uchar time_formatted[22];
 
 // usato in modo provvisorio per aggiornare il timer (finche non capisco il problema
 // in IRQ#8)

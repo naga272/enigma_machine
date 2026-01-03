@@ -33,30 +33,34 @@ O3 static inline void render_time()
     terminal_col = VGA_WIDTH - SIZEOFARR(time_formatted);
     terminal_row = 0;
 
-    time_formatted[0] = giorni_settimana[t.giorno][0];
-    time_formatted[1] = giorni_settimana[t.giorno][1];
-    time_formatted[2] = giorni_settimana[t.giorno][2];
-    time_formatted[3] = '/';
-    
-    time_formatted[4] = '0' + (t.mese / 10);
-    time_formatted[5] = '0' + (t.mese % 10);
+    time_formatted[0] = giorni_settimana[t.giorno_sett][0];
+    time_formatted[1] = giorni_settimana[t.giorno_sett][1];
+    time_formatted[2] = giorni_settimana[t.giorno_sett][2];
+    time_formatted[3] = ' ';
+
+    time_formatted[4] = '0' + (t.giorno_mese / 10);
+    time_formatted[5] = '0' + (t.giorno_mese % 10);
     time_formatted[6] = '/';
 
-    time_formatted[7] = '0' + (t.anno / 10);
-    time_formatted[8] = '0' + (t.anno % 10);
-    time_formatted[9] = ' ';
+    time_formatted[7] = '0' + (t.mese / 10);
+    time_formatted[8] = '0' + (t.mese % 10);
+    time_formatted[9] = '/';
 
-    time_formatted[10] = '0' + (t.ore / 10);
-    time_formatted[11] = '0' + (t.ore % 10);
-    time_formatted[12] = ':';
-    
-    time_formatted[13] = '0' + (t.min / 10);
-    time_formatted[14] = '0' + (t.min % 10);
+    time_formatted[10] = '0' + (t.anno / 10);
+    time_formatted[11] = '0' + (t.anno % 10);
+    time_formatted[12] = ' ';
+
+    time_formatted[13] = '0' + (t.ore / 10);
+    time_formatted[14] = '0' + (t.ore % 10);
     time_formatted[15] = ':';
     
-    time_formatted[16] = '0' + (t.sec / 10);
-    time_formatted[17] = '0' + (t.sec % 10);
-    time_formatted[18] = '\0';
+    time_formatted[16] = '0' + (t.min / 10);
+    time_formatted[17] = '0' + (t.min % 10);
+    time_formatted[18] = ':';
+    
+    time_formatted[19] = '0' + (t.sec / 10);
+    time_formatted[20] = '0' + (t.sec % 10);
+    time_formatted[21] = '\0';
 
     print((uchar*) time_formatted);
 
