@@ -95,6 +95,10 @@ run:
 	qemu-system-x86_64 -hda ./bin/os.bin
 
 
+generate_int: ./src/utilities/idt/body_int/syscalls/generate_base_syscall.py
+	python3 ./src/utilities/idt/body_int/syscalls/generate_base_syscall.py
+
+
 clean:
 	clear
 	rm -rf ./bin/boot.bin

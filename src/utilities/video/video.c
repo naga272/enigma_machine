@@ -233,13 +233,13 @@ void gestisci_char_to_write(uchar tmp_char_container)
 }
 
 
-void print_hex(uint32_t val) {
-    unsigned char hex[11]; // "0x" + 8 cifre + '\0'
+void print_hex(u32 val) {
+    uchar hex[11]; // "0x" + 8 cifre + '\0'
     hex[0] = '0';
     hex[1] = 'x';
     
     for (int i = 0; i < 8; i++) {
-        uint8_t nibble = (val >> (28 - i * 4)) & 0xF;
+        u8 nibble = (val >> (28 - i * 4)) & 0xF;
         if (nibble < 10)
             hex[2 + i] = '0' + nibble;
         else
