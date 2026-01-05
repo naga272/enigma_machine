@@ -48,10 +48,10 @@ make run
 
 video dimostrazione: https://youtu.be/j1sOcezOwN0
 
-
 ## Fonti
 
 - Wikipedia: https://en.wikipedia.org/wiki/Enigma_machine
 - OsDev: https://wiki.osdev.org/Expanded_Main_Page
+- Chromium: https://www.chromium.org/chromium-os/developer-library/reference/linux-constants/syscalls/#x86-32-bit
 - Kernel source code Linux: https://github.com/torvalds/linux/
 - szhou42: https://github.com/szhou42/osdev

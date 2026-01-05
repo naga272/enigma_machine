@@ -2,6 +2,20 @@ import sys
 
 # https://www.chromium.org/chromium-os/developer-library/reference/linux-constants/syscalls/#x86-32-bit
 
+
+syscalls_h = """
+#ifndef SYSCALL_H
+#define SYSCALL_H
+
+#include "utilities/idt/idt.h"
+
+
+extern i32 do_int80h(struct regs_t *);
+i32 do_int80h(struct regs_t *);
+
+"""  # #endif
+
+
 list_syscalls = [
     "restart_syscall", "exit", "fork",
     "read", "write", "open", "close",
@@ -122,9 +136,10 @@ syscall_foo = f"""
 #include "config.h"
 #include "utilities/idt/body_int/syscalls/syscall.h"
 #include "utilities/idt/idt.h"
-#include "config.h"
+
 
 #define REAL_TOTAL_INT_CREATED {len(list_syscalls)}
+
 
 """
 
@@ -132,6 +147,7 @@ syscall_foo = f"""
 tabellone = """
 i32 (*table_syscalls[OS_TOTAL_INTERRUPTS])(struct regs_t *) = {
 """
+
 
 call_do_int80h = """
 O3 i32 do_int80h(struct regs_t *r)
@@ -145,23 +161,28 @@ O3 i32 do_int80h(struct regs_t *r)
 
 
 def main(argc: int, argv: list) -> int:
-    global tabellone, syscall_foo
-
+    global tabellone, syscall_foo, syscalls_h
+    syscalls_h += "/*"
     for idx, element in enumerate(list_syscalls):
         if element == "pass":
             continue
 
+        syscalls_h += f"extern i32 do_{element}(struct regs_t* r);" + "\n"
+
         element = "sys_" + element
-        tabellone += "\n" + f"\t{element},\t//eax = {idx}"
+        tabellone += "\n\t" + f"[{idx}]" + " = " + f"{element},"
         syscall_foo += f"i32 {element}(struct regs_t* r)" + "\n"
         syscall_foo += "{\n"
-        syscall_foo += "\treturn 0;\n"
+        syscall_foo += "\treturn 0;" + f"// do_{element[4::]}(r);" + "\n"
         syscall_foo += "}\n\n\n"
 
     tabellone += "\n};\n"
+    syscalls_h += "*/\n\n#endif"
     with open("./src/utilities/idt/body_int/syscalls/syscall.c", "w") as f_out:
         f_out.write(syscall_foo + "\n" + tabellone + "\n" + call_do_int80h)
 
+    with open("./src/utilities/idt/body_int/syscalls/syscall.h", "w") as f_out:
+        f_out.write(syscalls_h)
     return 0
 
 

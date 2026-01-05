@@ -9,6 +9,9 @@
 #include "utilities/io/io.h"
 
 
+extern void test_int80h(void);
+
+
 O3 void init_shell()
 {
     terminal_initialize(BG_BIANCO_C_NERO);
@@ -100,6 +103,17 @@ O3 static inline void trigger_BsOD()
 }
 
 
+u8 flag_x_int80h = 0;
+static inline void try_int80h()
+{
+    if (flag_x_int80h)
+        return;
+
+    test_int80h();
+    flag_x_int80h++;
+}
+
+
 O3 static inline void main()
 {
     if (FASE_SETUP) {
@@ -115,7 +129,13 @@ O3 static inline void main()
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
     */
-   trigger_BsOD();
+    // trigger_BsOD();
+
+
+    /*
+    === SYSCALL PER UTENTI ===
+    */
+    try_int80h();
 }
 
 
@@ -128,8 +148,9 @@ O3 void kernel_main()
 
     // update dats nella struct @t
     rtc_get_time(&t);
-    
+
     asm volatile("sti");
+
     while (1) {
         main();
         asm volatile("hlt");

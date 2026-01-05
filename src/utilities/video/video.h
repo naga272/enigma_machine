@@ -68,8 +68,6 @@ void disable_cursor_cursor(u8 x, u8 y);
 
 #endif
 
-#ifndef prototype_fun_print
-
 extern void terminal_initialize(u8);
 extern void terminal_writechar(uchar, char);
 extern void print(const uchar*);
@@ -78,15 +76,10 @@ extern void try_the_setup(uchar);
 extern void gestisci_char_to_write(uchar);
 extern void update_cursor_on_x_y_pos(u16, u16);
 
-#ifndef settings_video
 
 extern u8 flag_x_colour_shell;
 extern char actual_color_terminal;
 extern volatile u16 terminal_row;
 extern volatile u16 terminal_col;
-
-#endif
-
-#endif
 
 #endif

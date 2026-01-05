@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "errors_no.h"
 
 typedef uint8_t u8;
 typedef int8_t i8;
@@ -83,9 +84,5 @@ typedef unsigned char uchar;
 #define CHAR_BACKSPACE(x)   (x == '\b')
 
 #define SIZEOFARR(x) (sizeof(x) / sizeof(x[0]))
-
-
-
-#define ENOSYS 38
 
 #endif

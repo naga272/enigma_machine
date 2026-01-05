@@ -1,5 +1,10 @@
+UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o 
+MASTER_IDT = ./build/idt/body_int/master/pit.o ./build/idt/body_int/master/input_keyboard.o
+SLAVE_IDT = ./build/idt/body_int/slave/rtc_orologio.o
 
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/io/io.asm.o ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/idt/body_int/syscalls/syscall.o ./build/idt/body_int/master/pit.o ./build/idt/body_int/slave/rtc_orologio.o ./build/idt/body_int/master/input_keyboard.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/enigma/enigma.o
+IDT = ./build/idt/idt.asm.o ./build/idt/idt.o $(MASTER_IDT) $(SLAVE_IDT) ./build/idt/body_int/syscalls/syscall.o ./build/idt/body_int/syscalls/write/write.o
+FILES = ./build/kernel.asm.o ./build/kernel.o $(IDT) ./build/test_int80h.asm.o ./build/io/io.asm.o $(UTILITIES) ./build/enigma/enigma.o
+
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -62,8 +67,20 @@ iso: ./bin/os.bin
 	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/video/video.c -o ./build/video/video.o
 
 
+# TEST INT80H syscall
+./build/test_int80h.asm.o: ./src/test_int80h.asm
+	nasm -f elf -g ./src/test_int80h.asm -o ./build/test_int80h.asm.o
+
+
+./build/idt/body_int/syscalls/write/write.o: ./src/utilities/idt/body_int/syscalls/write/write.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/idt/body_int/syscalls/write/write.c -o ./build/idt/body_int/syscalls/write/write.o
+
+
+# Tabella int80h
 ./build/idt/body_int/syscalls/syscall.o: ./src/utilities/idt/body_int/syscalls/syscall.c
 	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/idt/body_int/syscalls/syscall.c -o ./build/idt/body_int/syscalls/syscall.o
+
+####
 
 
 ./build/idt/body_int/master/pit.o: ./src/utilities/idt/body_int/master/pit.c
