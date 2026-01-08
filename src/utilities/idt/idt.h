@@ -3,8 +3,11 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "config.h"
 #include "utilities/io/io.h"
 #include "utilities/idt/interrupts_num.h"
+#include "utilities/atomic/atomic.h"
+
 
 /*
 * L'interrupt descriptor table descrive come gli interrupt vengono chiamati in protected mode.
@@ -28,18 +31,18 @@
 
 struct idt_desc
 {
-    uint16_t offset_1;  // Offset bits 0 - 15
-    uint16_t selector;  // Selector thats in our GDT
-    uint8_t zero;       // Does nothing, unused set to zero
-    uint8_t type_attr;  // Descriptor type and attributes
-    uint16_t offset_2;  // Offset bits 16-31
+    u16 offset_1;  // Offset bits 0 - 15
+    u16 selector;  // Selector thats in our GDT
+    u8 zero;       // Does nothing, unused set to zero
+    u8 type_attr;  // Descriptor type and attributes
+    u16 offset_2;  // Offset bits 16-31
 } __attribute__((packed));
 
 
 struct idtr_desc
 {
-    uint16_t limit;     // Size of descriptor table -1
-    uint32_t base;      // Base address of the start of the interrupt descriptor table
+    u16 limit;     // Size of descriptor table -1
+    u32 base;      // Base address of the start of the interrupt descriptor table
 } __attribute__((packed));
 
 
@@ -62,7 +65,7 @@ void idt_load(struct idtr_desc* ptr); // (carica IN IDTR la idt)
 
 
 // from stdlib/stdlib.c - stdlib.h
-extern void* memset(void *ptr, int c, size_t n);
+// extern void* memset(void *ptr, int c, size_t n);
 
 
 typedef struct regs_t {
@@ -87,5 +90,30 @@ typedef struct regs_t {
     u32 cs;
     u32 eflags;
 } regs_t;
+
+
+#define MAX_ENTRY_SIZE_QUEUE 1024
+
+
+#define PRIORITY_ENTRY_SYSCALL  0x01
+#define PRIORITY_ENTRY_SLAVE    0x02
+#define PRIORITY_ENTRY_MASTER   0x03
+#define PRIORITY_ENTRY_INT      0x04
+
+
+struct queue_entry{
+    struct regs_t *reg;
+    u8 priority_in_queue;
+};
+
+
+struct queue_t {
+    struct queue_entry entry[MAX_ENTRY_SIZE_QUEUE];
+    atomic_t is_occupato;
+    u8 max_priority_in_queue;
+    u16 head;
+    u16 tail;
+};
+
 
 #endif

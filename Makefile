@@ -1,4 +1,4 @@
-UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o 
+UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/atomic/atomic.o
 MASTER_IDT = ./build/idt/body_int/master/pit.o ./build/idt/body_int/master/input_keyboard.o
 SLAVE_IDT = ./build/idt/body_int/slave/rtc_orologio.o
 
@@ -55,6 +55,11 @@ iso: ./bin/os.bin
 
 ./build/string/string.o: ./src/utilities/string/string.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/string/string.c -o ./build/string/string.o
+
+
+./build/atomic/atomic.o: ./src/utilities/atomic/atomic.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/atomic/atomic.c -o ./build/atomic/atomic.o
+
 
 ####
 

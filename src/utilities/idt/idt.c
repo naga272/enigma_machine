@@ -38,6 +38,16 @@ uchar int12h_error_msg[]    = "Critical Error! Machine check Exception";
 struct regs_t val_reg_before_disaster;
 
 
+struct queue_t queue = {
+    .is_occupato = {
+        .counter = 0
+    },
+    .head = 0,
+    .tail = 0,
+    .max_priority_in_queue = 0
+};
+
+
 O3 void no_interrupt_handler()
 {
     /*
@@ -72,6 +82,17 @@ O3 static inline void set_status_reg_before_disaster(struct regs_t *r)
     val_reg_before_disaster.eip = r->eip;
     val_reg_before_disaster.cs = r->cs;
     val_reg_before_disaster.eflags = r->eflags;
+}
+
+
+O3 static inline void push_in_queue_int(struct regs_t *r)
+{
+    while (atomic_read(&queue.is_occupato) == 1)
+        ;
+
+    atomic_inc(&queue.is_occupato);
+
+    atomic_dec(&queue.is_occupato);
 }
 
 
@@ -409,7 +430,7 @@ O3 void int1fh_handler(struct regs_t *r)
 
 
 u8 ticks_int20_pit = 0;
-O3 void int20h_handler()
+O3 void int20h_handler(struct regs_t* r)
 {
     /*
     Triggherata dal PIT, se è stato triggherata una eccezione dalla cpu
@@ -430,9 +451,9 @@ O3 void int20h_handler()
     /* 
     *   Questo invece serve per quando si deve chiamare la bsod,
     *   e' un delay necessario per cambiare i colori delle scritte con una frequenza piu bassa
-    *   ogni 33,33ms * 4 si attiva do_pit() se e' avvenuta una exception della cpu
+    *   ogni 33,33ms * 3 si attiva do_pit() se e' avvenuta una exception della cpu
     */
-    if (ticks_int20_pit < 4) {
+    if (ticks_int20_pit < 3) {
         ticks_int20_pit++;
         goto out;
     }
@@ -448,7 +469,7 @@ out:
 extern void gestisci_scancode_from_controller(u8);
 
 
-O3 void int21h_handler()
+O3 void int21h_handler(struct regs_t* r)
 {
     /*
     *   Funzione che gestisce l'interrupt 0x21 (tastiera). 
@@ -478,6 +499,8 @@ O3 void int21h_handler()
     */
     u8 scancode = insb(0x60);
 
+    push_in_queue_int(r);
+
     // in input_keyboard.c
     gestisci_scancode_from_controller(scancode);
 out:
@@ -485,43 +508,43 @@ out:
 }
 
 
-O3 void int22h_handler()
+O3 void int22h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int23h_handler()
+O3 void int23h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int24h_handler()
+O3 void int24h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int25h_handler()
+O3 void int25h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int26h_handler()
+O3 void int26h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int27h_handler()
+O3 void int27h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int28h_handler()
+O3 void int28h_handler(struct regs_t* r)
 {
     outb(0x70, 0x0C);
     insb(0x71);  // ACK, valore ignorato
@@ -531,49 +554,49 @@ O3 void int28h_handler()
 }
 
 
-O3 void int29h_handler()
+O3 void int29h_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2ah_handler()
+O3 void int2ah_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2bh_handler()
+O3 void int2bh_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2ch_handler()
+O3 void int2ch_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2dh_handler()
+O3 void int2dh_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2eh_handler()
+O3 void int2eh_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2fh_handler()
+O3 void int2fh_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;

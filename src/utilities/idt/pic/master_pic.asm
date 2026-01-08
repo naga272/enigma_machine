@@ -26,88 +26,72 @@ extern int27h_handler
 
 int20h:    
     cli
-    pushad
 
-    call int20h_handler
+    GESTIONE_STACK_INT int20h_handler
 
-    popad
     sti
     iret
 
 
 int21h:    
     cli
-    pushad
 
-    call int21h_handler
+    GESTIONE_STACK_INT int21h_handler
 
-    popad
     sti
     iret
 
 
 int22h:    
     cli
-    pushad
 
-    call int22h_handler
+    GESTIONE_STACK_INT int22h_handler
 
-    popad
     sti
     iret
 
 
 int23h:    
     cli
-    pushad
 
-    call int23h_handler
+    GESTIONE_STACK_INT int23h_handler
 
-    popad
     sti
     iret
 
 
 int24h:    
     cli
-    pushad
 
-    call int24h_handler
+    GESTIONE_STACK_INT int24h_handler
 
-    popad
     sti
     iret
 
 
 int25h:    
     cli
-    pushad
 
-    call int25h_handler
+    GESTIONE_STACK_INT int25h_handler
 
-    popad
     sti
     iret
 
 
 int26h:    
     cli
-    pushad
 
-    call int26h_handler
+    GESTIONE_STACK_INT int26h_handler
 
-    popad
     sti
     iret
 
 
 int27h:    
     cli
-    pushad
 
-    call int27h_handler
+    GESTIONE_STACK_INT int27h_handler
 
-    popad
     sti
     iret
 

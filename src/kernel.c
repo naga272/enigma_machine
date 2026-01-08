@@ -129,13 +129,13 @@ O3 static inline void main()
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
     */
-    // trigger_BsOD();
+    trigger_BsOD();
 
 
     /*
     === SYSCALL PER UTENTI ===
     */
-    try_int80h();
+    // try_int80h();
 }
 
 
