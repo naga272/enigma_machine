@@ -430,6 +430,8 @@ O3 void int1fh_handler(struct regs_t *r)
 
 
 u8 ticks_int20_pit = 0;
+u8 is_first_rendering_bsod = 1;
+
 O3 void int20h_handler(struct regs_t* r)
 {
     /*
@@ -451,16 +453,16 @@ O3 void int20h_handler(struct regs_t* r)
     /* 
     *   Questo invece serve per quando si deve chiamare la bsod,
     *   e' un delay necessario per cambiare i colori delle scritte con una frequenza piu bassa
-    *   ogni 33,33ms * 3 si attiva do_pit() se e' avvenuta una exception della cpu
+    *   ogni 33,33ms * 2 si attiva do_pit() se e' avvenuta una exception della cpu
     */
-    if (ticks_int20_pit < 3) {
+    if (ticks_int20_pit < 2 && !is_first_rendering_bsod) {
         ticks_int20_pit++;
         goto out;
     }
 
     do_pit(ptr_map_error_msg, &val_reg_before_disaster);
+    is_first_rendering_bsod = 0;
     ticks_int20_pit = 0;
-
 out:
     EOI_MASTER;
 }

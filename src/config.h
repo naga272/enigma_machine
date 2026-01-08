@@ -85,4 +85,18 @@ typedef unsigned char uchar;
 
 #define SIZEOFARR(x) (sizeof(x) / sizeof(x[0]))
 
+#ifdef DISPLAY_START_MSG
+uchar start_msg[] = "\
+=============================================================\n\
+|Welcome to my EnigmaOs!                                    |\n\
+|author: naga272                                            |\n\
+|Set a colour for your shell:                               |\n\
+|  -digita 1 per un background blue and colore testo white  |\n\
+|  -digita 2 per un background bianco and colore testo nero |\n\
+|  -digita 3 per un background nero and colore testo bianco |\n\
+|  -digita 4 per un background nero and colore testo verde  |\n\
+=============================================================\n\
+>>> inserisci qui il numero: ";
+#endif
+
 #endif
