@@ -16,6 +16,11 @@ O3 void init_shell()
 {
     terminal_initialize(BG_BIANCO_C_NERO);
     print((uchar*) start_msg);
+
+    while (FASE_SETUP) {
+        try_the_setup(tmp_char_container);
+        asm volatile("sti");
+    }
 }
 
 
@@ -116,11 +121,6 @@ static inline void try_int80h()
 
 O3 static inline void main()
 {
-    if (FASE_SETUP) {
-        try_the_setup(tmp_char_container);
-        return;
-    }
-
     gestisci_char_to_write(tmp_char_container);
     tmp_char_container = 0;
 
