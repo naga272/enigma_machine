@@ -4,7 +4,7 @@
 ![Language](https://img.shields.io/badge/Language-asm-brown?style=flat)
 ![Language](https://img.shields.io/badge/Language-ld-white?style=flat)
 ![Language](https://img.shields.io/badge/Language-bash-green?style=flat) 
-![Testing](https://img.shields.io/badge/Test-Pass-true)
+![Testing](https://img.shields.io/badge/Test-Pass-false)
 
 **EnigmaOS** è un sistema operativo a 32 bit minimale scritto in Assembly e C, progettato per emulare il comportamento della storica macchina crittografica Enigma utilizzata durante la Seconda Guerra Mondiale.
 
@@ -55,3 +55,4 @@ video dimostrazione: https://youtu.be/j1sOcezOwN0
 - Chromium: https://www.chromium.org/chromium-os/developer-library/reference/linux-constants/syscalls/#x86-32-bit
 - Kernel source code Linux: https://github.com/torvalds/linux/
 - szhou42: https://github.com/szhou42/osdev
+
