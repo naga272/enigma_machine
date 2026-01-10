@@ -295,7 +295,6 @@ O3 void panic(const uchar* msg, struct regs_t* status_reg)
     print_hex(status_reg->edx);
     print((uchar*) "\n");
 
-    // nuova linea
     print((uchar*) "edi=");
     print_hex(status_reg->edi);
     print((uchar*) "\t");
@@ -312,7 +311,6 @@ O3 void panic(const uchar* msg, struct regs_t* status_reg)
     print_hex(status_reg->esp);
     print((uchar*) "\n");
 
-    // nuova linea
     print((uchar*) "eflags=");
     print_hex(status_reg->eflags);
     print((uchar*) "\t");

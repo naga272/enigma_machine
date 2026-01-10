@@ -28,7 +28,7 @@ O3 void init_shell()
 
     while (FASE_SETUP) {
         try_the_setup(tmp_char_container);
-        asm volatile("sti");
+        asm volatile("hlt");
     }
 }
 
