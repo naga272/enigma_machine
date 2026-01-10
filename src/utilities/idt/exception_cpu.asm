@@ -72,352 +72,288 @@ extern int1fh_handler
 
 int0h:
     cli
-    pushad
 
-    call int0h_handler
+    GESTIONE_STACK_INT int0h_handler
 
-    popad
     sti
     iret
 
 
 int1h:
     cli
-    pushad
 
-    call int1h_handler
+    GESTIONE_STACK_INT int1h_handler
 
-    popad
     sti
     iret
 
 
 int2h:
     cli
-    pushad
 
-    call int2h_handler
+    GESTIONE_STACK_INT int2h_handler
 
-    popad
     sti
     iret
 
 
 int3h:
     cli
-    pushad
+    
+    GESTIONE_STACK_INT int3h_handler
 
-    call int3h_handler
-
-    popad
     sti
     iret
 
 
 int4h:
     cli
-    pushad
+    
+    GESTIONE_STACK_INT int4h_handler
 
-    call int4h_handler
-
-    popad
     sti
     iret
 
 
 int5h:
     cli
-    pushad
 
-    call int5h_handler
+    GESTIONE_STACK_INT int5h_handler
 
-    popad
     sti
     iret
 
 
 int6h:
     cli
-    pushad
 
-    call int6h_handler
+    GESTIONE_STACK_INT int6h_handler
 
-    popad
     sti
     iret
 
 
 int7h:
     cli
-    pushad
 
-    call int7h_handler
+    GESTIONE_STACK_INT int7h_handler
 
-    popad
     sti
     iret
 
 
 int8h:
     cli
-    pushad
 
-    call int8h_handler
+    GESTIONE_STACK_INT int8h_handler
 
-    popad
     sti
     iret
 
 
 int9h:
     cli
-    pushad
+    
+    GESTIONE_STACK_INT int9h_handler
 
-    call int9h_handler
-
-    popad
     sti
     iret
 
 
 intah:
     cli
-    pushad
 
-    call intah_handler
+    GESTIONE_STACK_INT intah_handler
 
-    popad
     sti
     iret
 
 
 intbh:
     cli
-    pushad
 
-    call intbh_handler
+    GESTIONE_STACK_INT intbh_handler
 
-    popad
     sti
     iret
 
 
 intch:
     cli
-    pushad
 
-    call intch_handler
+    GESTIONE_STACK_INT intch_handler
 
-    popad
     sti
     iret
 
 
 intdh:
     cli
-    pushad
 
-    call intdh_handler
+    GESTIONE_STACK_INT intdh_handler
 
-    popad
     sti
     iret
 
 
 inteh:
     cli
-    pushad
 
-    call inteh_handler
+    GESTIONE_STACK_INT inteh_handler
 
-    popad
     sti
     iret
 
 
 intfh:
     cli
-    pushad
 
-    call intfh_handler
+    GESTIONE_STACK_INT intfh_handler
 
-    popad
     sti
     iret
 
 
 int10h:
     cli
-    pushad
 
-    call int10h_handler
+    GESTIONE_STACK_INT int10h_handler
 
-    popad
     sti
     iret
 
 
 int11h:
     cli
-    pushad
 
-    call int11h_handler
+    GESTIONE_STACK_INT int11h_handler
 
-    popad
     sti
     iret
 
 
 int12h:
     cli
-    pushad
 
-    call int12h_handler
+    GESTIONE_STACK_INT int12h_handler
 
-    popad
     sti
     iret
 
 
 int13h:
     cli
-    pushad
 
-    call int13h_handler
+    GESTIONE_STACK_INT int13h_handler
 
-    popad
     sti
     iret
 
 
 int14h:
     cli
-    pushad
 
-    call int14h_handler
+    GESTIONE_STACK_INT int14h_handler
 
-    popad
     sti
     iret
 
 
 int15h:
     cli
-    pushad
 
-    call int15h_handler
+    GESTIONE_STACK_INT int15h_handler
 
-    popad
     sti
     iret
 
 
 int16h:
     cli
-    pushad
 
-    call int16h_handler
+    GESTIONE_STACK_INT int16h_handler
 
-    popad
     sti
     iret
 
 
 int17h:
     cli
-    pushad
 
-    call int17h_handler
+    GESTIONE_STACK_INT int17h_handler
 
-    popad
     sti
     iret
 
 
 int18h:
     cli
-    pushad
 
-    call int18h_handler
+    GESTIONE_STACK_INT int18h_handler
 
-    popad
     sti
     iret
 
 
 int19h:
     cli
-    pushad
 
-    call int19h_handler
+    GESTIONE_STACK_INT int19h_handler
 
-    popad
     sti
     iret
 
 
 int1ah:
     cli
-    pushad
 
-    call int1ah_handler
+    GESTIONE_STACK_INT int1ah_handler
 
-    popad
     sti
     iret
 
 
 int1bh:
     cli
-    pushad
 
-    call int1bh_handler
+    GESTIONE_STACK_INT int1bh_handler
 
-    popad
     sti
     iret
 
 
 int1ch:
     cli
-    pushad
 
-    call int1ch_handler
+    GESTIONE_STACK_INT int1ch_handler
 
-    popad
     sti
     iret
 
 
 int1dh:
     cli
-    pushad
 
-    call int1dh_handler
+    GESTIONE_STACK_INT int1dh_handler
 
-    popad
     sti
     iret
 
 
 int1eh:
     cli
-    pushad
 
-    call int1eh_handler
+    GESTIONE_STACK_INT int1eh_handler
 
-    popad
     sti
     iret
 
 
 int1fh:
     cli
-    pushad
 
-    call int1fh_handler
+    GESTIONE_STACK_INT int1fh_handler
 
-    popad
     sti
     iret
 

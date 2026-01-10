@@ -2,6 +2,7 @@
 // definizione tastiera italiana standard QZERTY
 #include "config.h"
 #include "utilities/idt/body_int/master/input_keyboard.h"
+#include "utilities/idt/body_int/master/keyboard_layer.h"
 
 
 uchar keyboard_map_QZERTY[128] = {

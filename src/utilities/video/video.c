@@ -1,10 +1,13 @@
+
 #include "config.h"
 
 #include "utilities/stdlib/stdlib.h"
-#define settings_video
-#include "utilities/video/video.h"
 #include "utilities/io/io.h"
 
+#define settings_video
+#include "utilities/video/video.h"
+#include "utilities/shell/command.h"
+#include "utilities/idt/body_int/slave/rtc_orologio.h"
 
 extern uchar core_enigma(uchar);
 
@@ -221,7 +224,9 @@ void gestisci_char_to_write(uchar tmp_char_container)
     }
 
     if (CHAR_END_PHRASE(tmp_char_container)) {
-        start_encryption();
+        if (!try_execute_comm(buffer_line_cmd))
+            start_encryption();
+
         return;
     }
 
@@ -231,27 +236,24 @@ void gestisci_char_to_write(uchar tmp_char_container)
 }
 
 
-char* panic_face = "\n\
-\t\t\tOh no! Critical error!\n\
-         ________________________________\n\
-        (                                (\n\
-      :(                                  ):(\n\
-    :(                                      ):(\n\
-  :(            XXXX         XXXX             ):(\n\
-:(              XXXX         XXXX              ):(\n\
-:(                                              ):(\n\
-:(                                              ):(\n\
-:(                                              ):(\n\
-  :(            -----------------             ):(\n\
-    :(                                      ):(\n\
-      :(                                 ):(\n\
-        :(_______________________________(\n\
-        \n\
-";
+void print_hex(u32 val) {
+    uchar hex[11]; // "0x" + 8 cifre + '\0'
+    hex[0] = '0';
+    hex[1] = 'x';
+    
+    for (int i = 0; i < 8; i++) {
+        u8 nibble = (val >> (28 - i * 4)) & 0xF;
+        if (nibble < 10)
+            hex[2 + i] = '0' + nibble;
+        else
+            hex[2 + i] = 'A' + (nibble - 10);
+    }
+    hex[10] = '\0';
+    print(hex);
+}
 
 
-u8 panic_init = 0;
-O3 void panic(const char* msg)
+O3 void panic(const uchar* msg, struct regs_t* status_reg)
 {
     /*
     * In un os normale, la panic foo deve avviarsi solo quando le cose stanno andando
@@ -270,16 +272,142 @@ O3 void panic(const char* msg)
     terminal_col = 0;
     terminal_row = 0;
 
-    print((const uchar*) msg);
-    print((const uchar*) panic_face);
-    disable_cursor();    
+    // show a message that explain what happened
+    print(msg);
+
+    // show panic face
+    print(panic_face);
+
+    // show status register
+    print((uchar*) "eax=");
+    print_hex(status_reg->eax);
+    print((uchar*) "\t");
+
+    print((uchar*) "ebx=");
+    print_hex(status_reg->ebx);
+    print((uchar*) "\t");
+
+    print((uchar*) "ecx=");
+    print_hex(status_reg->ecx);
+    print((uchar*) "\t");
+
+    print((uchar*) "edx=");
+    print_hex(status_reg->edx);
+    print((uchar*) "\n");
+
+    print((uchar*) "edi=");
+    print_hex(status_reg->edi);
+    print((uchar*) "\t");
+
+    print((uchar*) "esi=");
+    print_hex(status_reg->esi);
+    print((uchar*) "\t");
+
+    print((uchar*) "ebp=");
+    print_hex(status_reg->ebp);
+    print((uchar*) "\t");
+
+    print((uchar*) "esp=");
+    print_hex(status_reg->esp);
+    print((uchar*) "\n");
+
+    print((uchar*) "eflags=");
+    print_hex(status_reg->eflags);
+    print((uchar*) "\t");
+
+    print((uchar*) "eip=");
+    print_hex(status_reg->eip);
+    print((uchar*) "\t");
+
+    print((uchar*) "cs=");
+    print_hex(status_reg->cs);
+    print((uchar*) "\t");
+    
+    print((uchar*) "intno=");
+    print_hex(status_reg->int_no);
+
+    disable_cursor();
+}
+
+
+u8 first_rendering = 1;
+O3 void render_time()
+{
+    if (!t.rtc_dirty && !first_rendering)
+        return;
+
+    t.sec++;
+
+    if (t.sec == 60) {
+        t.min++;
+        t.sec = 0;
+    }
+
+    if (t.min == 60) {
+        t.min = 0;
+        t.ore++;
+    }
+
+    if (t.ore == 24) {
+        // per evitare troppi casini, tanto capita una sola volta in 24h
+        rtc_get_time(&t);
+    }
+
+    u8 tmp_terminal_col = terminal_col;
+    u8 tmp_terminal_row = terminal_row;
+
+    terminal_col = VGA_WIDTH - SIZEOFARR(time_formatted);
+    terminal_row = 0;
+
+    time_formatted[0] = giorni_settimana[t.giorno_sett][0];
+    time_formatted[1] = giorni_settimana[t.giorno_sett][1];
+    time_formatted[2] = giorni_settimana[t.giorno_sett][2];
+    time_formatted[3] = ' ';
+
+    time_formatted[4] = '0' + (t.giorno_mese / 10);
+    time_formatted[5] = '0' + (t.giorno_mese % 10);
+    time_formatted[6] = '/';
+
+    time_formatted[7] = '0' + (t.mese / 10);
+    time_formatted[8] = '0' + (t.mese % 10);
+    time_formatted[9] = '/';
+
+    time_formatted[10] = '0' + (t.anno / 10);
+    time_formatted[11] = '0' + (t.anno % 10);
+    time_formatted[12] = ' ';
+
+    time_formatted[13] = '0' + (t.ore / 10);
+    time_formatted[14] = '0' + (t.ore % 10);
+    time_formatted[15] = ':';
+    
+    time_formatted[16] = '0' + (t.min / 10);
+    time_formatted[17] = '0' + (t.min % 10);
+    time_formatted[18] = ':';
+    
+    time_formatted[19] = '0' + (t.sec / 10);
+    time_formatted[20] = '0' + (t.sec % 10);
+    time_formatted[21] = '\0';
+
+    print((uchar*) time_formatted);
+
+    terminal_row = tmp_terminal_row;
+    terminal_col = tmp_terminal_col;
+
+    // riporto il curose nella posizion e attuale
+    update_cursor_on_x_y_pos(terminal_row, terminal_col);
+
+    // resetto il flag
+    set_rtc_dirty(&t, 0);
+    first_rendering = 0;
 }
 
 
 /* lock serve ha bloccare il numero di messaggi per errore durante la fase di setup */
 u8 lock = 0;
-// usato per dire se la fase di setup e' finita (try_answer foo)
+// usato per dire se la fase di setup e' finita (try_the_setup foo)
 u8 flag_x_colour_shell = 0;
+
+
 O3 void try_the_setup(uchar c)
 {
     /*

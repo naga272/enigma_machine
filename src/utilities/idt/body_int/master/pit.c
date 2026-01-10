@@ -1,13 +1,14 @@
 #include "utilities/video/video.h"
 #include "utilities/idt/body_int/master/pit.h"
 #include "utilities/io/io.h"
+#include "utilities/idt/idt.h"
 
 
 // usato in int20h_handler
 u8 num_color = 0;
 
 
-O3 void do_pit()
+O3 void do_pit(uchar *msg_error, struct regs_t* status_reg)
 {
     /*
     *   Funzione chiamata da int20_handler() in pic.c
@@ -69,7 +70,7 @@ O3 void do_pit()
             break;
     }
 
-    panic("Impossibile eseguire la divisione per zero\n");
+    panic(msg_error, status_reg);
 
     num_color++;
 }
@@ -82,12 +83,8 @@ O3 void init_hardware_pit()
     *   Vado a dire sostanzialmente a ogni quanto deve fare una determinata
     *   azione.
     * **/
-    #define oscilloscopio_frequenza 1193182
-    #define hz 1193182 - 1
-
-    u16 divisione = oscilloscopio_frequenza / hz;
 
     outb(0x43, 0x36);
-    outb(0x40, divisione & 0xFF);   // low
-    outb(0x40, divisione >> 8);     // high
+    outb(0x40, PIT_DIV & 0xFF);         // low
+    outb(0x40, (PIT_DIV >> 8) & 0xff);  // high
 }

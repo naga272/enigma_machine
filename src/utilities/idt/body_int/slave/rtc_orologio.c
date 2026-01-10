@@ -26,41 +26,77 @@ O3 static inline u8 bcd_to_bin(u8 v)
 }
 
 
-O3 static inline u8 rtc_get_sec()
+O3 static inline u8 rtc_get_sec_utc()
 {
     return bcd_to_bin(rtc_read(0x00));
 }
 
 
-O3 static inline u8 rtc_get_min()
+O3 static inline u8 rtc_get_min_utc()
 {
     return bcd_to_bin(rtc_read(0x02));
 }
 
 
-O3 static inline u8 rtc_get_ore()
+O3 static inline u8 rtc_get_ore_utc()
 {
     return bcd_to_bin(rtc_read(0x04));
 }
 
 
+O3 static inline u8 rtc_get_giorno_of_week_utc()
+{
+    return bcd_to_bin(rtc_read(0x06));
+}
+
+
+O3 static inline u8 rtc_get_giorno_mese_utc()
+{
+    return bcd_to_bin(rtc_read(0x07));
+}
+
+
+O3 static inline u8 rtc_get_mese_utc()
+{
+    return bcd_to_bin(rtc_read(0x08));
+}
+
+
+O3 static inline u8 rtc_get_anno_utc()
+{
+    return bcd_to_bin(rtc_read(0x09));
+}
+
+
 O3 void rtc_get_time(struct tempo_t *t)
 {
+    rtc_wait_update_end();
+
     // alla conversione devo aggiungere il timezone
-    t->sec = rtc_get_sec();
-    t->min = rtc_get_min() + 4;
+    t->sec = rtc_get_sec_utc() + 19;
+
+    if (t->sec >= 60)
+        t->sec = t->sec % 60;
+
+    t->min = rtc_get_min_utc() + 4;
 
     /* 
     *   se t->min si trova a 59 e faccio + 4 esce fuori 63,
     *   e quindi finisco per stampare in output HH:63:SS
+    *   Uso il modulo per togliere questo problema
     * */
     if (t->min >= 60)
         t->min = t->min % 60;
 
-    t->ore = rtc_get_ore() + 1;
+    t->ore = rtc_get_ore_utc() + 1;
 
     if (t->ore >= 24)
         t->ore = t->ore % 24;
+
+    t->giorno_sett = rtc_get_giorno_of_week_utc();
+    t->giorno_mese = rtc_get_giorno_mese_utc();
+    t->mese = rtc_get_mese_utc();
+    t->anno = rtc_get_anno_utc();
 }
 
 
@@ -70,33 +106,18 @@ O3 void set_rtc_dirty(struct tempo_t *t, u8 new_value)
 }
 
 
-O3 void do_rtc()
-{
-    rtc_wait_update_end();
-}
-
-
 O3 void init_hardware_rtc()
 {
-    // per far funzionare l'IRQ8 devo prima abilitare IRQ2 
-    outb(0x21, insb(0x21) & ~0x04);
+    outb(0x70, 0x8A);
+    u8 regA = insb(0x71);
+    outb(0x70, 0x8A);          
+    outb(0x71, (regA & 0xF0) | 0x06);  // RS=6 -> 1024 Hz
 
-    // poi sblocco irq8
-    outb(0xA1, insb(0xA1) & ~0x01);
-
-    // configurazione RTC
     outb(0x70, 0x8B);
     u8 regB = insb(0x71);
     outb(0x70, 0x8B);
-    outb(0x71, regB | 0x40);  // Abilita periodic interrupt (bit 6)
+    outb(0x71, regB | 0x40);   // Set bit 6 -> PIE
 
-    // impostazione della frequenza
-    outb(0x70, 0x8A);
-    u8 regA = insb(0x71);
-    outb(0x70, 0x8A);
-    outb(0x71, (regA & 0xF0) | 0x0F);  // 2Hz (valore 15)
-    
-    // bisogna leggere register C per pulire eventuali interrupt in coda
     outb(0x70, 0x0C);
     insb(0x71);
 }

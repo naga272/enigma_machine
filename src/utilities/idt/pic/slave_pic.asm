@@ -25,20 +25,17 @@ extern int2fh_handler
 
 int28h:    
     cli
-    pushad
 
-    call int28h_handler
+    GESTIONE_STACK_INT int28h_handler
 
-    popad
     sti
     iret
 
 
 int29h:    
     cli
-    pushad
 
-    call int29h_handler
+    GESTIONE_STACK_INT int29h_handler
 
     popad
     sti
@@ -47,66 +44,54 @@ int29h:
 
 int2ah:    
     cli
-    pushad
 
-    call int2ah_handler
+    GESTIONE_STACK_INT int2ah_handler
 
-    popad
     sti
     iret
 
 
 int2bh:    
     cli
-    pushad
 
-    call int2bh_handler
+    GESTIONE_STACK_INT int2bh_handler
 
-    popad
     sti
     iret
 
 
 int2ch:    
     cli
-    pushad
 
-    call int2ch_handler
+    GESTIONE_STACK_INT int2ch_handler
 
-    popad
     sti
     iret
 
 
 int2dh:    
     cli
-    pushad
 
-    call int2dh_handler
+    GESTIONE_STACK_INT int2dh_handler
 
-    popad
     sti
     iret
 
 
 int2eh:    
     cli
-    pushad
 
-    call int2eh_handler
+    GESTIONE_STACK_INT int2eh_handler
 
-    popad
     sti
     iret
 
 
 int2fh:    
     cli
-    pushad
 
-    call int2fh_handler
+    GESTIONE_STACK_INT int20h_handler
 
-    popad
     sti
     iret
 

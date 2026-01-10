@@ -14,16 +14,38 @@
 #include "utilities/idt/idt.h"
 #include "utilities/idt/body_int/master/pit.h"
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
+#include "utilities/idt/body_int/syscalls/syscall.h"
 
 
 struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
 struct idtr_desc idtr_descriptor;                       // rappresenta il registro idtr (interrupt descriptor table register)
 
-// usato in int20_handler per incrementare il flag t->rtc_dirty
+// usato in int20_handler per incrementare il flag t->rtc_dirty dopo n avvii del PIT
 u8 ticks_int20_rtc = 0;
 
 // usato per la gestione di eccezioni triggherate dalla cpu
 u8 trigger_exception = 0;
+
+uchar *ptr_map_error_msg;
+
+uchar int0h_error_msg[]     = "Critical Error! Division by zero Exception";
+uchar int2h_error_msg[]     = "Critical Error! Non Maskable Interrupt Exception";
+uchar int3h_error_msg[]     = "Critical Error! Overlflow Interrupt Exception";
+uchar int4h_error_msg[]     = "Critical Error! Overlflow Interrupt Exception";
+uchar int12h_error_msg[]    = "Critical Error! Machine check Exception";
+
+
+struct regs_t val_reg_before_disaster;
+
+
+struct queue_t queue = {
+    .is_occupato = {
+        .counter = 0
+    },
+    .head = 0,
+    .tail = 0,
+    .max_priority_in_queue = 0
+};
 
 
 O3 void no_interrupt_handler()
@@ -37,7 +59,44 @@ O3 void no_interrupt_handler()
 }
 
 
-O3 void int0h_handler()
+O3 static inline void set_status_reg_before_disaster(struct regs_t *r)
+{
+    // save general register
+    val_reg_before_disaster.edi = r->edi;
+    val_reg_before_disaster.esi = r->esi;
+    val_reg_before_disaster.ebp = r->ebp;
+    val_reg_before_disaster.esp = r->esp;
+    val_reg_before_disaster.ebx = r->ebx;
+    val_reg_before_disaster.edx = r->edx;
+    val_reg_before_disaster.ecx = r->ecx;
+    val_reg_before_disaster.eax = r->eax;
+
+    // segment register
+    val_reg_before_disaster.gs = r->gs;
+    val_reg_before_disaster.fs = r->fs;
+    val_reg_before_disaster.es = r->es;
+    val_reg_before_disaster.ds = r->ds;
+
+    // informazioni inserite dall'handler manualmente
+    val_reg_before_disaster.int_no = r->int_no;
+    val_reg_before_disaster.eip = r->eip;
+    val_reg_before_disaster.cs = r->cs;
+    val_reg_before_disaster.eflags = r->eflags;
+}
+
+
+O3 static inline void push_in_queue_int(struct regs_t *r)
+{
+    while (atomic_read(&queue.is_occupato) == 1)
+        ;
+
+    atomic_inc(&queue.is_occupato);
+
+    atomic_dec(&queue.is_occupato);
+}
+
+
+O3 void int0h_handler(struct regs_t *r)
 {
     /*
     * Questo interrupt viene triggherato quando viene eseguita una divisione
@@ -48,258 +107,340 @@ O3 void int0h_handler()
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    ptr_map_error_msg = int0h_error_msg;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1h_handler()
+O3 void int1h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per il debug
     * */
-    if (!trigger_exception)
-        trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int2h_handler()
+O3 void int2h_handler(struct regs_t *r)
 {
     /*
-    * Interrupt usato per IMI
+    *   Interrupt usato per NMI (Non Maskable Interrupt)
+    *   Evento generato da hardware per eventi urgenti che non possono venire ignorati.
     * */
     if (!trigger_exception)
         trigger_exception++;
+    
+    set_status_reg_before_disaster(r);
+    ptr_map_error_msg = int2h_error_msg;
 }
 
 
-O3 void int3h_handler()
+O3 void int3h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per casi di overflow
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
+    ptr_map_error_msg = int3h_error_msg;
 }
 
 
-O3 void int4h_handler()
+O3 void int4h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per Bound
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int5h_handler()
+O3 void int5h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per Invalid opcode
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int6h_handler()
+O3 void int6h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per Device not available
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int7h_handler()
+O3 void int7h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per Double fault
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int8h_handler()
+O3 void int8h_handler(struct regs_t *r)
 {
     /*
     * Interrupt usato per coprocessor segment 
     * */
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int9h_handler()
+O3 void int9h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void intah_handler()
+O3 void intah_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void intbh_handler()
+O3 void intbh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void intch_handler()
+O3 void intch_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void intdh_handler()
+O3 void intdh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void inteh_handler()
+O3 void inteh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void intfh_handler()
+O3 void intfh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int10h_handler()
+O3 void int10h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int11h_handler()
+O3 void int11h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int12h_handler()
+O3 void int12h_handler(struct regs_t *r)
+{
+    /*
+    *   Machine Check
+    *   Interruzione cpu creata da errori hardware gravi rilevati dal processore
+    *   tipi di eventi errori:
+    *   - di cache (l1, l2, l3)
+    *   - bus
+    *   - TLB non recuperabili
+    *   - internal Core (execution Unit, register file)
+    *   - ECC DRAM propagati alla cpu
+    * * */
+    if (!trigger_exception)
+        trigger_exception++;
+
+    set_status_reg_before_disaster(r);
+    ptr_map_error_msg = int12h_error_msg;
+}
+
+
+O3 void int13h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int13h_handler()
+O3 void int14h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int14h_handler()
+O3 void int15h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int15h_handler()
+O3 void int16h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int16h_handler()
+O3 void int17h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int17h_handler()
+O3 void int18h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int18h_handler()
+O3 void int19h_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int19h_handler()
+O3 void int1ah_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1ah_handler()
+O3 void int1bh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1bh_handler()
+O3 void int1ch_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1ch_handler()
+O3 void int1dh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1dh_handler()
+O3 void int1eh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1eh_handler()
+O3 void int1fh_handler(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
+
+    set_status_reg_before_disaster(r);
 }
 
 
-O3 void int1fh_handler()
-{
-    if (!trigger_exception)
-        trigger_exception++;
-}
+u8 ticks_int20_pit = 0;
+u8 is_first_rendering_bsod = 1;
 
-
-O3 void int20h_handler()
+O3 void int20h_handler(struct regs_t* r)
 {
     /*
     Triggherata dal PIT, se è stato triggherata una eccezione dalla cpu
     esegue la funzione do_pit()
     */
 
-    if (ticks_int20_rtc >= 20) {
+    // ogni 33,33 ms * 30 = 999 ms si aggiorna l'orario (vedi pit.h)
+    if (ticks_int20_rtc >= 30) {
         set_rtc_dirty(&t, 1);
         ticks_int20_rtc = 0;
     }
@@ -309,8 +450,19 @@ O3 void int20h_handler()
     if (!trigger_exception)
         goto out;
 
-    do_pit();
+    /* 
+    *   Questo invece serve per quando si deve chiamare la bsod,
+    *   e' un delay necessario per cambiare i colori delle scritte con una frequenza piu bassa
+    *   ogni 33,33ms * 2 si attiva do_pit() se e' avvenuta una exception della cpu
+    */
+    if (ticks_int20_pit < 2 && !is_first_rendering_bsod) {
+        ticks_int20_pit++;
+        goto out;
+    }
 
+    do_pit(ptr_map_error_msg, &val_reg_before_disaster);
+    is_first_rendering_bsod = 0;
+    ticks_int20_pit = 0;
 out:
     EOI_MASTER;
 }
@@ -319,7 +471,7 @@ out:
 extern void gestisci_scancode_from_controller(u8);
 
 
-O3 void int21h_handler()
+O3 void int21h_handler(struct regs_t* r)
 {
     /*
     *   Funzione che gestisce l'interrupt 0x21 (tastiera). 
@@ -345,111 +497,118 @@ O3 void int21h_handler()
     /* insb(0x60)
     * la cpu si va a leggere dal buffer del controller della tastiera il char.
     * Se il buffer è stato svuotato completamente, il PIC abbassa IRQ#1.
+    * NB: 0x60 è il gate per il buffer del controller, non del controlle (lui ha la gate 0x64)
     */
     u8 scancode = insb(0x60);
 
-    gestisci_scancode_from_controller(scancode);
+    push_in_queue_int(r);
 
+    // in input_keyboard.c
+    gestisci_scancode_from_controller(scancode);
 out:
     EOI_MASTER;
 }
 
 
-O3 void int22h_handler()
+O3 void int22h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int23h_handler()
+O3 void int23h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int24h_handler()
+O3 void int24h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int25h_handler()
+O3 void int25h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int26h_handler()
+O3 void int26h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int27h_handler()
+O3 void int27h_handler(struct regs_t* r)
 {
     EOI_MASTER;
 }
 
 
-O3 void int28h_handler()
-{ 
+O3 void int28h_handler(struct regs_t* r)
+{
     outb(0x70, 0x0C);
-    insb(0x71);        // ACK RTC
-    /*
-    * RTC orologio
-    * weeell, for some reason doesn't work, traferito tutto in int20h lol
-    * ***/
+    insb(0x71);  // ACK, valore ignorato
+
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int29h_handler()
+O3 void int29h_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2ah_handler()
+O3 void int2ah_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2bh_handler()
+O3 void int2bh_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2ch_handler()
+O3 void int2ch_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2dh_handler()
+O3 void int2dh_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2eh_handler()
+O3 void int2eh_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
 }
 
 
-O3 void int2fh_handler()
+O3 void int2fh_handler(struct regs_t* r)
 {
     EOI_SLAVE;
     EOI_MASTER;
+}
+
+
+/* SYSCALLS FOR USER */
+O3 i32 int80h_handler(struct regs_t *r)
+{
+    return do_int80h(r);
 }
 
 
@@ -475,11 +634,50 @@ O3 static inline void set_default_int()
 }
 
 
+O3 static inline void init_slave_pic()
+{
+    // per l'abilitazione dello slave:
+    // https://github.com/szhou42/osdev/blob/master/src/kernel/drivers/pic.c
+    /* Grazie mille a szhou42, senza di lui non ci sarei mai davvero arrivato. */
+    #define PIC1            0x20
+    #define PIC2            0xA0
+
+    #define PIC1_DATA       PIC1 + 1
+    #define PIC2_DATA       PIC2 + 1
+
+    #define PIC1_COMMAND    PIC1
+    #define PIC2_COMMAND    PIC2
+    #define ICW1            0x11
+
+    outb(PIC1_COMMAND, ICW1);
+    outb(PIC2_COMMAND, ICW1);
+
+    // ICW2, irq 0 to 7 is mapped to 0x20 to 0x27, irq 8 to F is mapped to 28 to 2F
+    outb(PIC1_DATA, 0x20);
+    outb(PIC2_DATA, 0x28);
+
+    // ICW3, connect master pic with slave pic
+    outb(PIC1_DATA, 0x4);
+    outb(PIC2_DATA, 0x2);
+
+    // ICW4, set x86 mode
+    outb(PIC1_DATA, 1);
+    outb(PIC2_DATA, 1);
+
+    // clear the mask register
+    outb(PIC1_DATA, 0);
+    outb(PIC2_DATA, 0);
+}
+
+
 O3 static inline void init_value_hardware()
 {
-    init_hardware_pit();
+    idt_load(&idtr_descriptor);
 
-    init_hardware_rtc();
+    init_slave_pic();
+    init_hardware_rtc();     // configura tutto il RTC
+    init_hardware_pit();     // PIT opzionale
+    enable_interrupts();     // abilita IF globali
 }
 
 
@@ -499,7 +697,7 @@ O3 void idt_init()
     /* ECCEZIONI TRIGGHERATE DELLA CPU */
     idt_set(0x00, int0h);   // divisione per zero
     idt_set(0x01, int1h);   // debug
-    idt_set(0x02, int2h);   // IMI
+    idt_set(0x02, int2h);   // NMI
     idt_set(0x03, int3h);   // breackpoint
     idt_set(0x04, int4h);   // Overflow
     idt_set(0x05, int5h);   // Bound
@@ -550,8 +748,7 @@ O3 void idt_init()
     idt_set(0x2E, int2eh);  // IDE Primary 
     idt_set(0x2F, int2fh);  // IDE Secondary
 
-    // Load the interrupt descriptor table
-    idt_load(&idtr_descriptor);
+    idt_set(0x80, int80h);  // syscall
 
     init_value_hardware();
 }

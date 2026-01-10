@@ -8,11 +8,16 @@ extern void init_hardware_rtc();
 extern void do_rtc();
 
 struct tempo_t{
-    u8 sec;
-    u8 min;
-    u8 ore;
-    u8 rtc_dirty;
+    u8 sec;             /* registro 0x00 */
+    u8 min;             /* registro 0x02 */
+    u8 ore;             /* registro 0x04 */
+    u8 giorno_sett;     /* registro 0x06 */
+    u8 giorno_mese;     /* registro 0x07 */
+    u8 mese;            /* registro 0x08 */
+    u8 anno;            /* registro 0x09 */
+    u8 rtc_dirty;       // flag per dire se l'orario va aggiornato o meno
 };
+
 
 extern struct tempo_t t;
 extern void set_rtc_dirty(struct tempo_t *t, u8 new_value);
