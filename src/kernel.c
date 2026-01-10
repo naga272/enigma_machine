@@ -3,12 +3,18 @@
 
 #include "config.h"
 #include "kernel.h"
-#include "utilities/idt/idt.h"
+
 #include "utilities/stdlib/stdlib.h"
+
 #include "utilities/video/video.h"
+#include "utilities/memory/heap/malloc.h"
+#include "utilities/memory/heap/kheap_creation.h"
+#include "utilities/memory/heap/kheap_creation.h"
+
+#include "utilities/io/io.h"
+#include "utilities/idt/idt.h"
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
 #include "utilities/idt/body_int/master/input_keyboard.h"
-#include "utilities/io/io.h"
 
 
 extern void test_int80h(void);
@@ -17,6 +23,7 @@ extern void test_int80h(void);
 O3 void init_shell()
 {
     terminal_initialize(BG_BIANCO_C_NERO);
+
     print((uchar*) start_msg);
 
     while (FASE_SETUP) {
@@ -60,8 +67,7 @@ O3 static inline void main()
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
     */
-    trigger_BsOD();
-
+    // trigger_BsOD();
 
     /*
     === SYSCALL PER UTENTI ===
@@ -73,8 +79,13 @@ O3 static inline void main()
 O3 void kernel_main()
 {
     disable_interrupts();
+
     idt_init();
+
+    kheap_init();
+
     enable_interrupts();
+
     init_shell();
 
     // update dats nella struct @t

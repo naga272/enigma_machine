@@ -1,11 +1,6 @@
 #include "utilities/stdlib/stdlib.h"
 
 
-// start heap memory
-#define BASE_PTR_HEAP (void*) 0x100000
-static void* current_address_top = BASE_PTR_HEAP;
-
-
 void* memset(void *ptr, int c, size_t n)
 {
     char *p = (char *) ptr;
@@ -15,6 +10,8 @@ void* memset(void *ptr, int c, size_t n)
     return ptr;
 }
 
+
+#ifdef WATER_MARK_ALG
 
 /*
 *   In teoria non mi dovrebbe servire troppo l'heap per questo os,
@@ -47,3 +44,5 @@ void* calloc(size_t num_bytes)
     memset(base_addr, 0, num_bytes);
     return base_addr;
 }
+
+#endif

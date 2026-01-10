@@ -20,7 +20,7 @@
 struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
 struct idtr_desc idtr_descriptor;                       // rappresenta il registro idtr (interrupt descriptor table register)
 
-// usato in int20_handler per incrementare il flag t->rtc_dirty
+// usato in int20_handler per incrementare il flag t->rtc_dirty dopo n avvii del PIT
 u8 ticks_int20_rtc = 0;
 
 // usato per la gestione di eccezioni triggherate dalla cpu
