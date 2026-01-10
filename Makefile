@@ -4,7 +4,8 @@ SLAVE_IDT = ./build/idt/body_int/slave/rtc_orologio.o
 SYSCALL = ./build/idt/body_int/syscalls/syscall.o ./build/test_int80h.asm.o ./build/idt/body_int/syscalls/write/write.o
 IDT = ./build/idt/idt.asm.o ./build/idt/idt.o $(MASTER_IDT) $(SLAVE_IDT) $(SYSCALL)
 HEAP = ./build/memory/kheap_creation.o ./build/memory/heap_creation.o ./build/memory/malloc.o
-FILES = ./build/kernel.asm.o ./build/kernel.o $(IDT) ./build/io/io.asm.o $(HEAP) $(UTILITIES) ./build/enigma/enigma.o
+PAGING = ./build/memory/paging.o ./build/memory/paging.asm.o
+FILES = ./build/kernel.asm.o ./build/kernel.o $(IDT) ./build/io/io.asm.o $(HEAP) $(PAGING) $(UTILITIES) ./build/enigma/enigma.o
 
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
@@ -63,6 +64,17 @@ iso: ./bin/os.bin
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/memory/heap/malloc.c -o ./build/memory/malloc.o
 
 ####
+
+
+# ==== FILES FOR PAGING ====
+
+./build/memory/paging.o: ./src/utilities/memory/paging/paging.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/memory/paging/paging.c -o ./build/memory/paging.o
+
+
+./build/memory/paging.asm.o: ./src/utilities/memory/paging/paging.asm
+	nasm -f elf -g ./src/utilities/memory/paging/paging.asm -o ./build/memory/paging.asm.o
+
 
 # ==== DEFINIZIONE LIBRERIE STANDARD ====
 ./build/stdlib/stdlib.o: ./src/utilities/stdlib/stdlib.c

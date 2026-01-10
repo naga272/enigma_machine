@@ -18,7 +18,7 @@ Questo sistema operativo è un omaggio all'enigma della seconda guerra mondiale,
 
 ## Funzionalità Principali
 
-- Emulazione della **plugboard**, dei **rotori** e del **riflettore** (vedi file in `src/enigma/enigma.c` e `src/enigma/enigma.h`).
+- Emulazione della **plugboard**, dei **rotori** e del **riflettore** (vedi file in `src/utilities/enigma/enigma.c` e `src/utilities/enigma/enigma.h`).
 - Input utente tramite interfaccia a linea di comando testuale.
 - Algoritmo di cifratura fedele alla logica Enigma.
 - Interfaccia interattiva minimale.

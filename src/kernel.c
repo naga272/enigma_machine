@@ -11,6 +11,8 @@
 #include "utilities/memory/heap/kheap_creation.h"
 #include "utilities/memory/heap/kheap_creation.h"
 
+#include "utilities/memory/paging/paging.h"
+
 #include "utilities/io/io.h"
 #include "utilities/idt/idt.h"
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
@@ -75,13 +77,23 @@ O3 static inline void main()
     // try_int80h();
 }
 
+static struct paging_4gb_chunk *kernel_directory = 0;
 
 O3 void kernel_main()
 {
     disable_interrupts();
 
+    // inizializzazione idt + settings hardware componenents
     idt_init();
 
+    // inizializzazione paging
+    kernel_directory = paging_new_4gb(
+        PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL
+    );
+
+    kernel_directory->switch_directory(kernel_directory);
+
+    // inizializzazione heap
     kheap_init();
 
     enable_interrupts();

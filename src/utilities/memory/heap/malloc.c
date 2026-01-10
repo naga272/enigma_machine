@@ -1,5 +1,6 @@
 #include "utilities/memory/heap/heap_creation.h"
 #include "utilities/memory/heap/malloc.h"
+#include "utilities/stdlib/stdlib.h"
 #include "errors_no.h"
 
 
@@ -126,6 +127,13 @@ O3 static inline void heap_free(struct heap* heap, void *addrs)
         heap,
         heap_address_to_block(heap, addrs)
     );
+}
+
+
+O3 void* kcalloc(size_t size)
+{
+    void *ptr = heap_alloc(&kernel_heap, size);
+    return memset(ptr, 0, size);
 }
 
 
