@@ -77,7 +77,9 @@ O3 static inline void main()
     // try_int80h();
 }
 
+
 static struct paging_4gb_chunk *kernel_directory = 0;
+
 
 O3 void kernel_main()
 {
@@ -103,7 +105,8 @@ O3 void kernel_main()
     // update dats nella struct @t
     rtc_get_time(&t);
 
-    asm volatile("sti");
+    char buf[512];
+    disk_read_sector(0, 1, buf);
 
     while (1) {
         main();
