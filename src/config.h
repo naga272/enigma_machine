@@ -31,6 +31,7 @@ typedef uint32_t u32;
 typedef int32_t i32;
 
 typedef unsigned char uchar;
+typedef unsigned short ushort;
 
 #ifndef O3
 #define O3 __attribute__((optimize("O3")))

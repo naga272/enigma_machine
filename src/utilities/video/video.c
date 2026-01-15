@@ -9,7 +9,9 @@
 #include "utilities/shell/command.h"
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
 
+
 extern uchar core_enigma(uchar);
+
 
 uchar buffer_line_cmd[SIZE_COMMAND_SHELL];
 size_t idx_buff = 0;
@@ -37,7 +39,7 @@ O3 u16 set_char_terminal(uchar c, char colour)
 }
 
 
-O3 void terminal_put_char(int x, int y, uchar c, char colour)
+O3 void terminal_put_char(i32 x, i32 y, uchar c, char colour)
 {
     /*
     *   Stampa un carattere c di colore colour alla colonna x della riga y del monitor

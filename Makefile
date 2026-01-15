@@ -5,7 +5,9 @@ SYSCALL = ./build/idt/body_int/syscalls/syscall.o ./build/test_int80h.asm.o ./bu
 IDT = ./build/idt/idt.asm.o ./build/idt/idt.o $(MASTER_IDT) $(SLAVE_IDT) $(SYSCALL)
 HEAP = ./build/memory/kheap_creation.o ./build/memory/heap_creation.o ./build/memory/malloc.o
 PAGING = ./build/memory/paging.o ./build/memory/paging.asm.o
-FILES = ./build/kernel.asm.o ./build/kernel.o $(IDT) ./build/io/io.asm.o $(HEAP) $(PAGING) $(UTILITIES) ./build/enigma/enigma.o
+DISK = ./build/disk/disk.o
+FILES = ./build/kernel.asm.o ./build/kernel.o $(HEAP) $(PAGING) $(UTILITIES) $(IDT) $(DISK) ./build/io/io.asm.o ./build/enigma/enigma.o
+
 
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
@@ -65,6 +67,9 @@ iso: ./bin/os.bin
 
 ####
 
+# ==== FILES FOR ACCESS DISK ====
+./build/disk/disk.o: ./src/utilities/disk/disk.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/disk/disk.c -o ./build/disk/disk.o
 
 # ==== FILES FOR PAGING ====
 

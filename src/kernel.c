@@ -17,8 +17,10 @@
 #include "utilities/idt/idt.h"
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
 #include "utilities/idt/body_int/master/input_keyboard.h"
+#include "utilities/disk/disk.h"
 
 
+static struct paging_4gb_chunk *kernel_directory = 0;
 extern void test_int80h(void);
 
 
@@ -49,6 +51,8 @@ O3 static inline void trigger_BsOD()
 
 
 u8 flag_x_int80h = 0;
+
+
 static inline void try_int80h()
 {
     if (flag_x_int80h)
@@ -56,6 +60,14 @@ static inline void try_int80h()
 
     test_int80h();
     flag_x_int80h++;
+}
+
+O3 static inline void test_disk()
+{
+    disk_write_sector(128, 1, (void*) "hello world");
+    uchar buf[512];
+    disk_read_sector(128, 1, buf);
+    print(buf);
 }
 
 
@@ -76,9 +88,6 @@ O3 static inline void main()
     */
     // try_int80h();
 }
-
-
-static struct paging_4gb_chunk *kernel_directory = 0;
 
 
 O3 void kernel_main()
@@ -105,9 +114,8 @@ O3 void kernel_main()
     // update dats nella struct @t
     rtc_get_time(&t);
 
-    char buf[512];
-    disk_read_sector(0, 1, buf);
-
+    // test_disk();
+        
     while (1) {
         main();
         asm volatile("hlt");

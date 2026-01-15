@@ -89,7 +89,7 @@ uchar time_formatted[22];
 #define NUM_SPACE_TAB 4
 
 u16 set_char_terminal(uchar, char);
-void terminal_put_char(int, int, uchar, char);
+void terminal_put_char(i32, i32, uchar, char);
 void terminal_writechar(uchar, char);
 void print(const uchar*);
 void panic(const uchar*, struct regs_t*);

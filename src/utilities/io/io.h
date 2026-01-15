@@ -1,10 +1,12 @@
 #ifndef IO_H
 #define IO_H
 
-unsigned char insb(unsigned char port);
-unsigned char insw(unsigned char port);
+#include "config.h"
 
-void outb(unsigned short port, unsigned char val);
-void outw(unsigned short port, unsigned short val);
+uchar insb(ushort port);
+ushort insw(ushort port);
+
+void outb(ushort port, uchar val);
+void outw(ushort port, ushort val);
 
 #endif
