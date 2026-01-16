@@ -10,6 +10,7 @@ i32 do_int80h(struct regs_t *);
 
 
 extern i32 do_write();
+extern i32 do_reboot(struct regs_t* r);
 
 /*
 extern i32 do_restart_syscall(struct regs_t* r);
@@ -98,7 +99,7 @@ extern i32 do_oldlstat(struct regs_t* r);
 extern i32 do_readlink(struct regs_t* r);
 extern i32 do_uselib(struct regs_t* r);
 extern i32 do_swapon(struct regs_t* r);
-extern i32 do_reboot(struct regs_t* r);
+
 extern i32 do_readdir(struct regs_t* r);
 extern i32 do_mmap(struct regs_t* r);
 extern i32 do_munmap(struct regs_t* r);

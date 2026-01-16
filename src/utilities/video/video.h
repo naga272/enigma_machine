@@ -96,6 +96,7 @@ void panic(const uchar*, struct regs_t*);
 void update_orologio_display();
 void terminal_initialize(u8);
 
+
 void enable_cursor(u8 start_cursor, u8 end_cursor);
 void disable_cursor_cursor(u8 x, u8 y);
 void render_time();

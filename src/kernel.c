@@ -62,10 +62,31 @@ static inline void try_int80h()
     flag_x_int80h++;
 }
 
+
 O3 static inline void test_disk()
 {
-    disk_write_sector(128, 1, (void*) "hello world");
+    uchar *username = (uchar*) "Mario";
+    uchar *password = (uchar*) "Password123!";
     uchar buf[512];
+
+    u16 offset = 0;
+
+    for (; username[offset] != '\0'; offset++) {
+        buf[offset] = username[offset];
+    }
+
+    buf[offset] = ' ';
+
+    offset++;
+
+    for (i8 i = 0; password[i] != '\0' ; i++, offset++) {
+        buf[offset] = password[i];
+    }
+    
+    buf[offset] = ' ';
+    buf[offset + 1] = actual_color_terminal;
+
+    disk_write_sector(128, 1, (void*) buf);
     disk_read_sector(128, 1, buf);
     print(buf);
 }
@@ -115,7 +136,7 @@ O3 void kernel_main()
     rtc_get_time(&t);
 
     // test_disk();
-        
+
     while (1) {
         main();
         asm volatile("hlt");

@@ -1,7 +1,7 @@
 UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/atomic/atomic.o
 MASTER_IDT = ./build/idt/body_int/master/pit.o ./build/idt/body_int/master/input_keyboard.o
 SLAVE_IDT = ./build/idt/body_int/slave/rtc_orologio.o
-SYSCALL = ./build/idt/body_int/syscalls/syscall.o ./build/test_int80h.asm.o ./build/idt/body_int/syscalls/write/write.o
+SYSCALL = ./build/idt/body_int/syscalls/syscall.o ./build/test_int80h.asm.o ./build/idt/body_int/syscalls/write/write.o ./build/idt/body_int/syscalls/reboot/reboot.o
 IDT = ./build/idt/idt.asm.o ./build/idt/idt.o $(MASTER_IDT) $(SLAVE_IDT) $(SYSCALL)
 HEAP = ./build/memory/kheap_creation.o ./build/memory/heap_creation.o ./build/memory/malloc.o
 PAGING = ./build/memory/paging.o ./build/memory/paging.asm.o
@@ -129,6 +129,10 @@ iso: ./bin/os.bin
 ### SYSCALLS
 ./build/idt/body_int/syscalls/write/write.o: ./src/utilities/idt/body_int/syscalls/write/write.c
 	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/idt/body_int/syscalls/write/write.c -o ./build/idt/body_int/syscalls/write/write.o
+
+
+./build/idt/body_int/syscalls/reboot/reboot.o: ./src/utilities/idt/body_int/syscalls/reboot/reboot.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/idt/body_int/syscalls/reboot/reboot.c -o ./build/idt/body_int/syscalls/reboot/reboot.o
 
 
 ./build/idt/body_int/syscalls/syscall.o: ./src/utilities/idt/body_int/syscalls/syscall.c

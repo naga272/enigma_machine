@@ -672,11 +672,15 @@ O3 static inline void init_slave_pic()
 
 O3 static inline void init_value_hardware()
 {
-    idt_load(&idtr_descriptor);
 
     init_slave_pic();
+
     init_hardware_rtc();     // configura tutto il RTC
+
     init_hardware_pit();     // PIT opzionale
+
+    idt_load(&idtr_descriptor);
+
     enable_interrupts();     // abilita IF globali
 }
 

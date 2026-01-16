@@ -532,7 +532,7 @@ i32 sys_swapon(struct regs_t* r)
 
 i32 sys_reboot(struct regs_t* r)
 {
-	return 0;// do_reboot(r);
+	return do_reboot(r);
 }
 
 
