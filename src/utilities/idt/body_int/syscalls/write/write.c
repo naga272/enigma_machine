@@ -18,4 +18,3 @@ i32 do_write(u32 fd, void* buf, size_t count)
     // (indirizzo finale - indirizzo iniziale)
     return (int) ((void*) tmp_buf - buf);
 }
-

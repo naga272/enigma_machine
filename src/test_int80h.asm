@@ -12,7 +12,7 @@ test_int80h:
     mov eax, 4 ; write syscall
     mov ebx, 1
     mov ecx, buffer_test_int80h
-    mov edx, 12
+    mov edx, 12 ; len
     int 80h     ; syscall SYS_WRITE
 
     popad

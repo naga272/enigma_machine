@@ -96,7 +96,9 @@ O3 i32 disk_write_sector(i32 lba, i32 total, void* buf)
     * 
     */
     ushort *ptr = (ushort*) buf;
+
     ata_wait_ready();
+
     outb(ATA_SECCOUNT, total);
     outb(ATA_LBA_LOW, lba & 0xFF);
     outb(ATA_LBA_MID, (lba >> 8) & 0xFF);
