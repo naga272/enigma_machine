@@ -25,7 +25,7 @@ la posizione di C è data da terminal_row e terminal_col
 #ifdef settings_video
 
 // default colore dei caratteri del terminale (in futuro potrebbe cambiare il colore in base alle situazioni)
-char actual_color_terminal = VERDE_CHIARO;
+uchar actual_color_terminal = VERDE_CHIARO;
 volatile u16 terminal_row    = 0;  // tiene traccia a quale riga del monitor sto scrivendo (max value VGA_HEIGHT)
 volatile u16 terminal_col    = 0;  // tiene traccia della colonna del monitor da dove sto scrivendo (max value VGA_WIDTH)
 u16* video_mem               = 0;
@@ -76,12 +76,11 @@ struct tempo_t t;
 formattazione orario in prima riga
 "ddd:MM:yyyy hh:mm:ss"
 */
+
 uchar time_formatted[22];
 // usato in modo provvisorio per aggiornare il timer (finche non capisco il problema
 // in IRQ#8)
 
-
-#undef settings_video
 #endif
 
 #define VGA_WIDTH   80
@@ -101,7 +100,6 @@ void enable_cursor(u8 start_cursor, u8 end_cursor);
 void disable_cursor_cursor(u8 x, u8 y);
 void render_time();
 
-
 extern void terminal_initialize(u8);
 extern void terminal_writechar(uchar, char);
 extern void print(const uchar*);
@@ -112,7 +110,7 @@ extern void update_cursor_on_x_y_pos(u16, u16);
 extern void render_time();
 
 extern u8 flag_x_colour_shell;
-extern char actual_color_terminal;
+extern uchar actual_color_terminal;
 extern volatile u16 terminal_row;
 extern volatile u16 terminal_col;
 

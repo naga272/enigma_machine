@@ -19,118 +19,65 @@
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
 #include "utilities/idt/body_int/master/input_keyboard.h"
 #include "utilities/disk/disk.h"
+#include "utilities/setup/setup.h"
+
+extern uchar buf128[512];
+extern uchar* magic_num_sec_128;
+
+extern uchar username[32];
+extern uchar password[32];
 
 
-static struct paging_4gb_chunk *kernel_directory = 0;
 extern void test_int80h(void);
-
-uchar* magic_num_sec_128 = (uchar*) "EnigmaOs";
-uchar *username = (uchar*) "Mario";
-uchar *password = (uchar*) "Password123!";
-uchar buf128[512];
-
-
-O3 static inline void test_disk()
-{
-    /*
-    * Test formattazione sector 128  
-    *
-    *  ____________________________________________________________
-    * |                  SETTORE 128 (512 bytes)                   |
-    * |------------------------------------------------------------|
-    * | FIRMA |PADD| USERNAME | PADD | PASSWORD | PADD | CS | PADD |
-    * |-------|----|----------|------|----------|------|----|------|
-    * |   8   |  1 |    32    |  1   |    32    |   1  |  1 |  436 |
-    *  ------------------------------------------------------------
-    * 
-    * **** */
-    uchar buf[512];
-
-    u16 offset = 0;
-
-    // firma
-    for (; magic_num_sec_128[offset] != '\0'; offset++)
-        buf[offset] = magic_num_sec_128[offset];
-    // padding
-    buf[offset] = ' ';
-    offset++;
-
-    // username
-    for (i8 idx = 0; username[idx] != '\0'; idx++, offset++)
-        buf[offset] = username[idx];
-
-    // padding
-    buf[offset] = ' ';
-    offset++;
-
-    // password
-    for (i8 i = 0; password[i] != '\0' ; i++, offset++)
-        buf[offset] = password[i];
-
-    // padding
-    buf[offset] = ' ';
-
-    // colori shell
-    buf[offset + 1] = actual_color_terminal;
-
-    disk_write_sector(128, 1, (void*) buf);
-    disk_read_sector(128, 1, buf);
-
-    print(buf);
-}
+static struct paging_4gb_chunk *kernel_directory = 0;
+extern u8 is_ended_setup;
 
 
 O3 static inline void do_config()
 {
-    terminal_initialize((u8) buf128[9]);
-    print((uchar*) ">>>");
-}
+    terminal_initialize((u8) buf128[73]);
 
+    u8 offset = 9;
 
-O3 static inline void write_on_128_sector()
-{
-    uchar buf[512];
+    for (u8 idx = 0; idx < 32; idx++, offset++)
+        username[idx] = buf128[offset];
 
-    u16 offset = 0;
+    offset++;
 
-    // firma
-    for (; magic_num_sec_128[offset] != '\0'; offset++)
-        buf[offset] = magic_num_sec_128[offset];
-    
-    // colori shell
-    buf[offset + 1] = actual_color_terminal;
+    for (u8 idx = 0; idx < 32; idx++, offset++)
+        password[idx] = buf128[offset];
 
-    disk_write_sector(128, 1, (void*) buf);
-    // disk_read_sector(128, 1, buf);
+    do_login();
+
+    print((uchar*) "\nWelcome ");
+    print((uchar*) username);
+    print((uchar*) "!\n");
+
+    is_ended_setup++;
+    // print(buf128);
 }
 
 
 O3 void init_shell()
 {
+    disk_read_sector(128, 1, buf128);
+
     uchar magic_num_disk[9];
 
-    for (int i = 0; i < 9; i++)
+    for (i8 i = 0; i < 9; i++)
         magic_num_disk[i] = buf128[i];
 
     magic_num_disk[8] = '\0';  // non si sa mai
 
+    // combacia la firma? se si leggo i dati dal disco,
+    // altrimenti eseguo il setup
     if (strcmp(magic_num_disk, magic_num_sec_128)) {
         do_config();
         return;
     }
 
-    terminal_initialize(BG_BIANCO_C_NERO);
-
-    // print(magic_num_disk);
-
-    print((uchar*) start_msg);
-
-    while (FASE_SETUP) {
-        try_the_setup(tmp_char_container);
-        asm volatile("hlt");
-    }
-
-    write_on_128_sector();
+    init_setup();
+    is_ended_setup++;
 }
 
 
@@ -175,7 +122,7 @@ O3 static inline void main()
     /*
     === SYSCALL PER UTENTI ===
     */
-    try_int80h();
+    // try_int80h();
 }
 
 
@@ -197,8 +144,6 @@ O3 void kernel_main()
     kheap_init();
 
     enable_interrupts();
-
-    disk_read_sector(128, 1, buf128);
 
     init_shell();
 

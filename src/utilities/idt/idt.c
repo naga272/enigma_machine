@@ -38,6 +38,13 @@ uchar int12h_error_msg[]    = "Critical Error! Machine check Exception";
 struct regs_t val_reg_before_disaster;
 
 
+void set_message_x_panic(uchar* msg)
+{
+    ptr_map_error_msg = msg;
+    trigger_exception++;
+}
+
+
 struct queue_t queue = {
     .is_occupato = {
         .counter = 0

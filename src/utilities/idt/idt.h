@@ -29,6 +29,7 @@
 * Le struct non devono avere padding aggiunto dal compilatore, quindi uso __attribute__((packed))
 */
 
+
 struct idt_desc
 {
     u16 offset_1;  // Offset bits 0 - 15
@@ -49,6 +50,7 @@ struct idtr_desc
 void idt_init();
 void enable_interrupts();
 void disable_interrupts();
+void set_message_x_panic();
 
 // usato per l'assegnamento di una funzione di default agli interrupt 
 void no_interrupt();

@@ -1,4 +1,5 @@
 UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/atomic/atomic.o
+SETUP = ./build/setup/setup.o
 MASTER_IDT = ./build/idt/body_int/master/pit.o ./build/idt/body_int/master/input_keyboard.o
 SLAVE_IDT = ./build/idt/body_int/slave/rtc_orologio.o
 SYSCALL = ./build/idt/body_int/syscalls/syscall.o ./build/test_int80h.asm.o ./build/idt/body_int/syscalls/write/write.o ./build/idt/body_int/syscalls/reboot/reboot.o
@@ -6,7 +7,7 @@ IDT = ./build/idt/idt.asm.o ./build/idt/idt.o $(MASTER_IDT) $(SLAVE_IDT) $(SYSCA
 HEAP = ./build/memory/kheap_creation.o ./build/memory/heap_creation.o ./build/memory/malloc.o
 PAGING = ./build/memory/paging.o ./build/memory/paging.asm.o
 DISK = ./build/disk/disk.o
-FILES = ./build/kernel.asm.o ./build/kernel.o $(HEAP) $(PAGING) $(UTILITIES) $(IDT) $(DISK) ./build/io/io.asm.o ./build/enigma/enigma.o
+FILES = ./build/kernel.asm.o ./build/kernel.o $(HEAP) $(PAGING) $(UTILITIES) $(IDT) $(DISK) $(SETUP) ./build/io/io.asm.o ./build/enigma/enigma.o
 
 
 INCLUDES = -I./src
@@ -67,7 +68,12 @@ iso: ./bin/os.bin
 
 ####
 
+
 # ==== FILES FOR ACCESS DISK ====
+./build/setup/setup.o: ./src/utilities/setup/setup.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/setup/setup.c -o ./build/setup/setup.o
+
+
 ./build/disk/disk.o: ./src/utilities/disk/disk.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/disk/disk.c -o ./build/disk/disk.o
 

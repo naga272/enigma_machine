@@ -15,6 +15,7 @@ extern uchar core_enigma(uchar);
 
 uchar buffer_line_cmd[SIZE_COMMAND_SHELL];
 size_t idx_buff = 0;
+u8 is_ended_setup = 0;
 
 
 static inline void delay(volatile u32 count)
@@ -93,16 +94,19 @@ O3 static inline void write_tab(uchar c, char colour)
 
 O3 static inline void do_backspace()
 {
-    if (idx_buff > 0) {
+    if (idx_buff == 0 && is_ended_setup)
+        return;
+
+    if (is_ended_setup) {
         idx_buff--;
         buffer_line_cmd[idx_buff] = 0;
-
-        terminal_col--;
-        terminal_writechar(' ', actual_color_terminal);
-        terminal_col--;
-        // print((uchar*) buffer_line_cmd);
-        vga_update_cursor();
     }
+
+    terminal_col--;
+    terminal_writechar(' ', actual_color_terminal);
+    terminal_col--;
+    // print((uchar*) buffer_line_cmd);
+    vga_update_cursor();
 }
 
 
@@ -227,14 +231,18 @@ void gestisci_char_to_write(uchar tmp_char_container)
 
     if (CHAR_END_PHRASE(tmp_char_container)) {
         if (!try_execute_comm(buffer_line_cmd))
-            start_encryption();
+            if (is_ended_setup)
+                start_encryption();
 
         return;
     }
 
     terminal_writechar(tmp_char_container, actual_color_terminal);
-    buffer_line_cmd[idx_buff] = tmp_char_container;
-    idx_buff++;
+
+    if (is_ended_setup) {
+        buffer_line_cmd[idx_buff] = tmp_char_container;
+        idx_buff++;
+    }
 }
 
 
@@ -401,70 +409,4 @@ O3 void render_time()
     // resetto il flag
     set_rtc_dirty(&t, 0);
     first_rendering = 0;
-}
-
-
-/* lock serve ha bloccare il numero di messaggi per errore durante la fase di setup */
-u8 lock = 0;
-// usato per dire se la fase di setup e' finita (try_the_setup foo)
-u8 flag_x_colour_shell = 0;
-
-
-O3 void try_the_setup(uchar c)
-{
-    /*
-    *   Questo codice viene usato in fase di setup per determinare il colore dello sfondo del terminale
-    *   e dei caratteri
-    *   @c: contiene un numero sotto forma di char per decidere i colori
-    * **/
-    if (!c)
-        return;
-
-    if (c < '1' || c > '4') {
-        if (!lock) {
-            print(
-                (uchar*) " \nerror! devi premere un tasto tra l'1 e il 4\n"
-                "scegli colore: "
-            );
-            lock = 1;
-            return;
-        }
-    }
-
-    switch (c) {
-        case '1':
-            terminal_initialize(BG_BLU_C_WHITE);
-            flag_x_colour_shell++;
-            print((uchar*) ">>> ");
-            break;
-
-        case '2':
-            terminal_initialize(BG_BIANCO_C_NERO);
-            flag_x_colour_shell++;
-            print((uchar*) ">>> ");
-            break;
-
-        case '3':
-            terminal_initialize(BG_NERO_C_BIANCO);
-            flag_x_colour_shell++;
-            print((uchar*) ">>> ");
-            break;
-
-        case '4':
-            terminal_initialize(BG_NERO_C_VERDE);
-            flag_x_colour_shell++;
-            print((uchar*) ">>> ");
-            break;
-
-        default:
-            break;
-    }
-
-    /*
-    *   Well, per qualche ragione a me sconosciuta
-    *   se metto qui sotto:
-    *       flag_x_colour_shell++;
-    *       print((uchar*) ">>> ");
-    *   si bugga, quindi lo lascio nello switch (li funziona)
-    */
 }
