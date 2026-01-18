@@ -5,7 +5,7 @@
 #include "utilities/video/video.h"
 #include "utilities/disk/disk.h"
 #include "utilities/idt/idt.h"
-
+#include "utilities/enigma/enigma.h"
 
 extern uchar tmp_char_container;
 
@@ -116,7 +116,7 @@ O3 static inline void write_on_sector_128()
 
     // USERNAME
     for (i8 idx = 0; idx < 32; offset++, idx++)
-        buf[offset] = username[idx];
+        buf[offset] = core_enigma(username[idx]);
 
     // PADDING
     offset++;
@@ -124,7 +124,7 @@ O3 static inline void write_on_sector_128()
 
     // PASSWORD
     for (i8 idx = 0; idx < 32; offset++, idx++)
-        buf[offset] = password[idx];
+        buf[offset] = core_enigma(password[idx]);
 
     // PADDING
     offset++;
@@ -304,13 +304,17 @@ O3 static inline void cmp_credentials()
 {
     i8 credential_valid = 1;
 
-    if (strcmp(username, username_written_by_user) == 0) {
-        credential_valid = 0;
-    }
+    for (u8 idx = 0; idx < 32; idx++)
+        username_written_by_user[idx] = core_enigma(username_written_by_user[idx]);
 
-    if (strcmp(password, password_written_by_user) == 0) {
+    for (u8 idx = 0; idx < 32; idx++)
+        password_written_by_user[idx] = core_enigma(password_written_by_user[idx]);
+
+    if (strcmp(username, username_written_by_user) == 0)
         credential_valid = 0;
-    }
+
+    if (strcmp(password, password_written_by_user) == 0)
+        credential_valid = 0;
 
     if (credential_valid)
         return;
@@ -321,9 +325,8 @@ O3 static inline void cmp_credentials()
     */
 
     set_message_x_panic((uchar*) "Error! credenziali non valide!");
-    while (1) {
-        ;
-    }
+
+    while (1) {}
 }
 
 

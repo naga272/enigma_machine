@@ -51,7 +51,7 @@ O3 static inline void do_config()
 
     print((uchar*) "\nWelcome ");
     print((uchar*) username);
-    print((uchar*) "!\n");
+    print((uchar*) "!");
 
     is_ended_setup++;
     // print(buf128);
@@ -122,7 +122,7 @@ O3 static inline void main()
     /*
     === SYSCALL PER UTENTI ===
     */
-    try_int80h();
+    // try_int80h();
 }
 
 

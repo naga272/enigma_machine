@@ -115,6 +115,9 @@ O3 static inline void update_stato_rotori()
 
 O3 uchar core_enigma(uchar container)
 {
+    if (!container)
+        return 0;
+
     container = m_plugboard(container);
 
     // INIZIO FASE ROTORI
