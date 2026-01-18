@@ -21,12 +21,14 @@
 #include "utilities/disk/disk.h"
 #include "utilities/setup/setup.h"
 
+
 extern uchar buf128[512];
 extern uchar* magic_num_sec_128;
 
 extern uchar username[32];
 extern uchar password[32];
 
+extern uchar xusername[32];
 
 extern void test_int80h(void);
 static struct paging_4gb_chunk *kernel_directory = 0;

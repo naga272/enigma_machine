@@ -20,6 +20,8 @@ u8 flag_x_password = 0;
 
 uchar username[32];
 uchar password[32];
+uchar xusername[32];
+
 i8 idx_char_vect = 0;
 
 
