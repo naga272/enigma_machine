@@ -129,7 +129,7 @@ O3 static inline void main()
     /*
     === SYSCALL PER UTENTI ===
     */
-    try_int80h();
+    // try_int80h();
 }
 
 
