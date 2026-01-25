@@ -34,6 +34,7 @@ extern void test_int80h(void);
 static struct paging_4gb_chunk *kernel_directory = 0;
 extern u8 is_ended_setup;
 
+struct book* b;
 
 O3 static inline void do_config()
 {
@@ -52,7 +53,7 @@ O3 static inline void do_config()
     do_login();
 
     print((uchar*) "\nWelcome ");
-    print((uchar*) username);
+    print((uchar*) xusername);
     print((uchar*) "!");
 
     is_ended_setup++;
@@ -62,6 +63,9 @@ O3 static inline void do_config()
 
 O3 void init_shell()
 {
+    // inizializza shell (Not yet ready)
+    // b = init_book(16);
+
     disk_read_sector(128, 1, buf128);
 
     uchar magic_num_disk[9];
@@ -85,6 +89,7 @@ O3 void init_shell()
 
 O3 static inline void trigger_BsOD()
 {
+    // 1 / 0
     asm volatile (
         "xor %%edx, %%edx\n"
         "mov $1, %%eax\n"
@@ -124,7 +129,7 @@ O3 static inline void main()
     /*
     === SYSCALL PER UTENTI ===
     */
-    // try_int80h();
+    try_int80h();
 }
 
 

@@ -306,9 +306,11 @@ O3 static inline void cmp_credentials()
 {
     i8 credential_valid = 1;
 
-    for (u8 idx = 0; idx < 32; idx++)
+    for (u8 idx = 0; idx < 32; idx++) {
+        xusername[idx] = username_written_by_user[idx];
         username_written_by_user[idx] = core_enigma(username_written_by_user[idx]);
-
+    }
+        
     for (u8 idx = 0; idx < 32; idx++)
         password_written_by_user[idx] = core_enigma(password_written_by_user[idx]);
 
@@ -398,9 +400,10 @@ i8 check_password(uchar char_pressed)
 }
 
 
-void do_login()
+void insert_username_phase()
 {
     idx_char_vect = 0;
+
     print((uchar*) "Username: ");
     while (!check_username(tmp_char_container)) {
         tmp_char_container = 0;
@@ -409,12 +412,23 @@ void do_login()
 
     tmp_char_container = 0;
     idx_char_vect = 0;
+}
+
+
+void insert_password_phase()
+{
     print((uchar*) "\nPassword: ");
 
     while (!check_password(tmp_char_container)) {
         tmp_char_container = 0;
         asm volatile("hlt");
     }
+}
 
+
+void do_login()
+{
+    insert_username_phase();
+    insert_password_phase();
     cmp_credentials();
 }

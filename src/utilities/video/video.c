@@ -1,8 +1,9 @@
 
 #include "config.h"
 
-#include "utilities/stdlib/stdlib.h"
 #include "utilities/io/io.h"
+#include "utilities/stdlib/stdlib.h"
+#include "utilities/memory/heap/malloc.h"
 
 #define settings_video
 #include "utilities/video/video.h"
@@ -16,6 +17,23 @@ extern uchar core_enigma(uchar);
 uchar buffer_line_cmd[SIZE_COMMAND_SHELL];
 size_t idx_buff = 0;
 u8 is_ended_setup = 0;
+
+
+O3 void enable_cursor(u8 start_cursor, u8 end_cursor)
+{
+	outb(0x3d4, 0x0a);
+	outb(0x3d5, (insw((char) 0x3d5) & 0xc0) | start_cursor);
+
+	outb(0x3d4, 0x08);
+	outb(0x3d5, (insw((char) 0x3d5) & 0xe0) | end_cursor);
+}
+
+
+O3 void disable_cursor()
+{
+	outb(0x3d5, 0x0A);
+	outb(0x3d4, 0x20);
+}
 
 
 static inline void delay(volatile u32 count)
@@ -161,93 +179,9 @@ O3 void print(const uchar* string)
 }
 
 
-O3 void enable_cursor(u8 start_cursor, u8 end_cursor)
-{
-	outb(0x3d4, 0x0a);
-	outb(0x3d5, (insw((char) 0x3d5) & 0xc0) | start_cursor);
-
-	outb(0x3d4, 0x08);
-	outb(0x3d5, (insw((char) 0x3d5) & 0xe0) | end_cursor);
-}
-
-
-O3 void disable_cursor()
-{
-	outb(0x3d5, 0x0A);
-	outb(0x3d4, 0x20);
-}
-
-
-O3 void terminal_initialize(u8 colore)
-{
-    /*
-    *   Funzione usata all'interno di kernel.c nella funzione kernel_main.
-    *   setta lo screen col colore nero
-    **/
-    enable_cursor((u8) 0, (u8) 0);
-    video_mem = (u16*) (0xb8000);
-    actual_color_terminal = colore;
-
-    for (u32 y = 0; y < VGA_HEIGHT; y++) 
-        for (u32 x = 0; x < VGA_WIDTH; x++) 
-            terminal_put_char(x, y, ' ', colore);
-
-    terminal_row = 1;
-    terminal_col = 0;
-
-    memset(buffer_line_cmd, 0, SIZE_COMMAND_SHELL);
-    idx_buff = 0;
-}
-
-
-void clean_bff_cmd_line()
-{
-    memset(buffer_line_cmd, 0, idx_buff);
-    idx_buff = 0;
-}
-
-
-O3 static inline void start_encryption()
-{
-    terminal_writechar('\n', actual_color_terminal);
-
-    for (size_t i = 0; buffer_line_cmd[i] != 0; i++)
-        terminal_writechar(core_enigma(buffer_line_cmd[i]), actual_color_terminal);
-
-    clean_bff_cmd_line();
-    print((uchar*) "\n>>> ");
-}
-
-
-void gestisci_char_to_write(uchar tmp_char_container)
-{
-    if (!tmp_char_container || (tmp_char_container >= '0' && tmp_char_container <= '4'))
-        return;
-
-    if (CHAR_BACKSPACE(tmp_char_container)) {
-        do_backspace();
-        return;
-    }
-
-    if (CHAR_END_PHRASE(tmp_char_container)) {
-        if (!try_execute_comm(buffer_line_cmd))
-            if (is_ended_setup)
-                start_encryption();
-
-        return;
-    }
-
-    terminal_writechar(tmp_char_container, actual_color_terminal);
-
-    if (is_ended_setup) {
-        buffer_line_cmd[idx_buff] = tmp_char_container;
-        idx_buff++;
-    }
-}
-
-
 void print_hex(u32 val) {
-    uchar hex[11]; // "0x" + 8 cifre + '\0'
+    // "0x" + 8 cifre + '\0'
+    uchar hex[11];
     hex[0] = '0';
     hex[1] = 'x';
     
@@ -409,4 +343,141 @@ O3 void render_time()
     // resetto il flag
     set_rtc_dirty(&t, 0);
     first_rendering = 0;
+}
+
+
+O3 void terminal_initialize(u8 colore)
+{
+    /*
+    *   Funzione usata all'interno di kernel.c nella funzione kernel_main.
+    *   setta lo screen col colore nero
+    **/
+    enable_cursor((u8) 0, (u8) 0);
+    video_mem = (u16*) (0xb8000);
+    actual_color_terminal = colore;
+
+    for (u32 y = 0; y < VGA_HEIGHT; y++) 
+        for (u32 x = 0; x < VGA_WIDTH; x++) 
+            terminal_put_char(x, y, ' ', colore);
+
+    terminal_row = 1;
+    terminal_col = 0;
+
+    memset(buffer_line_cmd, 0, SIZE_COMMAND_SHELL);
+    idx_buff = 0;
+}
+
+
+void clean_bff_cmd_line()
+{
+    memset(buffer_line_cmd, 0, idx_buff);
+    idx_buff = 0;
+}
+
+
+O3 static inline void start_encryption()
+{
+    terminal_writechar('\n', actual_color_terminal);
+
+    for (size_t i = 0; buffer_line_cmd[i] != 0; i++)
+        terminal_writechar(core_enigma(buffer_line_cmd[i]), actual_color_terminal);
+
+    clean_bff_cmd_line();
+    print((uchar*) "\n>>> ");
+}
+
+
+void gestisci_char_to_write(uchar tmp_char_container)
+{
+    if (!tmp_char_container || (tmp_char_container >= '0' && tmp_char_container <= '4'))
+        return;
+
+    if (CHAR_BACKSPACE(tmp_char_container)) {
+        do_backspace();
+        return;
+    }
+
+    if (CHAR_END_PHRASE(tmp_char_container)) {
+        if (!try_execute_comm(buffer_line_cmd))
+            if (is_ended_setup)
+                start_encryption();
+
+        return;
+    }
+
+    terminal_writechar(tmp_char_container, actual_color_terminal);
+
+    if (is_ended_setup) {
+        buffer_line_cmd[idx_buff] = tmp_char_container;
+        idx_buff++;
+    }
+}
+
+
+O3 static inline void __page__del__(struct page* self)
+{
+    kfree(self);
+}
+
+
+O3 static inline void __book_add_page(struct book* self)
+{   
+
+}
+
+
+O3 static inline void __book_rm_page(struct book* self, u32 off_page)
+{
+    self->pg[off_page]->__del__(self->pg[off_page]);
+    self->total_pg--;
+    self->change_pg(self, self->idx_last_pg);
+}
+
+
+O3 static inline void __book_change_page(struct book* self, u32 off_page)
+{
+
+}
+
+
+O3 static inline void __book_del_book(struct book* self)
+{
+    for (u32 counter = 0; counter < self->total_pg; counter++)
+        self->pg[counter]->__del__(self->pg[counter]);
+
+    kfree(self->pg);
+    kfree(self);
+}
+
+
+O3 static inline struct page* init_page()
+{
+    struct page* init = (struct page*) kmalloc(sizeof(struct page));
+
+    init->cursor_x_pos = 0;
+    init->cursor_y_pos = 0;
+    init->__del__ = __page__del__;
+
+    return init;
+}
+
+
+struct book* init_book(u32 num_pg)
+{
+    struct book* init = (struct book*) kmalloc(sizeof(struct book));
+    init->total_pg = num_pg;
+    init->idx_last_pg = 0;
+    init->idx_pg = 0;
+
+    init->change_pg = __book_change_page;
+    init->rm_page = __book_rm_page;
+    init->add_page = __book_add_page;
+    init->__del__ = __book_del_book;
+
+    init->pg = kmalloc(sizeof(struct page*) * init->total_pg);
+
+    for (u32 counter = 0; counter < num_pg; counter++)
+        init->pg[counter] = init_page();
+
+    return init;
 }
