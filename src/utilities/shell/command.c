@@ -1,8 +1,9 @@
 #include "config.h"
 
+#include "utilities/io/io.h"
 #include "utilities/shell/command.h"
 #include "utilities/string/string.h"
-#include "utilities/io/io.h"
+#include "utilities/video/video.h"
 
 
 #define OS_X_QEMU
@@ -10,6 +11,7 @@
 
 uchar* vec_reboot_comm = (uchar*) "RELOAD";
 uchar* vec_power_off_comm = (uchar*) "QUIT";
+uchar* vec_cls_comm = (uchar*) "CLS";
 
 
 void reboot()
@@ -47,6 +49,12 @@ void power_off()
 }
 
 
+void cls()
+{
+    terminal_initialize(actual_color_terminal);
+}
+
+
 u8 try_execute_comm(uchar* comm_to_execute)
 {
     if (strcmp(comm_to_execute, vec_reboot_comm))
@@ -54,6 +62,9 @@ u8 try_execute_comm(uchar* comm_to_execute)
 
     else if (strcmp(comm_to_execute, vec_power_off_comm))
         power_off();
+
+    else if (strcmp(comm_to_execute, vec_cls_comm))
+        cls();
 
     return 0;
 }
