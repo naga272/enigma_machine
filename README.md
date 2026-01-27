@@ -25,7 +25,10 @@ Questo sistema operativo è un omaggio all'enigma della seconda guerra mondiale,
 
 ## Funzionalità aggiuntive
 
-Ho aggiunto dei comandi base come `QUIT` e `RELOAD` per spegnere o riavviare la macchina.
+Ho aggiunto dei comandi base:
+- `QUIT`: spegne la macchina
+- `RELOAD`: riavviare la macchina
+- `CLS`: pulisce la CLI
 
 ## Requisiti
 
