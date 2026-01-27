@@ -20,7 +20,7 @@ u8 flag_x_password = 0;
 
 uchar username[32];
 uchar password[32];
-uchar xusername[32];
+uchar username_insert[32];
 
 i8 idx_char_vect = 0;
 
@@ -307,7 +307,7 @@ O3 static inline void cmp_credentials()
     i8 credential_valid = 1;
 
     for (u8 idx = 0; idx < 32; idx++) {
-        xusername[idx] = username_written_by_user[idx];
+        username_insert[idx] = username_written_by_user[idx];
         username_written_by_user[idx] = core_enigma(username_written_by_user[idx]);
     }
         
@@ -334,7 +334,7 @@ O3 static inline void cmp_credentials()
 }
 
 
-i8 check_username(uchar char_pressed)
+O3 static inline i8 check_username(uchar char_pressed)
 {
     if (!char_pressed)
         return 0;
@@ -367,7 +367,7 @@ i8 check_username(uchar char_pressed)
 }
 
 
-i8 check_password(uchar char_pressed)
+O3 static inline i8 check_password(uchar char_pressed)
 {
     if (!char_pressed)
         return 0;
@@ -426,9 +426,15 @@ void insert_password_phase()
 }
 
 
-void do_login()
+O3 void do_login()
 {
     insert_username_phase();
+
     insert_password_phase();
+
     cmp_credentials();
+
+    print((uchar*) "\nWelcome ");
+    print((uchar*) username_insert);
+    print((uchar*) "!");
 }
