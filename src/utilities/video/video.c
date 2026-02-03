@@ -6,12 +6,14 @@
 #include "utilities/memory/heap/malloc.h"
 
 #define settings_video
+#include "utilities/idt/body_int/master/keyboard_layer.h"
 #include "utilities/video/video.h"
 #include "utilities/shell/command.h"
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
 
 
 extern uchar core_enigma(uchar);
+extern KB_FLAGS f_t;
 
 
 uchar buffer_line_cmd[SIZE_COMMAND_SHELL];
@@ -387,8 +389,24 @@ O3 static inline void start_encryption()
 }
 
 
+O3 static inline void check_status_kb_flags_t()
+{
+    if (f_t.change_page_shell_left) {
+        print((uchar*) "hello world");
+        f_t.change_page_shell_left = 0;
+    }
+
+    if (f_t.change_page_shell_right) {
+        print((uchar*) "hello world");
+        f_t.change_page_shell_right = 0;
+    }
+}
+
+
 void gestisci_char_to_write(uchar tmp_char_container)
 {
+    check_status_kb_flags_t();
+
     if (!tmp_char_container || (tmp_char_container >= '0' && tmp_char_container <= '4'))
         return;
 
@@ -411,73 +429,4 @@ void gestisci_char_to_write(uchar tmp_char_container)
         buffer_line_cmd[idx_buff] = tmp_char_container;
         idx_buff++;
     }
-}
-
-
-O3 static inline void __page__del__(struct page* self)
-{
-    kfree(self);
-}
-
-
-O3 static inline void __book_add_page(struct book* self)
-{   
-
-}
-
-
-O3 static inline void __book_rm_page(struct book* self, u32 off_page)
-{
-    self->pg[off_page]->__del__(self->pg[off_page]);
-    self->total_pg--;
-    self->change_pg(self, self->idx_last_pg);
-}
-
-
-O3 static inline void __book_change_page(struct book* self, u32 off_page)
-{
-
-}
-
-
-O3 static inline void __book_del_book(struct book* self)
-{
-    for (u32 counter = 0; counter < self->total_pg; counter++)
-        self->pg[counter]->__del__(self->pg[counter]);
-
-    kfree(self->pg);
-    kfree(self);
-}
-
-
-O3 static inline struct page* init_page()
-{
-    struct page* init = (struct page*) kmalloc(sizeof(struct page));
-
-    init->cursor_x_pos = 0;
-    init->cursor_y_pos = 0;
-    init->__del__ = __page__del__;
-
-    return init;
-}
-
-
-struct book* init_book(u32 num_pg)
-{
-    struct book* init = (struct book*) kmalloc(sizeof(struct book));
-    init->total_pg = num_pg;
-    init->idx_last_pg = 0;
-    init->idx_pg = 0;
-
-    init->change_pg = __book_change_page;
-    init->rm_page = __book_rm_page;
-    init->add_page = __book_add_page;
-    init->__del__ = __book_del_book;
-
-    init->pg = kmalloc(sizeof(struct page*) * init->total_pg);
-
-    for (u32 counter = 0; counter < num_pg; counter++)
-        init->pg[counter] = init_page();
-
-    return init;
 }

@@ -1,6 +1,6 @@
+#include "utilities/io/io.h"
 #include "utilities/video/video.h"
 #include "utilities/idt/body_int/master/pit.h"
-#include "utilities/io/io.h"
 #include "utilities/idt/idt.h"
 
 
@@ -71,7 +71,6 @@ O3 void do_pit(uchar *msg_error, struct regs_t* status_reg)
     }
 
     panic(msg_error, status_reg);
-
     num_color++;
 }
 

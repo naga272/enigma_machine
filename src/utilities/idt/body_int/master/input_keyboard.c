@@ -20,11 +20,56 @@ uchar keyboard_map_QZERTY[128] = {
 volatile uchar tmp_char_container;
 volatile u8 new_char_written;
 
+static volatile u8 extended = 0;
+
+
+KB_FLAGS f_t = { 0 };
+
+
+static inline u8 gestisci_special_case(u8 scancode)
+{
+    if (extended && scancode == FRECCIA_SINISTRA) {
+        if (f_t.ctrlleft)
+            f_t.change_page_shell_left = 1;
+        extended = 0;
+        return 1;
+    }
+
+    if (extended && scancode == FRECCIA_DESTRA) {
+        if (f_t.ctrlleft)
+            f_t.change_page_shell_right = 1;
+
+        extended = 0;
+        return 1;
+    }
+
+    if (scancode == CTRL_LEFT_RELEASED) {
+        extended = 0;
+        f_t.ctrlleft = 0;
+        return 1;
+    }
+
+    if (RELEASE_KEY(scancode))
+        return 1;
+
+    return 0;
+}
+
 
 void gestisci_scancode_from_controller(u8 scancode)
 {
-    if (RELEASE_KEY(scancode))
-        return;   // ignoro il rilascio tasti
+    if (scancode == 0xE0) {
+        extended = 1;
+        return;
+    }
+
+    if (gestisci_special_case(scancode))
+        return;
+
+    if (scancode == CTRL_LEFT_PRESS && !f_t.ctrlleft) {
+        f_t.ctrlleft = 1;
+        return;
+    }
 
     // keyboard_map_<tipo tastiera> definita in enigma/keyboard.h (e' definito solo QZERTY)
     tmp_char_container = keyboard_map_QZERTY[scancode];

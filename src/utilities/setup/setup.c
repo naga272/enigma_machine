@@ -6,9 +6,10 @@
 #include "utilities/disk/disk.h"
 #include "utilities/idt/idt.h"
 #include "utilities/enigma/enigma.h"
+#include "utilities/book/book.h"
 
 extern uchar tmp_char_container;
-
+extern u8 is_ended_setup;
 
 /* lock serve ha bloccare il numero di messaggi per errore durante la fase di setup */
 u8 lock = 0;
@@ -262,7 +263,7 @@ void try_password(uchar char_pressed)
 }
 
 
-void init_setup()
+void init_setup(struct book* b)
 {
     terminal_initialize(BG_BIANCO_C_NERO);
 
@@ -437,4 +438,25 @@ O3 void do_login()
     print((uchar*) "\nWelcome ");
     print((uchar*) username_insert);
     print((uchar*) "!");
+}
+
+
+O3 void do_config(uchar *buf128)
+{
+    terminal_initialize((u8) buf128[73]);
+
+    u8 offset = 9;
+
+    for (u8 idx = 0; idx < 32; idx++, offset++)
+        username[idx] = buf128[offset];
+
+    offset++;
+
+    for (u8 idx = 0; idx < 32; idx++, offset++)
+        password[idx] = buf128[offset];
+
+    do_login();
+
+    is_ended_setup++;
+    // print(buf128);
 }

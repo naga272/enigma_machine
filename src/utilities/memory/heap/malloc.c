@@ -143,6 +143,22 @@ O3 void* kmalloc(size_t size)
 }
 
 
+O3 void* krealloc(void* old_ptr, size_t old_size, size_t new_size)
+{
+    if (old_size > new_size)
+        return NULL;
+
+    char* tmp_old_ptr = (char*) old_ptr;
+    char* new_ptr = heap_alloc(&kernel_heap, new_size);
+
+    for (u32 idx = 0; idx < old_size; idx++)
+        new_ptr[idx] = tmp_old_ptr[idx];
+
+    kfree(old_ptr);
+    return (void*) new_ptr;
+}
+
+
 O3 void kfree(void *address)
 {
     heap_free(&kernel_heap, address);

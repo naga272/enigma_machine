@@ -10,59 +10,34 @@
 #include "utilities/video/video.h"
 #include "utilities/memory/heap/malloc.h"
 #include "utilities/memory/heap/kheap_creation.h"
-#include "utilities/memory/heap/kheap_creation.h"
 
 #include "utilities/memory/paging/paging.h"
 
 #include "utilities/io/io.h"
 #include "utilities/idt/idt.h"
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
-#include "utilities/idt/body_int/master/input_keyboard.h"
 #include "utilities/disk/disk.h"
 #include "utilities/setup/setup.h"
+#include "utilities/book/book.h"
 
+extern void test_int80h(void);
 
+extern volatile uchar tmp_char_container;
 extern uchar* magic_num_sec_128;
 
 extern uchar username[32];
 extern uchar password[32];
 
 extern uchar username_insert[32];
-
-extern void test_int80h(void);
-static struct paging_4gb_chunk *kernel_directory = 0;
 extern u8 is_ended_setup;
 
+static struct paging_4gb_chunk *kernel_directory = 0;
 struct book* b;
-
-
-O3 static inline void do_config(uchar *buf128)
-{
-    terminal_initialize((u8) buf128[73]);
-
-    u8 offset = 9;
-
-    for (u8 idx = 0; idx < 32; idx++, offset++)
-        username[idx] = buf128[offset];
-
-    offset++;
-
-    for (u8 idx = 0; idx < 32; idx++, offset++)
-        password[idx] = buf128[offset];
-
-    do_login();
-
-    is_ended_setup++;
-    // print(buf128);
-}
 
 
 O3 void init_shell()
 {
     uchar buf128[512];
-
-    // inizializza shell (Not yet ready)
-    b = init_book(16);
 
     disk_read_sector(128, 1, buf128);
 
@@ -80,7 +55,9 @@ O3 void init_shell()
         return;
     }
 
-    init_setup();
+    b = init_book(16);
+
+    init_setup(b);
     is_ended_setup++;
 }
 

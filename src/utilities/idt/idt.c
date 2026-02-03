@@ -17,6 +17,9 @@
 #include "utilities/idt/body_int/syscalls/syscall.h"
 
 
+#define USE_PIC
+
+
 struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
 struct idtr_desc idtr_descriptor;                       // rappresenta il registro idtr (interrupt descriptor table register)
 
@@ -680,12 +683,11 @@ O3 static inline void init_slave_pic()
 O3 static inline void init_value_hardware()
 {
 
+#ifdef USE_PIC
     init_slave_pic();
-
     init_hardware_rtc();     // configura tutto il RTC
-
     init_hardware_pit();     // PIT opzionale
-
+#endif
     idt_load(&idtr_descriptor);
 
     enable_interrupts();     // abilita IF globali
