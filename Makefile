@@ -1,5 +1,5 @@
 UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/book/book.o ./build/atomic/atomic.o
-SETUP = ./build/setup/setup.o
+SETUP = ./build/setup/setup.o ./build/markov/markov.o
 MASTER_IDT = ./build/idt/body_int/master/pit.o ./build/idt/body_int/master/input_keyboard.o
 SLAVE_IDT = ./build/idt/body_int/slave/rtc_orologio.o
 SYSCALL = ./build/idt/body_int/syscalls/syscall.o ./build/test_int80h.asm.o ./build/idt/body_int/syscalls/write/write.o ./build/idt/body_int/syscalls/reboot/reboot.o
@@ -147,6 +147,11 @@ iso: ./bin/os.bin
 
 ./build/idt/body_int/syscalls/syscall.o: ./src/utilities/idt/body_int/syscalls/syscall.c
 	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/idt/body_int/syscalls/syscall.c -o ./build/idt/body_int/syscalls/syscall.o
+
+
+# ==== Markov ====
+./build/markov/markov.o: ./src/utilities/markov/markov.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/markov/markov.c -o ./build/markov/markov.o
 
 
 # ==== TEST INT80H syscall ====

@@ -19,6 +19,8 @@
 #include "utilities/disk/disk.h"
 #include "utilities/setup/setup.h"
 #include "utilities/book/book.h"
+#include "utilities/markov/markov.h"
+
 
 extern void test_int80h(void);
 
@@ -98,6 +100,9 @@ O3 void kernel_main()
     // inizializzazione idt + settings hardware componenents
     idt_init();
 
+    // inizializzazione heap
+    kheap_init();
+
     // inizializzazione paging
     kernel_directory = paging_new_4gb(
         PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL
@@ -105,8 +110,8 @@ O3 void kernel_main()
 
     kernel_directory->switch_directory(kernel_directory);
 
-    // inizializzazione heap
-    kheap_init();
+    // predizione del prossimo interrupt del PIC
+    init_markov_model_idt();
 
     init_shell();
 

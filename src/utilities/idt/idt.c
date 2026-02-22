@@ -15,9 +15,10 @@
 #include "utilities/idt/body_int/master/pit.h"
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
 #include "utilities/idt/body_int/syscalls/syscall.h"
+#include "utilities/markov/markov.h"
 
 
-#define USE_PIC
+#define PIC_ALLOW
 
 
 struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
@@ -92,17 +93,6 @@ O3 static inline void set_status_reg_before_disaster(struct regs_t *r)
     val_reg_before_disaster.eip = r->eip;
     val_reg_before_disaster.cs = r->cs;
     val_reg_before_disaster.eflags = r->eflags;
-}
-
-
-O3 static inline void push_in_queue_int(struct regs_t *r)
-{
-    while (atomic_read(&queue.is_occupato) == 1)
-        ;
-
-    atomic_inc(&queue.is_occupato);
-
-    atomic_dec(&queue.is_occupato);
 }
 
 
@@ -448,6 +438,7 @@ O3 void int20h_handler(struct regs_t* r)
     Triggherata dal PIT, se è stato triggherata una eccezione dalla cpu
     esegue la funzione do_pit()
     */
+    insert_markov_entry((uchar) r->int_no);
 
     // ogni 33,33 ms * 30 = 999 ms si aggiorna l'orario (vedi pit.h)
     if (ticks_int20_rtc >= 30) {
@@ -509,9 +500,9 @@ O3 void int21h_handler(struct regs_t* r)
     * Se il buffer è stato svuotato completamente, il PIC abbassa IRQ#1.
     * NB: 0x60 è il gate per il buffer del controller, non del controlle (lui ha la gate 0x64)
     */
-    u8 scancode = insb(0x60);
+    insert_markov_entry((uchar) r->int_no);
 
-    push_in_queue_int(r);
+    u8 scancode = insb(0x60);
 
     // in input_keyboard.c
     gestisci_scancode_from_controller(scancode);
@@ -522,36 +513,42 @@ out:
 
 O3 void int22h_handler(struct regs_t* r)
 {
+    insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
 
 
 O3 void int23h_handler(struct regs_t* r)
 {
+    insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
 
 
 O3 void int24h_handler(struct regs_t* r)
 {
+    insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
 
 
 O3 void int25h_handler(struct regs_t* r)
 {
+    insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
 
 
 O3 void int26h_handler(struct regs_t* r)
 {
+    insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
 
 
 O3 void int27h_handler(struct regs_t* r)
 {
+    insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
 
@@ -683,7 +680,7 @@ O3 static inline void init_slave_pic()
 O3 static inline void init_value_hardware()
 {
 
-#ifdef USE_PIC
+#ifdef PIC_ALLOW
     init_slave_pic();
     init_hardware_rtc();     // configura tutto il RTC
     init_hardware_pit();     // PIT opzionale
@@ -741,6 +738,7 @@ O3 void idt_init()
     idt_set(0x1e, int1eh);   // disoccupato
     idt_set(0x1f, int1fh);   // disoccupato
 
+#ifdef PIC_ALLOW
     /* IRQ MASTER */
     idt_set(0x20, int20h);  // PIT timer
     idt_set(0x21, int21h);  // tastiera
@@ -760,7 +758,7 @@ O3 void idt_init()
     idt_set(0x2D, int2dh);  // FPU
     idt_set(0x2E, int2eh);  // IDE Primary 
     idt_set(0x2F, int2fh);  // IDE Secondary
-
+#endif
     idt_set(0x80, int80h);  // syscall
 
     init_value_hardware();
