@@ -74,8 +74,8 @@ O3 static inline void panic_table_prediction_idt()
     *   cosi non parto proprio da 0 di nuovo ma ho comunque
     *   una base da predire
     * * */
-    for (u8 x = 0; x < ACTUAL_INTRT_CREATED; x++)
-        for (u8 y = 0; y < ACTUAL_INTRT_CREATED; y++)
+    for (u8 y = 0; y < ACTUAL_INTRT_CREATED; y++)    
+        for (u8 x = 0; x < ACTUAL_INTRT_CREATED; x++)
             markov_entry[y][x] /= 2;
 }
 
