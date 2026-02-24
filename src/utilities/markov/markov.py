@@ -67,7 +67,7 @@ def prevedi():
     if char_before == '':
         return
 
-    row = transition[ord(char_before)]
+    row = transition[ord(char_actual)]
     max_count = 0
     best_idx = None
 
