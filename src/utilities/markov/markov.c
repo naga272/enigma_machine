@@ -103,7 +103,7 @@ O3 u8 prevedi_markov()
     if (entry_before == (char) 0)
         return (char) 0;
     
-    u32* row = (u32*)markov_entry[entry_before];
+    u32* row = (u32*)markov_entry[entry_actual];
     u32 max_count = 0;
     u8 best_idx = 0;
 
@@ -157,3 +157,4 @@ O3 void init_markov_model_idt()
 {
     init_matrix();
 }
+
