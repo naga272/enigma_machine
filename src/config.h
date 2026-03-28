@@ -86,4 +86,7 @@ typedef unsigned short ushort;
 
 #define SIZEOFARR(x) (sizeof(x) / sizeof(x[0]))
 
+
+#define KERNEL_FS_MAX_PATH 100
+
 #endif

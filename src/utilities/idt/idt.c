@@ -49,16 +49,6 @@ void set_message_x_panic(uchar* msg)
 }
 
 
-struct queue_t queue = {
-    .is_occupato = {
-        .counter = 0
-    },
-    .head = 0,
-    .tail = 0,
-    .max_priority_in_queue = 0
-};
-
-
 O3 void no_interrupt_handler()
 {
     /*
@@ -72,6 +62,9 @@ O3 void no_interrupt_handler()
 
 O3 static inline void set_status_reg_before_disaster(struct regs_t *r)
 {
+    if (!trigger_exception)
+        trigger_exception++;
+    
     // save general register
     val_reg_before_disaster.edi = r->edi;
     val_reg_before_disaster.esi = r->esi;
@@ -105,11 +98,8 @@ O3 void int0h_handler(struct regs_t *r)
     * del divisore. Se vede che e' 0 viene triggherata una eccezione, andando
     * a chiamare così la funzione puntata dal puntatore in IDT[0]
     * */
-    if (!trigger_exception)
-        trigger_exception++;
 
     ptr_map_error_msg = int0h_error_msg;
-
     set_status_reg_before_disaster(r);
 }
 
@@ -130,9 +120,6 @@ O3 void int2h_handler(struct regs_t *r)
     *   Interrupt usato per NMI (Non Maskable Interrupt)
     *   Evento generato da hardware per eventi urgenti che non possono venire ignorati.
     * */
-    if (!trigger_exception)
-        trigger_exception++;
-    
     set_status_reg_before_disaster(r);
     ptr_map_error_msg = int2h_error_msg;
 }
@@ -143,9 +130,6 @@ O3 void int3h_handler(struct regs_t *r)
     /*
     * Interrupt usato per casi di overflow
     * */
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
     ptr_map_error_msg = int3h_error_msg;
 }
@@ -156,9 +140,6 @@ O3 void int4h_handler(struct regs_t *r)
     /*
     * Interrupt usato per Bound
     * */
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
@@ -168,9 +149,6 @@ O3 void int5h_handler(struct regs_t *r)
     /*
     * Interrupt usato per Invalid opcode
     * */
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
@@ -180,9 +158,6 @@ O3 void int6h_handler(struct regs_t *r)
     /*
     * Interrupt usato per Device not available
     * */
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
@@ -192,9 +167,6 @@ O3 void int7h_handler(struct regs_t *r)
     /*
     * Interrupt usato per Double fault
     * */
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
@@ -204,90 +176,60 @@ O3 void int8h_handler(struct regs_t *r)
     /*
     * Interrupt usato per coprocessor segment 
     * */
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int9h_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void intah_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void intbh_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void intch_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void intdh_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void inteh_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void intfh_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int10h_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int11h_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
@@ -304,9 +246,6 @@ O3 void int12h_handler(struct regs_t *r)
     *   - internal Core (execution Unit, register file)
     *   - ECC DRAM propagati alla cpu
     * * */
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
     ptr_map_error_msg = int12h_error_msg;
 }
@@ -314,117 +253,78 @@ O3 void int12h_handler(struct regs_t *r)
 
 O3 void int13h_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int14h_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int15h_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int16h_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int17h_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int18h_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int19h_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1ah_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1bh_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1ch_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1dh_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1eh_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1fh_handler(struct regs_t *r)
 {
-    if (!trigger_exception)
-        trigger_exception++;
-
     set_status_reg_before_disaster(r);
 }
 
@@ -440,8 +340,8 @@ O3 void int20h_handler(struct regs_t* r)
     */
     insert_markov_entry((uchar) r->int_no);
 
-    // ogni 33,33 ms * 30 = 999 ms si aggiorna l'orario (vedi pit.h)
-    if (ticks_int20_rtc >= 30) {
+    // ogni 50 ms * 20 = 1000 ms si aggiorna l'orario (vedi pit.h)
+    if (ticks_int20_rtc >= 20) {
         set_rtc_dirty(&t, 1);
         ticks_int20_rtc = 0;
     }

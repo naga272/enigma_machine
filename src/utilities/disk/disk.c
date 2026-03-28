@@ -32,22 +32,22 @@ O3 i32 disk_read_sector(i32 lba, i32 total, void* buf)
     ushort* ptr = (ushort*) buf;
 
     for (i32 s = 0; s < total; s++) {
-        // Controllo iniziale di stato
+        // check dello stato
         if (insb(ATA_STATUS) & ATA_BSY) {
-            // Attendi fino a 30 secondi (timeout)
+            // attesa 30 secondi (timeout)
             for (int timeout = 0; timeout < 30000; timeout++) {
                 if (!(insb(ATA_STATUS) & ATA_BSY))
                     break;
-                // Piccolo delay
+                // delay
                 for (volatile int i = 0; i < 1000; i++);
             }
             if (insb(ATA_STATUS) & ATA_BSY)
-                return -1; // Timeout
+                return -1; // timeout
         }
 
-        // Seleziona drive e LBA
+        // select drive e LBA
         outb(ATA_DRIVE, 0xE0 | ((lba >> 24) & 0x0F));
-        
+
         // 400ns delay
         insb(ATA_STATUS);
         insb(ATA_STATUS);
@@ -60,24 +60,25 @@ O3 i32 disk_read_sector(i32 lba, i32 total, void* buf)
         outb(ATA_LBA_HIGH, (lba >> 16) & 0xFF);
         outb(ATA_COMMAND, READ_SECTOR);
 
-        // Attendi dati pronti con timeout
+        //attesa dei dati pronti
         u8 status;
-        int timeout = 1000000; // Timeout più robusto
+        int timeout = 1000000; // faccio un piccolo timeout
+
         do {
             status = insb(ATA_STATUS);
             if (status & ATA_ERR) {
-                // Leggi registro errori per debug
                 insb(ATA_ERROR);
                 return -1;
             }
             timeout--;
-            if (timeout <= 0) return -1; // Timeout
+
+            if (timeout <= 0) 
+                return -1;  // Timeout
         } while ((status & ATA_BSY) || !(status & ATA_DRQ));
 
-        // Leggi 256 word (512 byte)
-        for (int i = 0; i < 256; i++) {
+        // lettura di 2 bytes alla volta
+        for (int i = 0; i < 256; i++)
             *ptr++ = insw(ATA_DATA);
-        }
 
         lba++;
     }

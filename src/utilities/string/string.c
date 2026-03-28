@@ -62,3 +62,50 @@ O3 char* itoa(int value, char* buf)
 
     return buf;
 }
+
+
+O3 size_t strnlen(const char* string, size_t max_size)
+{
+    size_t idx = 0;
+
+    while (string[idx] != '\0' && idx < max_size)
+        idx++;
+
+    return idx;
+}
+
+
+O3 size_t strlen(const char* string)
+{
+    size_t idx = 0;
+
+    while (string[idx] != '\0')
+        idx++;
+
+    return idx;
+}
+
+
+O3 i32 tonumericdigit(char c)
+{
+    return c - 48;
+}
+
+
+O3 i8 isdigit(char c)
+{
+    return (c >= 48 && c <= 57)? 1 : 0;
+}
+
+
+O3 i32 memcmp(void* addr, void* tocmp, size_t len)
+{
+    char* c1 = addr;
+    char* c2 = tocmp;
+
+    for (size_t i = 0; i < len; i++)
+        if (*(c1 + i) != *(c2 + i))
+            return 1;
+    
+    return 0;
+}

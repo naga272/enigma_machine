@@ -294,8 +294,7 @@ void init_setup(struct book* b)
     }
 
     write_on_sector_128();
-
-    print((uchar*) "\n>>>");
+    print((uchar*) "\n>>> ");
 }
 
 

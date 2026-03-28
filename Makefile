@@ -6,7 +6,7 @@ SYSCALL = ./build/idt/body_int/syscalls/syscall.o ./build/test_int80h.asm.o ./bu
 IDT = ./build/idt/idt.asm.o ./build/idt/idt.o $(MASTER_IDT) $(SLAVE_IDT) $(SYSCALL)
 HEAP = ./build/memory/kheap_creation.o ./build/memory/heap_creation.o ./build/memory/malloc.o
 PAGING = ./build/memory/paging.o ./build/memory/paging.asm.o
-DISK = ./build/disk/disk.o
+DISK = ./build/fs/pparser.o ./build/disk/disk.o
 FILES = ./build/kernel.asm.o ./build/kernel.o $(HEAP) $(PAGING) $(UTILITIES) $(IDT) $(DISK) $(SETUP) ./build/io/io.asm.o ./build/enigma/enigma.o
 
 
@@ -67,6 +67,11 @@ iso: ./bin/os.bin
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/memory/heap/malloc.c -o ./build/memory/malloc.o
 
 ####
+
+
+# ==== FILES FOR FS ====
+./build/fs/pparser.o: ./src/utilities/fs/pparser.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/fs/pparser.c -o ./build/fs/pparser.o
 
 
 # ==== FILES FOR ACCESS DISK ====

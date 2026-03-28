@@ -131,11 +131,11 @@ O3 void insert_markov_entry(uchar new_entry)
         entry_actual = new_entry;
         return;
     }
+
     entry_before = entry_actual;
     entry_actual = new_entry;
 
     check_status_table(entry_before, entry_actual);
-
     markov_entry[entry_before][entry_actual]++;
 }
 

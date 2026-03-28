@@ -15,6 +15,11 @@
 #define SIZE_PAGE_TABLE 1024
 #define PAGING_SIZE_BLOCKS_ENTRY 4096
 
+
+/*
+* size: 40 bytes -> 8 + (1 + 7) + 8 + 8 + 8
+*
+* */
 struct paging_4gb_chunk {
     u32* directory_entry;
     u8 flags;

@@ -1,5 +1,5 @@
 #define OS_X_QEMU
-#define DISPLAY_START_MSG
+// #define DISPLAY_START_MSG
 
 #include "config.h"
 #include "kernel.h"
@@ -20,6 +20,7 @@
 #include "utilities/setup/setup.h"
 #include "utilities/book/book.h"
 #include "utilities/markov/markov.h"
+#include "utilities/fs/pparser.h"
 
 
 extern void test_int80h(void);
@@ -78,12 +79,6 @@ O3 static inline void trigger_BsOD()
 }
 
 
-static inline void try_int80h()
-{
-    test_int80h();
-}
-
-
 O3 static inline void main()
 {
     gestisci_char_to_write(tmp_char_container);
@@ -117,7 +112,7 @@ O3 void kernel_main()
 
     enable_interrupts();
 
-    // update dats nella struct @t
+    // initialize dats nella struct @t
     rtc_get_time(&t);
 
     /*
@@ -126,9 +121,9 @@ O3 void kernel_main()
     // trigger_BsOD();
 
     /*
-    === SYSCALL PER UTENTI ===
+    === TEST SYSCALL PER UTENTI ===
     */
-    // try_int80h();
+    // test_int80h();
     while (1) {
         main();
         asm volatile("hlt");

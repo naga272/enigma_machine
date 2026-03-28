@@ -9,12 +9,17 @@
 #define OS_X_QEMU
 
 
+#if defined(OS_X_QEMU) && defined(OS_X_XBOCHS) && defined(OS_X_X86)
+    #error, "impossibile definire OS_X_QEMU, OS_X_XBOCHS, OS_X_X86 insieme"
+#endif
+
+
 uchar* vec_reboot_comm = (uchar*) "RELOAD";
 uchar* vec_power_off_comm = (uchar*) "QUIT";
 uchar* vec_cls_comm = (uchar*) "CLS";
 
 
-void reboot()
+u8 reboot()
 {
     /*
     *   Uso il controller della tastiera per forzare il riavvio hardware della cpu
@@ -24,10 +29,11 @@ void reboot()
     *       La cpu ricevendo il segnale di reset ricomincia da zero,
     * ** */
     outb(0x64, 0xFE);
+    return 1;
 }
 
 
-void power_off()
+u8 power_off()
 {
 #ifdef OS_X_QEMU
     /* 
@@ -46,25 +52,28 @@ void power_off()
 #ifdef OS_X_X86
     // >_<
 #endif
+    return 1;
 }
 
 
-void cls()
+u8 cls()
 {
     terminal_initialize(actual_color_terminal);
+    print((uchar*) ">>> ");
+    return 1;
 }
 
 
 u8 try_execute_comm(uchar* comm_to_execute)
 {
+    if (strcmp(comm_to_execute, vec_cls_comm))
+        return cls();
+
     if (strcmp(comm_to_execute, vec_reboot_comm))
-        reboot();
+        return reboot();
 
-    else if (strcmp(comm_to_execute, vec_power_off_comm))
-        power_off();
-
-    else if (strcmp(comm_to_execute, vec_cls_comm))
-        cls();
+    if (strcmp(comm_to_execute, vec_power_off_comm))
+        return power_off();
 
     return 0;
 }

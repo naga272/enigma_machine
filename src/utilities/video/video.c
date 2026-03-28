@@ -367,6 +367,8 @@ O3 void terminal_initialize(u8 colore)
 
     memset(buffer_line_cmd, 0, SIZE_COMMAND_SHELL);
     idx_buff = 0;
+    enable_cursor((u8) 1, (u8) 0);
+
 }
 
 
@@ -416,8 +418,8 @@ void gestisci_char_to_write(uchar tmp_char_container)
     }
 
     if (CHAR_END_PHRASE(tmp_char_container)) {
-        if (!try_execute_comm(buffer_line_cmd))
-            if (is_ended_setup)
+        if (is_ended_setup)
+            if (!try_execute_comm(buffer_line_cmd)) 
                 start_encryption();
 
         return;

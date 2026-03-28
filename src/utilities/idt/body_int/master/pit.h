@@ -9,9 +9,9 @@ extern void init_hardware_pit();
 #define PIT_FREQ 1193182
 
 // frequenza
-#define HZ 30
+#define HZ 20
 
-// ogni 1 / 30 S = 0,0333... = 33,33 ms
+// ogni 1 / 20 S = 0,05 = 50 ms
 #define PIT_DIV (PIT_FREQ / HZ)
 
 #endif

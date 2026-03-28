@@ -73,12 +73,12 @@ O3 void rtc_get_time(struct tempo_t *t)
     rtc_wait_update_end();
 
     // alla conversione devo aggiungere il timezone
-    t->sec = rtc_get_sec_utc() + 19;
+    t->sec = rtc_get_sec_utc() + 29;
 
     if (t->sec >= 60)
         t->sec = t->sec % 60;
 
-    t->min = rtc_get_min_utc() + 4;
+    t->min = rtc_get_min_utc() + 6;
 
     /* 
     *   se t->min si trova a 59 e faccio + 4 esce fuori 63,
@@ -88,7 +88,7 @@ O3 void rtc_get_time(struct tempo_t *t)
     if (t->min >= 60)
         t->min = t->min % 60;
 
-    t->ore = rtc_get_ore_utc() + 1;
+    t->ore = rtc_get_ore_utc() + 2;
 
     if (t->ore >= 24)
         t->ore = t->ore % 24;
