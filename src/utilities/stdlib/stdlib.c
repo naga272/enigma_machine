@@ -13,13 +13,6 @@ void* memset(void *ptr, int c, size_t n)
 
 #ifdef WATER_MARK_ALG
 
-/*
-*   In teoria non mi dovrebbe servire troppo l'heap per questo os,
-*   quindi ho deciso di implementare, ma caso mai dovesse servirmi
-*   in futuro uso questo metodo semplice e veloce.
-*   Da ricordare che il metodo waterMark non libera l'heap,
-*   andando così a verificarsi la heap exhaustion.
-**/
 
 static inline void* allocWaterMark(size_t num_bytes)
 {

@@ -583,7 +583,7 @@ O3 static inline void init_value_hardware()
 #ifdef PIC_ALLOW
     init_slave_pic();
     init_hardware_rtc();     // configura tutto il RTC
-    init_hardware_pit();     // PIT opzionale
+    init_hardware_pit();
 #endif
     idt_load(&idtr_descriptor);
 
@@ -593,10 +593,6 @@ O3 static inline void init_value_hardware()
 
 O3 void idt_init()
 {
-    // buffer che contiene la lista di caratteri da tradurre secondo la
-    // crittografia di enigma
-    // memset((void*) bff_cmd_line, 0, SIZE_COMMAND_SHELL);
-
     memset(idt_descriptors, 0, sizeof(idt_descriptors)); // azzero tutti i campi della tabella
 
     idtr_descriptor.limit   = sizeof(idt_descriptors) - 1;

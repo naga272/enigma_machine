@@ -88,5 +88,6 @@ typedef unsigned short ushort;
 
 
 #define KERNEL_FS_MAX_PATH 100
+#define ENIGMAOS_TOTAL_GDT_SEGMENTS 3
 
 #endif

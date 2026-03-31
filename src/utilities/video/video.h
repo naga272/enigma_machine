@@ -97,7 +97,7 @@ void terminal_initialize(u8);
 
 
 void enable_cursor(u8 start_cursor, u8 end_cursor);
-void disable_cursor_cursor(u8 x, u8 y);
+void disable_cursor_cursor(u8 x, u8 y); 
 void render_time();
 
 extern void terminal_initialize(u8);

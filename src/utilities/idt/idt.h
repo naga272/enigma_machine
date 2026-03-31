@@ -66,10 +66,6 @@ void idt_load(struct idtr_desc* ptr); // (carica IN IDTR la idt)
 #endif
 
 
-// from stdlib/stdlib.c - stdlib.h
-// extern void* memset(void *ptr, int c, size_t n);
-
-
 typedef struct regs_t {
     u32 ds;
     u32 es;

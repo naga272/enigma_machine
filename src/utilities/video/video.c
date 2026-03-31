@@ -207,7 +207,7 @@ O3 void panic(const uchar* msg, struct regs_t* status_reg)
     * o a spegnere e riaccendere dal tasto fisico.
     * In questo os viene triggerata solo se viene eseguita una divisione per 0.
     * Se succede, disabilita tutti gli interrupt e mostra
-    * la schemrata BSoD
+    * la schermata BSoD
     * */
 
     if (!panic_init) {

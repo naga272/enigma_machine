@@ -4,12 +4,30 @@ BITS 16
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
-_start:
-    jmp short start
-    nop
 
+jmp short start
+nop
 
-times 33 db 0
+; FAT16 HEADERS
+OEMIdentifier       db 'ENIGMAOS'
+BytesPerSector      dw 0x200
+SectorsPerCluster   db 0x80
+ReservedSectors     dw 200
+FATCopies           db 0x02
+RootDirEntries      dw 0x40
+NumSectors          dw 0x00
+MediaType           db 0xf8
+SectorsPerFat       dw 0x100
+SectorsPerTrack     dw 0x20
+NumberOfHeads       dw 0x40
+HiddenSectors       dd 0x00
+SectorsBig          dd 0x773594
+DriveNumber         db 0x00
+WinNTBit            db 0x00
+Signature           db 0x29
+VolumeID            dd 0xD105
+VolumeIDString      db "           "
+SystemIDString      db "        "
 
 
 start:

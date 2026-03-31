@@ -21,6 +21,7 @@
 #include "utilities/book/book.h"
 #include "utilities/markov/markov.h"
 #include "utilities/fs/pparser.h"
+#include "utilities/gdt/gdt.h"
 
 
 extern void test_int80h(void);
@@ -36,6 +37,13 @@ extern u8 is_ended_setup;
 
 static struct paging_4gb_chunk *kernel_directory = 0;
 struct book* b;
+
+struct gdt gdt_real[ENIGMAOS_TOTAL_GDT_SEGMENTS];
+struct gdt_structured gdt_structured[ENIGMAOS_TOTAL_GDT_SEGMENTS] = {
+    {.base = 0x00, .limit = 0x00, .type = 0x00},                // NULL Segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0x9a},           // Kernel code segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0x92}            // Kernel data segment
+};
 
 
 O3 void init_shell()
@@ -92,6 +100,13 @@ O3 void kernel_main()
 {
     disable_interrupts();
 
+    // init gdt
+    memset(gdt_real, 0x00, sizeof(gdt_real));
+    gdt_structured_to_gdt(gdt_real, gdt_structured, ENIGMAOS_TOTAL_GDT_SEGMENTS);
+
+    // caricamento gdt
+    gdt_load(gdt_real, sizeof(gdt_real));
+
     // inizializzazione idt + settings hardware componenents
     idt_init();
 
@@ -110,10 +125,10 @@ O3 void kernel_main()
 
     init_shell();
 
-    enable_interrupts();
-
     // initialize dats nella struct @t
     rtc_get_time(&t);
+
+    enable_interrupts();
 
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===

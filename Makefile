@@ -1,13 +1,21 @@
 UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/book/book.o ./build/atomic/atomic.o
+
 SETUP = ./build/setup/setup.o ./build/markov/markov.o
+
 MASTER_IDT = ./build/idt/body_int/master/pit.o ./build/idt/body_int/master/input_keyboard.o
 SLAVE_IDT = ./build/idt/body_int/slave/rtc_orologio.o
 SYSCALL = ./build/idt/body_int/syscalls/syscall.o ./build/test_int80h.asm.o ./build/idt/body_int/syscalls/write/write.o ./build/idt/body_int/syscalls/reboot/reboot.o
 IDT = ./build/idt/idt.asm.o ./build/idt/idt.o $(MASTER_IDT) $(SLAVE_IDT) $(SYSCALL)
+
 HEAP = ./build/memory/kheap_creation.o ./build/memory/heap_creation.o ./build/memory/malloc.o
+
 PAGING = ./build/memory/paging.o ./build/memory/paging.asm.o
+
 DISK = ./build/fs/pparser.o ./build/disk/disk.o
-FILES = ./build/kernel.asm.o ./build/kernel.o $(HEAP) $(PAGING) $(UTILITIES) $(IDT) $(DISK) $(SETUP) ./build/io/io.asm.o ./build/enigma/enigma.o
+
+PROCESS = ./build/gdt/gdt.asm.o ./build/gdt/gdt.o
+
+FILES = ./build/kernel.asm.o ./build/kernel.o $(PROCESS) $(HEAP) $(PAGING) $(UTILITIES) $(IDT) $(DISK) $(SETUP) ./build/io/io.asm.o ./build/enigma/enigma.o
 
 
 INCLUDES = -I./src
@@ -18,7 +26,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	rm -rf ./bin/os.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
-	dd if=/dev/zero bs=512 count=100 >> ./bin/os.bin
+	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
 
 
 iso: ./bin/os.bin
@@ -53,6 +61,15 @@ iso: ./bin/os.bin
 	nasm -f elf -g ./src/utilities/io/io.asm -o ./build/io/io.asm.o
 
 
+# ==== FILES FOR PROCESS SCHEDULER ====
+./build/gdt/gdt.asm.o: ./src/utilities/gdt/gdt.asm
+	nasm -f elf -g ./src/utilities/gdt/gdt.asm -o ./build/gdt/gdt.asm.o
+
+
+./build/gdt/gdt.o: ./src/utilities/gdt/gdt.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/gdt/gdt.c -o ./build/gdt/gdt.o
+
+
 # ==== FILES FOR HEAP ====
 
 ./build/memory/kheap_creation.o: ./src/utilities/memory/heap/kheap_creation.c
@@ -65,8 +82,6 @@ iso: ./bin/os.bin
 
 ./build/memory/malloc.o: ./src/utilities/memory/heap/malloc.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/memory/heap/malloc.c -o ./build/memory/malloc.o
-
-####
 
 
 # ==== FILES FOR FS ====
