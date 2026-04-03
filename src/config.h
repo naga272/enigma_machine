@@ -1,25 +1,20 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#ifndef KERNEL_CODE_SELECTOR
-#define KERNEL_CODE_SELECTOR 0x08
-#endif
-
-#ifndef KERNEL_DATA_SELECTOR
-#define KERNEL_DATA_SELECTOR 0x10
-#endif
-
-#ifndef OS_TOTAL_INTERRUPTS
-#define OS_TOTAL_INTERRUPTS 512  // l'os ha 512 interrupts totali
-#endif
-
-#ifndef SIZE_COMMAND_SHELL
-#define SIZE_COMMAND_SHELL 2048
-#endif
-
 #include <stdint.h>
 #include <stddef.h>
 #include "errors_no.h"
+
+#define EXIT_SUCCESS 0x00
+
+#define KERNEL_CODE_SELECTOR 0x08
+
+#define KERNEL_DATA_SELECTOR 0x10
+
+// idt
+#define OS_TOTAL_INTERRUPTS 512  // l'os ha 512 interrupts totali
+
+#define SIZE_COMMAND_SHELL 2048
 
 typedef uint8_t u8;
 typedef int8_t i8;
@@ -32,6 +27,7 @@ typedef int32_t i32;
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;
+
 
 #ifndef O3
 #define O3 __attribute__((optimize("O3")))
@@ -87,7 +83,35 @@ typedef unsigned short ushort;
 #define SIZEOFARR(x) (sizeof(x) / sizeof(x[0]))
 
 
+// filesystems
+
+#define ENIGMAOS_SECTOR_SIZE 512
+
 #define KERNEL_FS_MAX_PATH 100
-#define ENIGMAOS_TOTAL_GDT_SEGMENTS 3
+
+#define ENIGMAOS_MAX_FILESYSTEMS 12
+
+#define ENIGMAOS_MAX_FILE_DESCRIPTORS 512
+
+
+// gestione processi e gdt
+
+#define ENIGMAOS_TOTAL_GDT_SEGMENTS 6
+
+#define PROGRAM_VIRTUAL_ADDR 0x400000
+
+#define PROGRAM_USER_ADDR_STACK_SIZE 1024 * 16
+
+#define PROGRAM_VIRTUAL_ADDR_STACK_START 0x3ff000
+
+#define PROGRAM_VIRTUAL_STACK_ADDR_END PROGRAM_VIRTUAL_STACK_ADDR_START - PROGRAM_USER_ADDR_STACK_SIZE
+
+#define USER_DATA_SEGMENT 0x400000
+
+#define USER_CODE_SEGMENT 0x1b
+
+#define MAX_PROGRAM_ALLOCATION 1024
+
+#define MAX_PROCESS_X_QUEUE 12
 
 #endif

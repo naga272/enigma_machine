@@ -11,11 +11,11 @@ HEAP = ./build/memory/kheap_creation.o ./build/memory/heap_creation.o ./build/me
 
 PAGING = ./build/memory/paging.o ./build/memory/paging.asm.o
 
-DISK = ./build/fs/pparser.o ./build/disk/disk.o
+DISK = ./build/fs/pparser.o ./build/disk/disk.o ./build/disk/streamer.o ./build/fs/file.o
 
-PROCESS = ./build/gdt/gdt.asm.o ./build/gdt/gdt.o
+TASK = ./build/gdt/gdt.asm.o ./build/gdt/gdt.o ./build/task/tss.asm.o ./build/task/task.o
 
-FILES = ./build/kernel.asm.o ./build/kernel.o $(PROCESS) $(HEAP) $(PAGING) $(UTILITIES) $(IDT) $(DISK) $(SETUP) ./build/io/io.asm.o ./build/enigma/enigma.o
+FILES = ./build/kernel.asm.o ./build/kernel.o $(TASK) $(HEAP) $(PAGING) $(UTILITIES) $(IDT) $(DISK) $(SETUP) ./build/io/io.asm.o ./build/enigma/enigma.o
 
 
 INCLUDES = -I./src
@@ -27,6 +27,10 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
 	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
+	sudo mount -t vfat ./bin/os.bin /mnt/d
+	# copy file
+	sudo cp ./hello.txt /mnt/d
+	sudo umount /mnt/d
 
 
 iso: ./bin/os.bin
@@ -70,8 +74,15 @@ iso: ./bin/os.bin
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/gdt/gdt.c -o ./build/gdt/gdt.o
 
 
-# ==== FILES FOR HEAP ====
+./build/task/tss.asm.o: ./src/utilities/task/tss.asm
+	nasm -f elf -g ./src/utilities/task/tss.asm -o ./build/task/tss.asm.o
 
+
+./build/task/task.o: ./src/utilities/task/task.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/task/task.c -o ./build/task/task.o
+
+
+# ==== FILES FOR HEAP ====
 ./build/memory/kheap_creation.o: ./src/utilities/memory/heap/kheap_creation.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/memory/heap/kheap_creation.c -o ./build/memory/kheap_creation.o
 
@@ -84,18 +95,26 @@ iso: ./bin/os.bin
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/memory/heap/malloc.c -o ./build/memory/malloc.o
 
 
-# ==== FILES FOR FS ====
+# ==== FILES FOR FS and FILES FOR ACCESS DISK ==== 
+
 ./build/fs/pparser.o: ./src/utilities/fs/pparser.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/fs/pparser.c -o ./build/fs/pparser.o
 
-
-# ==== FILES FOR ACCESS DISK ====
 ./build/setup/setup.o: ./src/utilities/setup/setup.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/setup/setup.c -o ./build/setup/setup.o
 
 
 ./build/disk/disk.o: ./src/utilities/disk/disk.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/disk/disk.c -o ./build/disk/disk.o
+
+
+./build/disk/streamer.o: ./src/utilities/disk/streamer.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/disk/streamer.c -o ./build/disk/streamer.o
+
+
+./build/fs/file.o: ./src/utilities/fs/file.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/fs/file.c -o ./build/fs/file.o
+
 
 # ==== FILES FOR PAGING ====
 

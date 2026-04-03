@@ -60,9 +60,11 @@ O3 void __switch_directory(struct paging_4gb_chunk* self)
 
 O3 void __del_paging_directory(struct paging_4gb_chunk* self)
 {
-    for (u32 idx = 0; idx < SIZE_PAGE_DIRECTORY; idx++)
-        kfree((void*) (self->directory_entry[idx] | self->flags | PAGING_IS_WRITEABLE));
-
+    for (u32 idx = 0; idx < SIZE_PAGE_DIRECTORY; idx++) {
+        u32 entry = self->directory_entry[idx];
+        u32 *table = (u32*) (entry & 0xfffff000);
+        kfree(table);
+    }        
     kfree(self->directory_entry);
     kfree(self);
 }

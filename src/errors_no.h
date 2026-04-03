@@ -8,7 +8,7 @@
 #define EIO              5   /* I/O error */
 #define ENXIO            6   /* No such device or address */
 #define E2BIG            7   /* Argument list too long */
-#define ENOEXEC          8   /* Exec format error */
+#define EISTKN           8   /* impossible taken */
 #define EBADF            9   /* Bad file number */
 #define ECHILD          10   /* No child processes */
 #define EAGAIN          11   /* Try again */

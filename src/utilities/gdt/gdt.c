@@ -1,6 +1,17 @@
 #include "utilities/gdt/gdt.h"
 
 
+/* 
+* La GDT del bootloader e' usa e getta. Bisogna crearne un'altra per il kernel
+* che verra' usata per il resto dell'eseucizione.
+*   Steps:
+*       - bootloader crea una gdt temporanea
+*       - bootloader inserisce quella gdt tramite lgdt
+*       - viene caricato poi il kernel in ram e fatto il jmp
+*       - il Kernel crea la sua gdt, sovrascrivendo quella del bootloader
+**/
+
+
 extern void set_message_x_panic(uchar* msg);
 
 

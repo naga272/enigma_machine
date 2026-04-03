@@ -1,6 +1,12 @@
 
-#include "utilities/disk/disk.h"
 #include "utilities/io/io.h"
+#include "utilities/disk/disk.h"
+#include "utilities/stdlib/stdlib.h"
+#include "utilities/memory/heap/malloc.h"
+#include "errors_no.h"
+
+
+struct disk disk;
 
 
 O3 static inline void ata_wait_ready(void)
@@ -118,3 +124,32 @@ O3 i32 disk_write_sector(i32 lba, i32 total, void* buf)
 
     return 0;
 }
+
+
+void disk_search_and_init()
+{
+    memset(&disk, 0, sizeof(disk));
+    disk.type = ENIGMAOS_DISK_TYPE_REAL;
+    disk.sector_size = ENIGMAOS_SECTOR_SIZE;
+    disk.filesystem = fs_resolve(&disk);
+
+}
+
+
+struct disk* disk_get(i32 index)
+{
+    if (index != 0)
+        return 0;
+    
+    return &disk;
+}
+
+
+i32 disk_read_block(struct disk* idisk, u32 lba, i32 total, void* buf)
+{
+    if (idisk != &disk)
+        return -EIO;
+
+    return disk_read_sector(lba, total, buf);
+}
+
