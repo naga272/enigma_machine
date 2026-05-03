@@ -64,10 +64,13 @@ uchar entry_before = (char) 0;
 uchar entry_actual = (char) 0;
 
 
+extern void print_hex(size_t);
+extern void print(uchar*);
+
+
 O3 static inline void panic_table_prediction_idt()
 {
     /*
-    *   L'idea e' questa:
     *   Se resetto tutta la tabella all'inizio comincera'
     *   a sparare a caso, quindi per tenere il piu consistente
     *   possibile la predizione, divido per 2 tutti i valori memorizzati
@@ -114,7 +117,7 @@ O3 u8 prevedi_markov()
         }
     }
 
-    // num interrupt PIC piu probabile
+    // prossimo IRQ che ricevero' dal PIC piu probabile
     return best_idx;
 }
 
@@ -124,7 +127,7 @@ O3 void insert_markov_entry(uchar new_entry)
     // da 0x00 a 0x19 sono interrupt della cpu.
     // 0x19 esadecimale equivale a 25 decimale.
     // tolgo i primi 25 interrupt che sono usati dalla cpu,
-    // sono eventi cosi' rari che non ha nemmeno senso considerarli
+    // perche' sono eventi cosi' rari che non ha nemmeno senso considerarli
     new_entry -= 25;
 
     if (entry_actual == 0) {
@@ -157,4 +160,3 @@ O3 void init_markov_model_idt()
 {
     init_matrix();
 }
-

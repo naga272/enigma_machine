@@ -5,6 +5,7 @@
 
 
 extern struct heap kernel_heap;
+extern void print_hex(size_t num);
 
 
 O3 static inline u32 heap_address_to_block(struct heap *heap, void* ptr)
@@ -38,33 +39,42 @@ O3 static inline u32 heap_align_value_to_upper(u32 val)
 }
 
 
-O3 static inline i32 heap_get_start_block(struct heap* heap, u32 total_blocks_required)
+static inline i32 heap_get_entry_type(HEAP_BLOCK_TABLE_ENTRY entry)
 {
-    /* cerca @total_blocks_required consecutivi liberi restituendo l'offset del primo blocco */
-    i32 offset_entry = -ENOMEM;
-    u32 tmp_total_blocks_required = total_blocks_required;
+    return entry & 0x0f;
+}
 
-    for (size_t idx = 0; idx <= heap->table->total; idx++) {
-        if (tmp_total_blocks_required == 0)
-            break;
 
-        if (heap->table->entry[idx] != HEAP_BLOCK_TABLE_ENTRY_FREE) {
-            tmp_total_blocks_required = total_blocks_required;
-            offset_entry = -ENOMEM;     /* ripristina il valore */
+O3 i32 heap_get_start_block(struct heap* heap, u32 total_blocks)
+{
+    struct heap_table* table = heap->table;
+    i32 bc = 0;
+    i32 bs = -1;
+
+    for (size_t i = 0; i < table->total; i++) {
+        if (heap_get_entry_type(table->entry[i]) != HEAP_BLOCK_TABLE_ENTRY_FREE) {
+            bc = 0;
+            bs = -1;
             continue;
         }
 
-        if (offset_entry == -ENOMEM)
-            offset_entry = idx;
+        // If this is the first block
+        if (bs == -1)
+            bs = i;
 
-        tmp_total_blocks_required--;
+        bc++;
+
+        if (bc == total_blocks)
+            break;
     }
-    /*
-    *   Caso in cui offset == idx ma comunque non e' stato sufficiente
-    *   per il num blocks richiesti
-    * **/
-    return (tmp_total_blocks_required == 0)? offset_entry : -ENOMEM;
+
+    if (bs == -1)
+        return -ENOMEM;
+
+    return bs;
+
 }
+
 
 
 O3 static inline void heap_mark_blocks_taken(struct heap* heap, u32 start_block, u32 total_blocks_required)
@@ -83,11 +93,11 @@ O3 static inline void heap_mark_blocks_taken(struct heap* heap, u32 start_block,
 }
 
 
-O3 static inline void *heap_malloc_blocks(struct heap* heap, u32 total_blocks_required)
+O3 static inline void* heap_malloc_blocks(struct heap* heap, u32 total_blocks_required)
 {
     void* address = 0;
 
-    u32 start_block = heap_get_start_block(heap, total_blocks_required);
+    i32 start_block = heap_get_start_block(heap, total_blocks_required);
 
     if (start_block < 0)
         return address;
@@ -98,11 +108,46 @@ O3 static inline void *heap_malloc_blocks(struct heap* heap, u32 total_blocks_re
     return address;
 }
 
+/*
+static inline void* heap_alloc(struct heap* heap, size_t size)
+{
+     Ogni data pool e' organizzato in questo modo:
+    *  | HEADER | BODY |
+    *  Vengono allocati oltre ai bytes richiesti dall'utente (BODY)
+    *  4 bytes per ricordare quanti bytes sono stati richiesti (mi serve per
+    *   la realloc()). Questa parte e' HEADER.
+    * prima di restituire il blocco allocato sposto il ptr di 4 bytes in avanti
+    * cosi' l'utente non modifica l'HEADER:
+    *   | HEADER | BODY |
+    *            ^
+    *           ptr offset
+    
+    size_t header_size = sizeof(size_t);
+
+    size_t total_size = size + header_size;
+
+    size_t aligned = heap_align_value_to_upper(total_size);
+
+    size_t blocks = aligned / BLOCK_SIZE_HEAP;
+
+    void* raw = heap_malloc_blocks(heap, blocks);
+
+    if (!raw)
+        return NULL;
+
+    size_t* header = (size_t*) raw;
+    *header = size;
+
+    return (void*) ((u8*)raw + header_size);
+}
+*/
+
 
 O3 static inline void* heap_alloc(struct heap* heap, size_t size)
 {
     u32 arrotonda_num_bytes = heap_align_value_to_upper(size);
     u32 total_blocks_required = arrotonda_num_bytes / BLOCK_SIZE_HEAP;
+
     return heap_malloc_blocks(heap, total_blocks_required);
 }
 
@@ -145,6 +190,11 @@ O3 void* kmalloc(size_t size)
 
 O3 void* krealloc(void* old_ptr, size_t old_size, size_t new_size)
 {
+    // mi serve in pci.c
+    if (old_ptr == 0 || old_ptr == NULL)
+        return heap_alloc(&kernel_heap, new_size);
+
+    // da completare (caso in cui richiesta una grandezza minore)
     if (old_size > new_size)
         return NULL;
 
@@ -155,6 +205,7 @@ O3 void* krealloc(void* old_ptr, size_t old_size, size_t new_size)
         new_ptr[idx] = tmp_old_ptr[idx];
 
     kfree(old_ptr);
+
     return (void*) new_ptr;
 }
 

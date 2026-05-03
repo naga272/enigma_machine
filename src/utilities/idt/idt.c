@@ -341,11 +341,12 @@ O3 void int20h_handler(struct regs_t* r)
     insert_markov_entry((uchar) r->int_no);
 
     // ogni 50 ms * 20 = 1000 ms si aggiorna l'orario (vedi pit.h)
+    
     if (ticks_int20_rtc >= 20) {
         set_rtc_dirty(&t, 1);
         ticks_int20_rtc = 0;
     }
-
+    
     ticks_int20_rtc++;
 
     if (!trigger_exception)
@@ -453,10 +454,16 @@ O3 void int27h_handler(struct regs_t* r)
 }
 
 
+extern struct tempo_t t;
+
+
 O3 void int28h_handler(struct regs_t* r)
 {
-    outb(0x70, 0x0C);
-    insb(0x71);  // ACK, valore ignorato
+    // vado a disabilitare NMI mentre eseguo l'accesso
+    outb(0x70, 0x80 | 0x0C);
+    insb(0x71);
+
+    // set_rtc_dirty(&t, 1);
 
     EOI_SLAVE;
     EOI_MASTER;
@@ -486,6 +493,7 @@ O3 void int2bh_handler(struct regs_t* r)
 
 O3 void int2ch_handler(struct regs_t* r)
 {
+
     EOI_SLAVE;
     EOI_MASTER;
 }
@@ -563,9 +571,9 @@ O3 static inline void init_slave_pic()
     outb(PIC1_DATA, 0x20);
     outb(PIC2_DATA, 0x28);
 
-    // ICW3, connect master pic with slave pic
-    outb(PIC1_DATA, 0x4);
-    outb(PIC2_DATA, 0x2);
+    outb(PIC1_DATA, 0xFC); // abilita solo IRQ0 (timer) e IRQ1 (keyboard)
+    outb(PIC2_DATA, 0xEE); // abilita IRQ8 + IRQ12
+    // outb(PIC2_DATA, 0xEF); // abilita solo IRQ12 (mouse)
 
     // ICW4, set x86 mode
     outb(PIC1_DATA, 1);

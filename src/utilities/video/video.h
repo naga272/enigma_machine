@@ -94,7 +94,7 @@ void print(const uchar*);
 void panic(const uchar*, struct regs_t*);
 void update_orologio_display();
 void terminal_initialize(u8);
-
+void print_hex(u32 val);
 
 void enable_cursor(u8 start_cursor, u8 end_cursor);
 void disable_cursor_cursor(u8 x, u8 y); 
@@ -108,6 +108,7 @@ extern void try_the_setup(uchar);
 extern void gestisci_char_to_write(uchar);
 extern void update_cursor_on_x_y_pos(u16, u16);
 extern void render_time();
+extern void print_hex(u32 val);
 
 extern u8 flag_x_colour_shell;
 extern uchar actual_color_terminal;

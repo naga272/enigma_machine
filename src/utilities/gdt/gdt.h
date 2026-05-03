@@ -44,8 +44,8 @@ struct gdt_structured {
 
 void gdt_load(struct gdt* gdt, i32 size);
 void gdt_structured_to_gdt(struct gdt* gdt, struct gdt_structured *gdt_structured, i32 total_entries);
+void gdt_init();
 
-extern void gdt_load(struct gdt* gdt, i32 size);
-extern void gdt_structured_to_gdt(struct gdt* gdt, struct gdt_structured *gdt_structured, i32 total_entries);
+extern void gdt_init();
 
 #endif

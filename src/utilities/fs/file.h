@@ -39,7 +39,7 @@ struct filesystem {
 
 struct file_descriptor {
     i32 index;
-    struct filesystem* fs;
+    struct filesystem* filesystem;
     void* private;
 
     struct disk* disk;

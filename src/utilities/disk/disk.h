@@ -32,10 +32,24 @@
 typedef u32 ENIGMAOS_DISK_TYPE;
 
 
+/*
+*  struct disk
+*  @id -> identificatore univoco del disco utilizzato dal sistema
+*  @type -> tipo di disco rilevato, ad esempio ATA, SATA o altri
+*  @sector_size -> dimensione di un singolo settore del disco espressa in byte
+*  @fs_private -> puntatore a dati privati utilizzati dal filesystem associato
+*  @filesystem -> puntatore al filesystem montato sul disco
+*
+*  Rappresenta un disco gestito dal sistema operativo. La struct
+*  contiene informazioni identificative sul disco, dettagli fisici
+*  come la dimensione dei settori e i riferimenti al filesystem
+*  montato e ai suoi dati interni.
+*/
 struct disk {
+    i32 id;
     ENIGMAOS_DISK_TYPE type;
     i32 sector_size;
-
+    void* fs_private;
     struct filesystem* filesystem;
 };
 

@@ -181,7 +181,8 @@ O3 void print(const uchar* string)
 }
 
 
-void print_hex(u32 val) {
+void print_hex(u32 val)
+{
     // "0x" + 8 cifre + '\0'
     uchar hex[11];
     hex[0] = '0';

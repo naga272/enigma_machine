@@ -108,16 +108,15 @@ O3 void set_rtc_dirty(struct tempo_t *t, u8 new_value)
 
 O3 void init_hardware_rtc()
 {
-    outb(0x70, 0x8A);
-    u8 regA = insb(0x71);
-    outb(0x70, 0x8A);          
-    outb(0x71, (regA & 0xF0) | 0x06);  // RS=6 -> 1024 Hz
+    // Disabilita NMI + seleziona reg B
+    outb(0x70, 0x80 | 0x0B);
+    u8 prev = insb(0x71);
 
-    outb(0x70, 0x8B);
-    u8 regB = insb(0x71);
-    outb(0x70, 0x8B);
-    outb(0x71, regB | 0x40);   // Set bit 6 -> PIE
+    // Abilita Update Interrupt (1 Hz)
+    outb(0x70, 0x80 | 0x0B);
+    outb(0x71, prev | 0x10);
 
-    outb(0x70, 0x0C);
+    // Clear interrupt pending
+    outb(0x70, 0x80 | 0x0C);
     insb(0x71);
 }

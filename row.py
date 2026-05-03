@@ -8,12 +8,18 @@ exclude_dirs = {
 
 
 def count_lines(root_dir="."):
+    num_file = 0
     total_lines = 0
+
     for root, dirs, files in os.walk(root_dir):
         # Rimuovi le cartelle escluse dalla scansione
         dirs[:] = [d for d in dirs if d not in exclude_dirs]
 
         for file in files:
+            if ".pdf" in file:
+                continue
+
+            num_file += 1
             filepath = os.path.join(root, file)
             try:
                 print(filepath)
@@ -23,9 +29,9 @@ def count_lines(root_dir="."):
             except Exception as e:
                 print(f"Errore leggendo {filepath}: {e}")
 
-    return total_lines
+    return num_file, total_lines
 
 
 if __name__ == "__main__":
-    lines_counted = count_lines()
-    print(f"Totale righe codice {lines_counted}")
+    num_file, lines_counted = count_lines()
+    print(f"Numero file contati: {num_file}\nTotale righe codice {lines_counted}")

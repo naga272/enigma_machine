@@ -4,46 +4,50 @@
 #include "utilities/stdlib/stdlib.h"
 #include "utilities/memory/heap/malloc.h"
 #include "errors_no.h"
+#include "utilities/video/video.h"
 
 
-/*
-* Path parser module
-* *** */
-
-
-O3 static inline i32 pathparser_valid_format(const char* path)
+static i32 pathparser_path_valid_format(const char* filename)
 {
-    // check pattern like "0:/"
-    i32 len = strnlen(path, KERNEL_FS_MAX_PATH);
-    return (
-        len >= 3 &&
-        isdigit(path[0]) &&
-        memcmp((void*) &path[1], ":/", 2)
-    ) == 0;
+    i32 len = strnlen(filename, KERNEL_FS_MAX_PATH);
+    return (len >= 3 && isdigit(filename[0]) && memcmp((void*)&filename[1], ":/", 2) == 0);
 }
 
 
 O3 static inline i32 pathparser_get_drive_by_path(const char** path)
 {
-    // estrae il drive number dal path
-    if (!pathparser_valid_format(*path))
-        return -ENOENT;
-    
-    int drive_no = tonumericdigit(*path[0]);
-
     /*
-    * skippo i primi 3 bytes ("0:/")
-    * da: 0:/lorem.txt a lorem.txt
+    *   @path: puntatore al puntatore del path da elaborare
+    *
+    *   Estrae il numero del drive presente all'inizio del path.
+    *   Se il formato del path non è valido restituisce un errore.
+    *   Dopo aver letto il numero del drive, avanza il puntatore
+    *   oltre la parte iniziale "0:/".
     */
-    *path += 3;
+    if(!pathparser_path_valid_format(*path))
+    {
+        return -1;
+    }
 
+    i32 drive_no = tonumericdigit(*path[0]);
+
+    // Add 3 bytes to skip drive number 0:/ 1:/ 2:/
+    *path += 3;
     return drive_no;
 }
 
 
 O3 static inline struct path_root* pathparser_create_root(i32 drive_number)
 {
-    struct path_root* path_r = (struct path_root*) kcalloc(sizeof(struct path_root));
+    /*
+    *   @drive_number: numero identificativo del drive associato al path
+    *
+    *   Alloca e inizializza una struttura path_root contenente il
+    *   numero del drive e il puntatore iniziale alla lista delle
+    *   parti del path.
+    */
+    struct path_root* path_r = kcalloc(sizeof(struct path_root));
+
     path_r->drive_no = drive_number;
     path_r->first = 0;
     return path_r;
@@ -53,26 +57,37 @@ O3 static inline struct path_root* pathparser_create_root(i32 drive_number)
 O3 static inline const char* pathparser_get_path_part(const char** path)
 {
     /*
-     * Ok, quello che stiamo facendo qui e' questo:
-     * path = bin/bash.bin
-     * alla prima chiamata di questa funzione viene restituito "bin";
-     * alla seconda chiamata di questa funzione viene restituito "bash.bin"
-     *  * */
+    *   @path: puntatore al puntatore del path da elaborare
+    *
+    *   Estrae una singola parte del path fino al prossimo slash o
+    *   alla fine della stringa. Ad ogni chiamata restituisce una
+    *   nuova porzione del path e avanza il puntatore originale.
+    *   es:
+    *   path = bin/bash.bin 
+    *   char* porzione = pathparser_get_path_part(path);    // porzione = "bin"
+    *   porzione = pathparser_get_path_part(porzione);      // porzione = "bash.bin"
+    **/
 
-    char* result_path_part = kcalloc(sizeof(KERNEL_FS_MAX_PATH));
-    i32 i = 0;
+    char* result_path_part = kcalloc(KERNEL_FS_MAX_PATH);
+    if (result_path_part == 0)
+        print((uchar*) "error nell'allocare result_path_part\n");
 
-    while (**path != '/' && **path != 0x00) {
+    int i = 0;
+    while(**path != '/' && **path != 0x00)
+    {
         result_path_part[i] = **path;
         *path += 1;
         i++;
     }
 
-    // skippo lo slash
     if (**path == '/')
+    {
+        // Skip the forward slash to avoid problems
         *path += 1;
-    
-    if (!i) {
+    }
+
+    if(i == 0)
+    {
         kfree(result_path_part);
         result_path_part = 0;
     }
@@ -83,69 +98,103 @@ O3 static inline const char* pathparser_get_path_part(const char** path)
 
 O3 struct path_part* pathparser_parse_path_part(struct path_part* last_part, const char** path)
 {
+    /*
+    *   @last_part: ultimo nodo della lista concatenata già creato
+    *   @path: puntatore al puntatore del path da elaborare
+    *
+    *   Crea una nuova struttura path_part contenente la prossima
+    *   parte del path. Se esiste un nodo precedente, collega il
+    *   nuovo nodo alla lista concatenata.
+    */
     const char* path_part_str = pathparser_get_path_part(path);
-
     if (!path_part_str)
+    {
+        print((uchar*) "error in pathparser_get_path_part\n");
         return 0;
+    }
 
     struct path_part* part = kcalloc(sizeof(struct path_part));
+    if (!path_part_str)
+    {
+        print((uchar*) "error in path_part* part\n");
+        return 0;
+    }
     part->part = path_part_str;
     part->next = 0x00;
 
     if (last_part)
+    {
         last_part->next = part;
-    
+    }
+
     return part;
 }
 
 
-O3 void pathparser_free(struct path_root* obj)
+O3 void pathparser_free(struct path_root* root)
 {
-    struct path_part* pr = obj->first;
-    struct path_part* tmp_pr;
-
-    while (pr) {
-        tmp_pr = pr->next;      // salvo il prossimo
-
-        kfree((void*) pr->part);    // libero l'array di char
-        kfree((void*) pr);
-
-        pr = tmp_pr;            // ripristino il prossimo
+    /*
+    *   @root: struttura path_root da liberare
+    *
+    *   Libera tutta la memoria associata alla struttura path_root,
+    *   incluse tutte le parti del path presenti nella lista concatenata.
+    */
+    struct path_part* part = root->first;
+    while(part)
+    {
+        struct path_part* next_part = part->next;
+        kfree((void*) part->part);
+        kfree(part);
+        part = next_part;
     }
 
-    kfree((void*) obj);
+    kfree(root);
 }
 
 
 O3 struct path_root* pathparser_parse(const char* path, const char* current_dir)
 {
-    i32 res = 0;
+    /*
+    *   @path: path assoluto da convertire in una struttura interna
+    *   @current_dir: directory corrente utilizzata per eventuali path relativi
+    *
+    *   Analizza il path ricevuto, estrae il numero del drive e divide
+    *   il resto del path nelle sue singole componenti. Restituisce una
+    *   struttura path_root contenente il drive e una lista concatenata
+    *   delle directory o file presenti nel path.
+    */
+    int res = 0;
     const char* tmp_path = path;
     struct path_root* path_root = 0;
 
     if (strlen(path) > KERNEL_FS_MAX_PATH)
+    {
         goto out;
+    }
 
     res = pathparser_get_drive_by_path(&tmp_path);
     if (res < 0)
+    {
+        print((uchar*) "error in pathparser_get_drive_by_path\n");
         goto out;
-    
+    }
+
     path_root = pathparser_create_root(res);
 
-    if (!path_root)
+    struct path_part* first_part = pathparser_parse_path_part(NULL, &tmp_path);
+    if (!first_part)
+    {
+        print((uchar*) "error in pathparser_parse_path_part\n");
         goto out;
+    }
 
-    struct path_part* path_first = pathparser_parse_path_part(NULL, &tmp_path);
-
-    if (!path_first)
-        goto out;
-    
-    path_root->first = path_first;
-    struct path_part* part = pathparser_parse_path_part(path_first, &tmp_path);
-
-    while (part)
+    path_root->first = first_part;
+    struct path_part* part = pathparser_parse_path_part(first_part, &tmp_path);
+    while(part)
+    {
         part = pathparser_parse_path_part(part, &tmp_path);
-
-    out:
-        return path_root;
+    }
+    
+out:
+    return path_root;
 }

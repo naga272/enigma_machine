@@ -1,6 +1,24 @@
 #include "utilities/string/string.h"
 
 
+O3 i32 tonumericdigit(char c)
+{
+    return c - 48;
+}
+
+
+i8 isdigit(char c)
+{
+    return c >= 48 && c <= 57;
+}
+
+
+O3 char tolower(char c)
+{
+    return (c >= 65 && c <= 90)? c + 32 : c;
+}
+
+
 O3 uchar* strcat(uchar* ptr1, size_t size_ptr1, uchar* ptr2)
 {
     // mov ptr1, ptr2
@@ -8,6 +26,45 @@ O3 uchar* strcat(uchar* ptr1, size_t size_ptr1, uchar* ptr2)
         ptr1[i] = ptr2[i];
 
     return ptr1;
+}
+
+
+O3 i32 istrncmp(const char* s1, const char* s2, u32 n)
+{
+    // ignora differenze tra maiuscole e minuscole
+    uchar u1, u2;
+    while (n-- > 0) {
+        u1 = (uchar) *s1++;
+        u2 = (uchar) *s2++;
+
+        if (u1 != u2 && tolower(u1) != tolower(u2))
+            return u1 - u2;
+
+        if (u1 == '\0')
+            return 0;
+    }
+
+    return 0;
+}
+
+
+i32 strncmp(const char* str1, const char* str2, i32 n)
+{
+    uchar u1, u2;
+
+    while (n-- > 0)
+    {
+        u1 = (uchar)*str1++;
+        u2 = (uchar)*str2++;
+
+        if (u1 != u2)
+            return u1 - u2;
+    
+        if (u1 == '\0')
+            return 0;
+    }
+
+    return 0;
 }
 
 
@@ -28,11 +85,11 @@ u8 strcmp(const uchar* a, const uchar* b)
 }
 
 
-O3 char* itoa(int value, char* buf)
+O3 char* itoa(i32 value, char* buf)
 {
     // int to array (inverso di atoi)
     char* p = buf;
-    int sign = value;
+    i32 sign = value;
 
     if (value == 0) {
         *p++ = '0';
@@ -64,6 +121,17 @@ O3 char* itoa(int value, char* buf)
 }
 
 
+O3 i32 strnlen_terminator(const char* str, u32 max, char terminator)
+{
+    i32 idx = 0;
+    for (idx = 0; idx < max; idx++)
+        if (str[idx] == '\0' || str[idx] == terminator)
+            break;
+    
+    return idx;
+}
+
+
 O3 size_t strnlen(const char* string, size_t max_size)
 {
     size_t idx = 0;
@@ -86,26 +154,42 @@ O3 size_t strlen(const char* string)
 }
 
 
-O3 i32 tonumericdigit(char c)
+i32 memcmp(void* s1, void* s2, i32 count)
 {
-    return c - 48;
-}
+    char* c1 = s1;
+    char* c2 = s2;
+    while(count-- > 0)
+    {
+        if (*c1++ != *c2++)
+        {
+            return c1[-1] < c2[-1] ? -1 : 1;
+        }
+    }
 
-
-O3 i8 isdigit(char c)
-{
-    return (c >= 48 && c <= 57)? 1 : 0;
-}
-
-
-O3 i32 memcmp(void* addr, void* tocmp, size_t len)
-{
-    char* c1 = addr;
-    char* c2 = tocmp;
-
-    for (size_t i = 0; i < len; i++)
-        if (*(c1 + i) != *(c2 + i))
-            return 1;
-    
     return 0;
+}
+
+
+O3 char* strcpy(char* dest, const char* src)
+{
+    char* dest_base = dest;
+    while (*src != 0) {
+        *dest = *src;
+        dest++;
+        src++;
+    }
+
+    *dest = 0;
+    return dest_base;
+}
+
+
+void* memcpy(void* dest, void* src, i32 len)
+{
+    char *d = dest;
+    char *s = src;
+    while (len--) {
+        *d++ = *s++;
+    }
+    return dest;
 }

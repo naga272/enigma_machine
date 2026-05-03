@@ -17,16 +17,20 @@
 *   Questo modulo e' usabile per l'inizializzazione di qualunque processo
 */
 
-O3 static inline i32 heap_validate_table(struct heap_table* table, void* start_address, void* end_address)
+static inline i32 heap_validate_table(void* ptr, void* end, struct heap_table* table)
 {
-    /*
-    * Verifico che lo spazio richiesto sia valido
-    * **/
-    size_t total_blocks = (size_t) (end_address - start_address);
-    if (total_blocks != table->total) {
-        return -EINVARG;
+    i32 res = 0;
+
+    size_t table_size = (size_t) (end - ptr);
+    size_t total_blocks = table_size / BLOCK_SIZE_HEAP;
+
+    if (table->total != total_blocks) {
+        res = -EINVARG;
+        goto out;
     }
-    return 0;
+
+out:
+    return res;
 }
 
 
@@ -37,30 +41,30 @@ O3 static inline i32 heap_validate_alignment(void* ptr)
     *   Se non è allineato rischio che escono fuori dei blocchi grandi != 4096,
     *   (nel kernel porta a comportamenti indefinitim, invece in userland seg. fault)  
     * * */
-    return ((u32) ptr % OS_HEAP_SIZE_BYTES) == 0;
+    return ((u32) ptr % BLOCK_SIZE_HEAP) == 0;
 }
 
 
-O3 i32 heap_create(struct heap* obj_heap, void *start_address, void *end_address, struct heap_table* table)
+i32 heap_create(struct heap* heap, void* ptr, void* end, struct heap_table* table)
 {
-    /* inizializza la zona dell'heap + inizializza le voci per ogni processo */
+    i32 res = 0;
 
-    if (!heap_validate_alignment(start_address) || !heap_validate_alignment(end_address))
-        return -EINVARG;
+    if (!heap_validate_alignment(ptr) || !heap_validate_alignment(end)) {
+        res = -EINVARG;
+        goto out;
+    }
 
-    memset(obj_heap, 0, sizeof(struct heap));
+    memset(heap, 0, sizeof(struct heap));
+    heap->saddr = ptr;
+    heap->table = table;
 
-    obj_heap->table = table;
-    obj_heap->saddr = start_address;
-
-    i32 res = heap_validate_table(table, start_address, end_address);
-
+    res = heap_validate_table(ptr, end, table);
     if (res < 0)
-        return res;
+        goto out;
 
-    // puslisco tutto il contenuto del blocco (i dati nel blocco dopo la free rimangono)
     size_t table_size = sizeof(HEAP_BLOCK_TABLE_ENTRY) * table->total;
     memset(table->entry, HEAP_BLOCK_TABLE_ENTRY_FREE, table_size);
 
-    return 0;
+out:
+    return res;
 }

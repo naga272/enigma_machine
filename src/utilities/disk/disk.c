@@ -6,6 +6,50 @@
 #include "errors_no.h"
 
 
+/*
+ * Driver ATA PIO per accesso a basso livello al disco.
+ *
+ * Gestisce:
+ * - lettura di settori
+ * - scrittura di settori
+ * - inizializzazione del disco
+ * - recupero del disco principale del sistema
+ *
+ * Il modulo comunica direttamente con il controller ATA tramite
+ * porte I/O usando outb(), insb(), outw() e insw().
+ *
+ * ata_wait_ready():
+ * - attende che il controller non sia occupato
+ * - interrompe l'attesa in caso di errore ATA
+ *
+ * ata_wait_drq():
+ * - attende che il controller segnali dati pronti
+ * - verifica anche eventuali errori
+ *
+ * disk_read_sector():
+ * - legge uno o più settori tramite modalità ATA PIO
+ * - configura LBA, comando e numero di settori
+ * - attende che il disco sia pronto
+ * - legge 256 word (512 byte) per settore
+ *
+ * disk_write_sector():
+ * - scrive uno o più settori sul disco
+ * - invia i dati 16 bit alla volta
+ * - esegue un flush finale per assicurare la scrittura
+ *
+ * disk_search_and_init():
+ * - inizializza la struttura globale del disco
+ * - imposta tipo, dimensione settore e filesystem rilevato
+ *
+ * disk_get():
+ * - restituisce il disco principale se l'indice richiesto è valido
+ *
+ * disk_read_block():
+ * - verifica che il disco richiesto sia quello gestito dal driver
+ * - inoltra la lettura ai settori ATA
+*/
+
+
 struct disk disk;
 
 
@@ -33,60 +77,32 @@ O3 static inline void ata_wait_drq(void)
 }
 
 
-O3 i32 disk_read_sector(i32 lba, i32 total, void* buf)
+i32 disk_read_sector(i32 lba, i32 total, void* buf)
 {
-    ushort* ptr = (ushort*) buf;
+    outb(0x1F6, (lba >> 24) | 0xE0);
+    outb(0x1F2, total);
+    outb(0x1F3, (unsigned char)(lba & 0xff));
+    outb(0x1F4, (unsigned char)(lba >> 8));
+    outb(0x1F5, (unsigned char)(lba >> 16));
+    outb(0x1F7, 0x20);
 
-    for (i32 s = 0; s < total; s++) {
-        // check dello stato
-        if (insb(ATA_STATUS) & ATA_BSY) {
-            // attesa 30 secondi (timeout)
-            for (int timeout = 0; timeout < 30000; timeout++) {
-                if (!(insb(ATA_STATUS) & ATA_BSY))
-                    break;
-                // delay
-                for (volatile int i = 0; i < 1000; i++);
-            }
-            if (insb(ATA_STATUS) & ATA_BSY)
-                return -1; // timeout
+    unsigned short* ptr = (unsigned short*) buf;
+    for (int b = 0; b < total; b++)
+    {
+        // Wait for the buffer to be ready
+        char c = insb(0x1F7);
+        while(!(c & 0x08))
+        {
+            c = insb(0x1F7);
         }
 
-        // select drive e LBA
-        outb(ATA_DRIVE, 0xE0 | ((lba >> 24) & 0x0F));
-
-        // 400ns delay
-        insb(ATA_STATUS);
-        insb(ATA_STATUS);
-        insb(ATA_STATUS);
-        insb(ATA_STATUS);
-
-        outb(ATA_SECCOUNT, 1);
-        outb(ATA_LBA_LOW, lba & 0xFF);
-        outb(ATA_LBA_MID, (lba >> 8) & 0xFF);
-        outb(ATA_LBA_HIGH, (lba >> 16) & 0xFF);
-        outb(ATA_COMMAND, READ_SECTOR);
-
-        //attesa dei dati pronti
-        u8 status;
-        int timeout = 1000000; // faccio un piccolo timeout
-
-        do {
-            status = insb(ATA_STATUS);
-            if (status & ATA_ERR) {
-                insb(ATA_ERROR);
-                return -1;
-            }
-            timeout--;
-
-            if (timeout <= 0) 
-                return -1;  // Timeout
-        } while ((status & ATA_BSY) || !(status & ATA_DRQ));
-
-        // lettura di 2 bytes alla volta
+        // Copy from hard disk to memory
         for (int i = 0; i < 256; i++)
-            *ptr++ = insw(ATA_DATA);
+        {
+            *ptr = insw(0x1F0);
+            ptr++;
+        }
 
-        lba++;
     }
     return 0;
 }
@@ -129,6 +145,7 @@ O3 i32 disk_write_sector(i32 lba, i32 total, void* buf)
 void disk_search_and_init()
 {
     memset(&disk, 0, sizeof(disk));
+    disk.id = 0;
     disk.type = ENIGMAOS_DISK_TYPE_REAL;
     disk.sector_size = ENIGMAOS_SECTOR_SIZE;
     disk.filesystem = fs_resolve(&disk);

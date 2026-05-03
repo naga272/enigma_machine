@@ -11,11 +11,16 @@ HEAP = ./build/memory/kheap_creation.o ./build/memory/heap_creation.o ./build/me
 
 PAGING = ./build/memory/paging.o ./build/memory/paging.asm.o
 
-DISK = ./build/fs/pparser.o ./build/disk/disk.o ./build/disk/streamer.o ./build/fs/file.o
+NET_DRIVERS = ./build/net/drivers/rtl8139.o
+NET = ./build/net/net.o $(NET_DRIVERS)
+PCI = ./build/pci/pci.o $(NET)
+
+DISK = ./build/fs/pparser.o ./build/disk/disk.o ./build/disk/streamer.o ./build/fs/file.o $(FAT16)
+FAT16 = ./build/fs/fat/fat16.o
 
 TASK = ./build/gdt/gdt.asm.o ./build/gdt/gdt.o ./build/task/tss.asm.o ./build/task/task.o
 
-FILES = ./build/kernel.asm.o ./build/kernel.o $(TASK) $(HEAP) $(PAGING) $(UTILITIES) $(IDT) $(DISK) $(SETUP) ./build/io/io.asm.o ./build/enigma/enigma.o
+FILES = ./build/kernel.asm.o ./build/kernel.o $(TASK) $(HEAP) $(PAGING) $(UTILITIES) $(IDT) $(DISK) $(SETUP) $(PCI) ./build/io/io.asm.o ./build/enigma/enigma.o
 
 
 INCLUDES = -I./src
@@ -28,9 +33,12 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
 	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
 	sudo mount -t vfat ./bin/os.bin /mnt/d
-	# copy file
+	# Copy a file over
 	sudo cp ./hello.txt /mnt/d
 	sudo umount /mnt/d
+./bin/kernel.bin: $(FILES)
+	i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
+	i686-elf-gcc $(FLAGS) -T ./src/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
 
 
 iso: ./bin/os.bin
@@ -46,11 +54,6 @@ iso: ./bin/os.bin
 
 ./bin/boot.bin: ./src/boot/boot.asm
 	nasm -f bin ./src/boot/boot.asm -o ./bin/boot.bin
-
-
-./bin/kernel.bin: $(FILES)
-	i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
-	i686-elf-gcc $(FLAGS) -T ./src/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
 
 
 ./build/kernel.asm.o: ./src/kernel.asm
@@ -114,6 +117,10 @@ iso: ./bin/os.bin
 
 ./build/fs/file.o: ./src/utilities/fs/file.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/fs/file.c -o ./build/fs/file.o
+
+
+./build/fs/fat/fat16.o: ./src/utilities/fs/fat/fat16.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/fs/fat/fat16.c -o ./build/fs/fat/fat16.o
 
 
 # ==== FILES FOR PAGING ====
@@ -188,6 +195,18 @@ iso: ./bin/os.bin
 	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/idt/body_int/syscalls/syscall.c -o ./build/idt/body_int/syscalls/syscall.o
 
 
+# ==== PCI ====
+./build/pci/pci.o: ./src/utilities/pci/pci.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/pci/pci.c -o ./build/pci/pci.o
+
+# ==== NET ====
+./build/net/net.o: ./src/utilities/net/net.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/net/net.c -o ./build/net/net.o
+
+# ==== NET DRIVER ====
+./build/net/drivers/rtl8139.o: ./src/utilities/net/drivers/rtl8139.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/net/drivers/rtl8139.c -o ./build/net/drivers/rtl8139.o
+
 # ==== Markov ====
 ./build/markov/markov.o: ./src/utilities/markov/markov.c
 	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/markov/markov.c -o ./build/markov/markov.o
@@ -208,7 +227,9 @@ iso: ./bin/os.bin
 
 
 run:
-	qemu-system-x86_64 -hda ./bin/os.bin
+	qemu-system-x86_64 -hda ./bin/os.bin \
+	-net nic,model=rtl8139 -net user \
+	-vga std
 
 
 generate_int: ./src/utilities/idt/body_int/syscalls/generate_base_syscall.py
