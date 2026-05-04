@@ -1,4 +1,5 @@
 #include "utilities/net/drivers/rtl8139.h"
+#include "utilities/memory/heap/malloc.c"
 #include "utilities/video/video.h"
 
 
@@ -71,6 +72,23 @@ O3 void init_rtl8139(struct pci_device* device)
 
     reset_rtl(&rtl);
     
+    
+    /* RX Buffer:
+    * 8192 + RX ring
+    * 16   + alignment
+    * 1500 = max Ethernet frame
+    * ----
+    * 9708
+    */
+    rtl.rx_buffer = kmalloc(sizeof(char) * 9708);
+
+    outl((u16) (rtl.io_base + 0x30), (u32) rtl.rx_buffer);
+
+    outl((u16) (rtl.io_base + 0x44), 0x0000E70F);
+
+    outb((u16) (rtl.io_base + 0x37), 0x0C);
+
+
 #ifdef DEBUG
     // qemu crea una scheda di rete col seguente MAC:
     // 52:54:00:12:34:56

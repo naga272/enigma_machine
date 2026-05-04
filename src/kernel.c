@@ -135,10 +135,6 @@ void kernel_main()
     */
     // trigger_BsOD();
 
-    // char* c = kcalloc((size_t) 10000000);
-    // if (!c)
-    //    print((uchar*) "Impossibile eseguire la malloc");
-
     while (1) {
         main();
         asm volatile("hlt");
