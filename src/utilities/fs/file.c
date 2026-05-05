@@ -39,37 +39,35 @@ extern void set_message_x_panic(uchar* msg);
 struct filesystem* filesystems[ENIGMAOS_MAX_FILESYSTEMS];
 struct file_descriptor* file_descriptors[ENIGMAOS_MAX_FILE_DESCRIPTORS];
 
-static struct filesystem** fs_get_free_filesystem()
+O3 static inline struct filesystem** fs_get_free_filesystem()
 {
-    int i = 0;
+    i32 i = 0;
     for (i = 0; i < ENIGMAOS_MAX_FILESYSTEMS; i++)
-    {
         if (filesystems[i] == 0)
-        {
             return &filesystems[i];
-        }
-    }
 
     return 0;
 }
+
 
 void fs_insert_filesystem(struct filesystem* filesystem)
 {
     struct filesystem** fs;
     fs = fs_get_free_filesystem();
-    if (!fs)
-    {
+    if (!fs) {
         set_message_x_panic((uchar*) "Problem inserting filesystem"); 
-        while (1) {}
+        while (1) { }
     }
 
     *fs = filesystem;
 }
 
-static void fs_static_load()
+
+O3 static inline void fs_static_load()
 {
     fs_insert_filesystem(fat16_init());
 }
+
 
 void fs_load()
 {
@@ -77,19 +75,19 @@ void fs_load()
     fs_static_load();
 }
 
+
 void fs_init()
 {
     memset(file_descriptors, 0, sizeof(file_descriptors));
     fs_load();
 }
 
-static int file_new_descriptor(struct file_descriptor** desc_out)
+
+static inline i32 file_new_descriptor(struct file_descriptor** desc_out)
 {
-    int res = -ENOMEM;
-    for (int i = 0; i < ENIGMAOS_MAX_FILE_DESCRIPTORS; i++)
-    {
-        if (file_descriptors[i] == 0)
-        {
+    i32 res = -ENOMEM;
+    for (i32 i = 0; i < ENIGMAOS_MAX_FILE_DESCRIPTORS; i++) {
+        if (file_descriptors[i] == 0) {
             struct file_descriptor* desc = kcalloc(sizeof(struct file_descriptor));
             // Descriptors start at 1
             desc->index = i + 1;
@@ -103,25 +101,24 @@ static int file_new_descriptor(struct file_descriptor** desc_out)
     return res;
 }
 
-static struct file_descriptor* file_get_descriptor(int fd)
+
+O3 static inline struct file_descriptor* file_get_descriptor(i32 fd)
 {
     if (fd <= 0 || fd >= ENIGMAOS_MAX_FILE_DESCRIPTORS)
-    {
         return 0;
-    }
 
     // Descriptors start at 1
-    int index = fd - 1;
+    i32 index = fd - 1;
     return file_descriptors[index];
 }
+
 
 struct filesystem* fs_resolve(struct disk* disk)
 {
     struct filesystem* fs = 0;
-    for (int i = 0; i < ENIGMAOS_MAX_FILESYSTEMS; i++)
-    {
-        if (filesystems[i] != 0 && filesystems[i]->resolve(disk) == 0)
-        {
+
+    for (int i = 0; i < ENIGMAOS_MAX_FILESYSTEMS; i++) {
+        if (filesystems[i] != 0 && filesystems[i]->resolve(disk) == 0) {
             fs = filesystems[i];
             break;
         }
@@ -130,21 +127,18 @@ struct filesystem* fs_resolve(struct disk* disk)
     return fs;
 }
 
+
 FILE_MODE file_get_mode_by_string(const char* str)
 {
     FILE_MODE mode = FILE_MODE_INVALID;
+
     if (strncmp(str, "r", 1) == 0)
-    {
         mode = FILE_MODE_READ;
-    }
     else if(strncmp(str, "w", 1) == 0)
-    {
         mode = FILE_MODE_WRITE;
-    }
     else if(strncmp(str, "a", 1) == 0)
-    {
         mode = FILE_MODE_APPEND;
-    }
+
     return mode;
 }
 
@@ -156,54 +150,49 @@ i32 fopen(const char* filename, const char* mode_str)
 
     i32 res = 0;
     struct path_root* root_path = pathparser_parse(filename, NULL);
-    if (!root_path)
-    {
+
+    if (!root_path) {
         print((uchar*) "root path invalid\n");
         res = -EINVARG;
         goto out;
     }
 
     // We cannot have just a root path with 0:/
-    if (!root_path->first)
-    {
+    if (!root_path->first) {
         res = -EINVARG;
         goto out;
     }
 
     // Ensure the disk we are reading from exists
     struct disk* disk = disk_get(root_path->drive_no);
-    if (!disk)
-    {
+    if (!disk) {
         res = -EIO;
         goto out;
     }
 
-    if (!disk->filesystem)
-    {
+    if (!disk->filesystem) {
         res = -EIO;
         goto out;
     }
 
     FILE_MODE mode = file_get_mode_by_string(mode_str);
-    if (mode == FILE_MODE_INVALID)
-    {
+    if (mode == FILE_MODE_INVALID) {
         res = -EINVARG;
         goto out;
     }
 
     void* descriptor_private_data = disk->filesystem->open(disk, root_path->first, mode);
-    if ((i32) descriptor_private_data < 0)
-    {
+    if ((i32) descriptor_private_data < 0) {
         res = (i32) descriptor_private_data;
         goto out;
     }
 
     struct file_descriptor* desc = 0;
     res = file_new_descriptor(&desc);
+    
     if (res < 0)
-    {
         goto out;
-    }
+
     desc->filesystem = disk->filesystem;
     desc->private = descriptor_private_data;
     desc->disk = disk;

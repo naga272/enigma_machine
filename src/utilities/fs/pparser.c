@@ -10,7 +10,7 @@
 static i32 pathparser_path_valid_format(const char* filename)
 {
     i32 len = strnlen(filename, KERNEL_FS_MAX_PATH);
-    return (len >= 3 && isdigit(filename[0]) && memcmp((void*)&filename[1], ":/", 2) == 0);
+    return (len >= 3 && isdigit(filename[0]) && memcmp((void*) &filename[1], ":/", 2) == 0);
 }
 
 
@@ -24,8 +24,7 @@ O3 static inline i32 pathparser_get_drive_by_path(const char** path)
     *   Dopo aver letto il numero del drive, avanza il puntatore
     *   oltre la parte iniziale "0:/".
     */
-    if(!pathparser_path_valid_format(*path))
-    {
+    if (!pathparser_path_valid_format(*path)) {
         return -1;
     }
 
@@ -73,21 +72,18 @@ O3 static inline const char* pathparser_get_path_part(const char** path)
         print((uchar*) "error nell'allocare result_path_part\n");
 
     int i = 0;
-    while(**path != '/' && **path != 0x00)
-    {
+    while (**path != '/' && **path != 0x00) {
         result_path_part[i] = **path;
         *path += 1;
         i++;
     }
 
-    if (**path == '/')
-    {
+    if (**path == '/') {
         // Skip the forward slash to avoid problems
         *path += 1;
     }
 
-    if(i == 0)
-    {
+    if (i == 0) {
         kfree(result_path_part);
         result_path_part = 0;
     }
@@ -107,15 +103,13 @@ O3 struct path_part* pathparser_parse_path_part(struct path_part* last_part, con
     *   nuovo nodo alla lista concatenata.
     */
     const char* path_part_str = pathparser_get_path_part(path);
-    if (!path_part_str)
-    {
+    if (!path_part_str) {
         print((uchar*) "error in pathparser_get_path_part\n");
         return 0;
     }
 
     struct path_part* part = kcalloc(sizeof(struct path_part));
-    if (!path_part_str)
-    {
+    if (!path_part_str) {
         print((uchar*) "error in path_part* part\n");
         return 0;
     }
@@ -123,9 +117,7 @@ O3 struct path_part* pathparser_parse_path_part(struct path_part* last_part, con
     part->next = 0x00;
 
     if (last_part)
-    {
         last_part->next = part;
-    }
 
     return part;
 }
@@ -140,8 +132,7 @@ O3 void pathparser_free(struct path_root* root)
     *   incluse tutte le parti del path presenti nella lista concatenata.
     */
     struct path_part* part = root->first;
-    while(part)
-    {
+    while (part) {
         struct path_part* next_part = part->next;
         kfree((void*) part->part);
         kfree(part);
@@ -168,13 +159,10 @@ O3 struct path_root* pathparser_parse(const char* path, const char* current_dir)
     struct path_root* path_root = 0;
 
     if (strlen(path) > KERNEL_FS_MAX_PATH)
-    {
         goto out;
-    }
 
     res = pathparser_get_drive_by_path(&tmp_path);
-    if (res < 0)
-    {
+    if (res < 0) {
         print((uchar*) "error in pathparser_get_drive_by_path\n");
         goto out;
     }
@@ -182,16 +170,14 @@ O3 struct path_root* pathparser_parse(const char* path, const char* current_dir)
     path_root = pathparser_create_root(res);
 
     struct path_part* first_part = pathparser_parse_path_part(NULL, &tmp_path);
-    if (!first_part)
-    {
+    if (!first_part) {
         print((uchar*) "error in pathparser_parse_path_part\n");
         goto out;
     }
 
     path_root->first = first_part;
     struct path_part* part = pathparser_parse_path_part(first_part, &tmp_path);
-    while(part)
-    {
+    while (part) {
         part = pathparser_parse_path_part(part, &tmp_path);
     }
     

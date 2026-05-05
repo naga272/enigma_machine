@@ -1,5 +1,5 @@
 #include "utilities/net/drivers/rtl8139.h"
-#include "utilities/memory/heap/malloc.c"
+#include "utilities/memory/heap/malloc.h"
 #include "utilities/video/video.h"
 
 
@@ -12,9 +12,9 @@
 *      v
 *     reset     (fatto: utilities/net/drivers/rtl8139.c)
 *      v
-*    RX buffer
+*    RX buffer  (fatto: utilities/net/drivers/rtl8139.c)
 *      v
-*    Enable RX/TX
+*    Enable RX/TX   (fatto: utilities/net/drivers/rtl8139.c)
 *      v
 *   Ethernet frame send/receive
 *      v
@@ -82,10 +82,26 @@ O3 void init_rtl8139(struct pci_device* device)
     */
     rtl.rx_buffer = kmalloc(sizeof(char) * 9708);
 
+    // comunicazione con l'rtl8139 di dove si trova il buffer in rx in ram
     outl((u16) (rtl.io_base + 0x30), (u32) rtl.rx_buffer);
 
+    /* 0x44 = RCR (Receive Configuration Register)
+    * RCR decide:
+    * - pacchetti da accettare
+    * - dimensione buffer (8, 16, 32, 64 kb)
+    * - DMA Burst (quanti dati la NIC trasferisce per burst)
+    * - wrapping (quando il buffer finisce, torna allo start)
+    *
+    */
     outl((u16) (rtl.io_base + 0x44), 0x0000E70F);
 
+    /* 
+    * accensione della scheda di rete tramite CR (command register).
+    * 0x04 +  RX Enable
+    * 0x08 =  TX Enable
+    * ------
+    * 0x0C
+    */
     outb((u16) (rtl.io_base + 0x37), 0x0C);
 
 
