@@ -1,4 +1,4 @@
-#define INIT_PCI_STRUCT
+#define INIT_PCI_STRUCT_LIST
 #include "utilities/pci/pci.h"
 
 

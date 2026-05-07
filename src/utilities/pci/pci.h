@@ -32,7 +32,8 @@ struct pci_bar {
 *  @device -> device id (modello specifico del dispositivo)
 *  @class_code -> categoria generale hardware (nic)
 *  @subclass -> sottocategoria specifica del dispositivo (ethernet controller, )
-*
+*  @priv -> ptr a struct con caratteristiche specifiche del device
+*  @priv_method -> metodi usabili sul device
 */
 
 struct pci_device {
@@ -42,9 +43,13 @@ struct pci_device {
     
     u16 vendor;
     u16 device;
-    
+
+    void* priv;
+
     u8 class_code;
     u8 subclass;
+
+    void* priv_methods;
 
     struct pci_bar bar[6];
 };
@@ -60,7 +65,7 @@ struct virt_pci_dev {
 typedef struct virt_pci_dev pci_dev_list_t;
 
 
-#ifdef INIT_PCI_STRUCT
+#ifdef INIT_PCI_STRUCT_LIST
 
 // array di gpu device
 pci_dev_list_t* gpus = NULL;

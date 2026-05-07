@@ -134,6 +134,11 @@ iso: ./bin/os.bin
 
 
 # ==== DEFINIZIONE LIBRERIE STANDARD ====
+
+./build/conversion/conversion.o: ./src/utilities/conversion/conversion.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/conversion/conversion.c -o ./build/conversion/conversion.o
+
+
 ./build/stdlib/stdlib.o: ./src/utilities/stdlib/stdlib.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/stdlib/stdlib.c -o ./build/stdlib/stdlib.o
 
@@ -144,7 +149,6 @@ iso: ./bin/os.bin
 
 ./build/atomic/atomic.o: ./src/utilities/atomic/atomic.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/atomic/atomic.c -o ./build/atomic/atomic.o
-
 
 ####
 
