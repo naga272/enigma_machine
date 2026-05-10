@@ -4,16 +4,25 @@
 #include "utilities/pci/pci.h"
 
 
+#define TSAD0 0x20
+#define TSD0  0x10
+
+#define RBSTART 0x30
+#define CR      0x37
+#define CAPR    0x38
+#define RCR     0x44
+
+
 /*
 * struct incapsulata da pci_device
 * pci_device->priv = (void*) struct rtl8139_device
-*
 */
 typedef struct rtl8139_device {
     u32 io_base;
     u8 mac[6];
     u8* rx_buffer;
     u32 cur_rx;
+    u8* tx_buffer;
 } rtl8139_dev_t;
 
 

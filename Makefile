@@ -1,4 +1,4 @@
-UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/book/book.o ./build/atomic/atomic.o
+UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/book/book.o ./build/atomic/atomic.o ./build/conversion/conversion.o
 
 SETUP = ./build/setup/setup.o ./build/markov/markov.o
 
@@ -12,7 +12,7 @@ HEAP = ./build/memory/kheap_creation.o ./build/memory/heap_creation.o ./build/me
 PAGING = ./build/memory/paging.o ./build/memory/paging.asm.o
 
 NET_DRIVERS = ./build/net/drivers/rtl8139.o
-NET = ./build/net/net.o $(NET_DRIVERS)
+NET = ./build/net/net.o ./build/net/ethernet/ethernet.o ./build/net/ethernet/arp/arp.o $(NET_DRIVERS)
 PCI = ./build/pci/pci.o $(NET)
 
 DISK = ./build/fs/pparser.o ./build/disk/disk.o ./build/disk/streamer.o ./build/fs/file.o $(FAT16)
@@ -150,6 +150,10 @@ iso: ./bin/os.bin
 ./build/atomic/atomic.o: ./src/utilities/atomic/atomic.c
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/atomic/atomic.c -o ./build/atomic/atomic.o
 
+
+./build/conversion/conversion.o: ./src/utilities/conversion/conversion.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/conversion/conversion.c -o ./build/conversion/conversion.o
+
 ####
 
 
@@ -207,6 +211,12 @@ iso: ./bin/os.bin
 ./build/net/net.o: ./src/utilities/net/net.c
 	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/net/net.c -o ./build/net/net.o
 
+./build/net/ethernet/ethernet.o: ./src/utilities/net/ethernet/ethernet.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/net/ethernet/ethernet.c -o ./build/net/ethernet/ethernet.o
+
+./build/net/ethernet/arp/arp.o: ./src/utilities/net/ethernet/arp/arp.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/net/ethernet/arp/arp.c -o ./build/net/ethernet/arp/arp.o
+
 # ==== NET DRIVER ====
 ./build/net/drivers/rtl8139.o: ./src/utilities/net/drivers/rtl8139.c
 	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/net/drivers/rtl8139.c -o ./build/net/drivers/rtl8139.o
@@ -229,11 +239,19 @@ iso: ./bin/os.bin
 
 ####
 
+link_tap0:
+	sudo ip tuntap add dev tap0 mode tap user $USER
+	sudo ip link set tap0 up
+
 
 run:
-	qemu-system-x86_64 -hda ./bin/os.bin \
-	-net nic,model=rtl8139 -net user \
-	-vga std
+	sudo qemu-system-x86_64 \
+		-hda ./bin/os.bin \
+		-netdev user,id=n1 \
+		-device rtl8139,netdev=n1 \
+		-object filter-dump,id=f1,netdev=n1,file=packets.pcap \
+		-vga std \
+		-d guest_errors,unimp
 
 
 generate_int: ./src/utilities/idt/body_int/syscalls/generate_base_syscall.py

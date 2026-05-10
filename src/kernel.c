@@ -26,6 +26,7 @@
 #include "utilities/shell/command.h"
 #include "utilities/pci/pci.h"
 #include "utilities/net/net.h"
+#include "utilities/net/ethernet/arp/arp.h"
 
 
 extern void test_int80h(void);
@@ -36,6 +37,8 @@ extern u8 is_ended_setup;
 
 static struct paging_4gb_chunk *kernel_directory = 0;
 struct book* b;
+
+extern pci_dev_list_t* nics;
 
 
 O3 void init_shell()
@@ -84,6 +87,7 @@ O3 static inline void main()
     gestisci_char_to_write(tmp_char_container);
     tmp_char_container = 0;
     render_time();
+    prevedi_markov();
 }
 
 
@@ -91,17 +95,21 @@ void kernel_main()
 {
     disable_interrupts();
 
+    // inizializzazione heap
+    kheap_init();
+
+    // inizializzazione paging (identity mapped, virt=phi_addr)
+    kernel_directory = paging_new_4gb(
+        PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL
+    );
+
+    kernel_directory->switch_directory(kernel_directory);
+
     // inizializzazione + caricamento della gdt del kernel
     gdt_init();
 
     // inizializzazione idt + settings hardware components
     idt_init();
-
-    // inizializzazione heap
-    kheap_init();
-
-    // inizializzazione pci
-    search_all_device_pci();
 
     // inizializzazione filesystem
     fs_init();
@@ -109,26 +117,28 @@ void kernel_main()
     // inizializzazione disk
     disk_search_and_init();
 
-    // inizializzazione paging
-    kernel_directory = paging_new_4gb(
-        PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL
-    );
-
-    kernel_directory->switch_directory(kernel_directory);
-
     // predizione del prossimo interrupt del PIC
     init_markov_model_idt();
 
     // initialize dats nella struct @t
     rtc_get_time(&t);
 
-    // cls();
+    // inizializzazione pci
+    search_all_device_pci();
+
+    cls();
 
     // inizializzazione scheda di rete
     init_scheda_rete();
 
+    // i32 arp_send_request(struct pci_device* nic, u32 target_ip)
+    arp_send_request(
+        &nics->dev[0],
+        ip_to_u32(10,0,2,2)
+    );
+
     // inizializzazione shell
-    init_shell();
+    // init_shell();
     
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===

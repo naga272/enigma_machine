@@ -16,7 +16,8 @@ extern void print_hex(size_t);
 #define RTL_BUFF_OFFS(nic)      ((u16) (nic->io_base + 0x30)) 
 #define RCR_OFFS(nic)           ((u16) (nic->io_base + 0x44))
 #define POWER_OFFS_RTL(nic)     ((u16) (nic->io_base + 0x37))  
-
+#define RTL_RX_OK   (1 << 0)
+#define RTL_RX_ERR  (1 << 1)
 
 #define DEBUG
 // #undef DEBUG
@@ -39,9 +40,10 @@ O3 static inline void insert_mac_addr_in_struct(rtl8139_dev_t* rtl)
 }
 
 
-O3 static inline uchar* get_mac_addr_dev(struct pci_device* nic)
+O3 static inline u8* get_mac_addr_dev(struct pci_device* nic)
 {
-    return (uchar*) "";
+    rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
+    return rtl->mac;
 }
 
 
@@ -89,53 +91,62 @@ O3 static inline void reset_rtl8139(struct pci_device* nic)
 }
 
 
-O3 static inline i32 send_rtl8139(struct pci_device* nic, void* data, u32 len)
+O3 static inline i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
 {
-    /*
-    * Send packet to someone
-    * TSAD0 = io_base + 0x20   -> transmit start address
-    * TSD0  = io_base + 0x10   -> transmit status / length
-    */
-    rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
+    rtl8139_dev_t* rtl = dev->priv;
 
-    if (!rtl || !data || len == 0)
+    if (!rtl || !data || len == 0 || len > 1514)
         return -1;
 
-    // passaggio dell'indirizzo di data
-    outl((u16) (rtl->io_base + 0x20), (u32) data);
+    memcpy(rtl->tx_buffer, data, len);
 
-    // len di void* data
-    outl(rtl->io_base + 0x10, len | (1 << 13)); // START
+    // TSAD0 = buffer address
+    outl(rtl->io_base + TSAD0, (u32)rtl->tx_buffer);
 
-    return 0;
+    // TSD0 = length + start
+    outl(rtl->io_base + TSD0, len);
+
+    return len;
 }
 
 
-O3 static inline i32 recv_rtl8139(struct pci_device* nic, void* out_buffer, u32 max_len)
+O3 static inline i32 recv_rtl8139(struct pci_device* dev, void* out, u32 max_len)
 {
-    /*
-    * recv packet to someone
-    */
-    rtl8139_dev_t* rtl = (rtl8139_dev_t*)nic->priv;
-
-    if (!rtl)
-        return -1;
+    rtl8139_dev_t* rtl = dev->priv;
 
     u8* pkt = rtl->rx_buffer + rtl->cur_rx;
 
-    // u16 status = *(u16*) (pkt);
+    u16 status = *(u16*) (pkt);
     u16 len    = *(u16*) (pkt + 2);
 
-    if (len == 0 || len > max_len)
+    if (!(status & RTL_RX_OK))
         return -1;
 
-    memcpy(out_buffer, pkt + 4, len);
+    if (status & (1 << 1)) // error bit
+        set_message_x_panic((uchar*) "status error");
+
+    print_hex(status);
+    print_hex(len);
+
+    memcpy(out, pkt + 4, len);
 
     rtl->cur_rx = (rtl->cur_rx + len + 4 + 3) & ~3;
+    rtl->cur_rx %= RX_BUFFER;
 
-    outw(rtl->io_base + 0x38, rtl->cur_rx - 0x10);
+    // aggiorna CAPR
+    outw(rtl->io_base + CAPR, rtl->cur_rx - 4);
 
-    return 0;
+    return len;
+}
+
+
+O3 static inline void init_tx_buffer_rtl8139(struct pci_device* nic)
+{
+    rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
+
+    rtl->tx_buffer = kmalloc(1500);
+    if (!rtl->tx_buffer)
+        set_message_x_panic((uchar*) "alloc error tx_buffer");
 }
 
 
@@ -203,6 +214,7 @@ O3 void init_rtl8139(struct pci_device* device)
     ops_rtl8139->get_name_dev = get_name_dev_rtl8139;
     ops_rtl8139->get_mac_addr_dev = get_mac_addr_dev;
     ops_rtl8139->init_rx_buffer = init_rx_buffer_rtl8139;
+    ops_rtl8139->init_tx_buffer = init_tx_buffer_rtl8139;
     ops_rtl8139->reset = reset_rtl8139;
     ops_rtl8139->power_on = power_on;
     ops_rtl8139->send = send_rtl8139;

@@ -2,6 +2,24 @@
 #include "utilities/net/drivers/rtl8139.h"
 
 
+/*
+* ==== modulo per il LIVELLO 1 TCP/IP (FISICO) ====
+* questo file ha il compito di instradare al driver corretto della scheda di rete
+* i dati.
+* Questo modulo quindi, consente di trattare nic diversi allo stesso modo.
+* es:
+*
+*            vsend_nic()
+*            /    |    \
+*           /     |     \
+*   driver_1.c    |      driver_2.c
+*                 |
+*             driver_2.c
+*
+* ogni driver ha il suo send() perche' i nic potrebbero funzionare in modi diversi
+*/
+
+
 /* Steps:
 *
 *   PCI Scan    (fatto: utilities/pci/pci.c)
@@ -35,6 +53,9 @@ extern void print_hex(size_t);
 O3 i32 vrecv_nic(struct pci_device* nic, void* data, u32 len)
 {
     // virtual recv (binding al recv del driver specifico)
+
+    // print_hex((size_t) ((net_ops_t*) nic->priv_methods)->recv);
+
     return ((net_ops_t*) nic->priv_methods)->recv(nic, data, len);
 }
 
@@ -71,6 +92,7 @@ O3 static inline void init_nic_driver(struct pci_device* nic)
     return;
 out:
     ((net_ops_t*) nic->priv_methods)->reset(nic);
+    ((net_ops_t*) nic->priv_methods)->init_tx_buffer(nic);
     ((net_ops_t*) nic->priv_methods)->init_rx_buffer(nic);
     ((net_ops_t*) nic->priv_methods)->power_on(nic);
     ((net_ops_t*) nic->priv_methods)->print_mac(nic);

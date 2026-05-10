@@ -16,7 +16,7 @@ def count_lines(root_dir="."):
         dirs[:] = [d for d in dirs if d not in exclude_dirs]
 
         for file in files:
-            if ".pdf" in file:
+            if ".pdf" in file or "LICENSE" in file:
                 continue
 
             num_file += 1
