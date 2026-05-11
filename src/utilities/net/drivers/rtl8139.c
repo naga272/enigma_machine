@@ -128,8 +128,6 @@ O3 static inline i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
     if (!rtl || !data || len == 0 || len > 1514)
         return -1;
 
-    print((uchar*) "\nbefore send isr: ");
-    check_isr(dev);
 
     memcpy(rtl->tx_buffer, data, len);
 
@@ -139,10 +137,6 @@ O3 static inline i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
     // TSD0 = length + start
     outl(rtl->io_base + TSD0, len);
 
-    print((uchar*) "\nafter send isr: ");
-    check_isr(dev);
-    print((uchar*) "\n");
-    
     return len;
 }
 
@@ -159,11 +153,9 @@ O3 static inline i32 recv_rtl8139(struct pci_device* dev, void* out, u32 max_len
     if (!(status & RTL_RX_OK))
         return -1;
 
-    if (status & (1 << 1)) // error bit
-        set_message_x_panic((uchar*) "status error");
-
-    print_hex(status);
-    print_hex(len);
+    // error bit
+    if (status & (1 << 1))
+        set_message_x_panic((uchar*) "recv status error");
 
     memcpy(out, pkt + 4, len);
 
@@ -176,7 +168,7 @@ O3 static inline i32 recv_rtl8139(struct pci_device* dev, void* out, u32 max_len
     return len;
 }
 
-
+/*
 O3 static inline void init_tx_buffer_rtl8139(struct pci_device* nic)
 {
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
@@ -189,13 +181,13 @@ O3 static inline void init_tx_buffer_rtl8139(struct pci_device* nic)
 
 O3 static inline void init_rx_buffer_rtl8139(struct pci_device* nic)
 {
-    /* RX Buffer:
+     RX Buffer:
     * 8192 + RX ring
     * 16   + alignment
     * 1500 = max Ethernet frame
     * ----
     * 9708
-    */
+    
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
 
     rtl->rx_buffer = kmalloc(sizeof(char) * RX_BUFFER);
@@ -205,15 +197,16 @@ O3 static inline void init_rx_buffer_rtl8139(struct pci_device* nic)
     // comunicazione con l'rtl8139 di dove si trova il buffer in rx in ram
     outl(RTL_BUFF_OFFS(rtl), (u32) rtl->rx_buffer);
 
-    /* 0x44 = RCR (Receive Configuration Register)
+     0x44 = RCR (Receive Configuration Register)
     * RCR decide:
     * - pacchetti da accettare
     * - dimensione buffer (8, 16, 32, 64 kb)
     * - DMA Burst (quanti dati la NIC trasferisce per burst)
     * - wrapping (quando il buffer finisce, torna allo start)
-    */
+
     outl(RCR_OFFS(rtl), 0x0000E70F);
 }
+*/
 
 
 O3 static inline void power_on(struct pci_device* nic)
@@ -250,8 +243,8 @@ O3 void init_rtl8139(struct pci_device* device)
 
     ops_rtl8139->get_name_dev = get_name_dev_rtl8139;
     ops_rtl8139->get_mac_addr_dev = get_mac_addr_dev;
-    ops_rtl8139->init_rx_buffer = init_rx_buffer_rtl8139;
-    ops_rtl8139->init_tx_buffer = init_tx_buffer_rtl8139;
+    // ops_rtl8139->init_rx_buffer = init_rx_buffer_rtl8139;
+    // ops_rtl8139->init_tx_buffer = init_tx_buffer_rtl8139;
     ops_rtl8139->reset = reset_rtl8139;
     ops_rtl8139->power_on = power_on;
     ops_rtl8139->send = send_rtl8139;

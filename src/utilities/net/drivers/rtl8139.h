@@ -23,9 +23,9 @@ static u8 rtl_rx_buffer[8192 + 16 + 1500] __attribute__((aligned(16)));
 typedef struct rtl8139_device {
     u32 io_base;
     u8 mac[6];
-    u8* rx_buffer;
     u32 cur_rx;
-    u8* tx_buffer;
+    u8 tx_buffer[2048] __attribute__((aligned(16)));
+    u8 rx_buffer[8192 + 16 + 1500] __attribute__((aligned(16)));
 } rtl8139_dev_t;
 
 

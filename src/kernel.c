@@ -123,7 +123,7 @@ void kernel_main()
     // initialize dats nella struct @t
     rtc_get_time(&t);
 
-    // cls();
+    cls();
 
     // inizializzazione pci
     search_all_device_pci();
@@ -132,14 +132,35 @@ void kernel_main()
     init_scheda_rete();
 
     // i32 arp_send_request(struct pci_device* nic, u32 target_ip)
-    /*arp_send_request(
+    arp_send_request(
         &nics->dev[0],
-        ip_to_u32(10,0,2,2)
+        ip_to_u32(10, 0, 2, 1)
     );
-    */
+    
+    // i32 arp_recv(struct pci_device* nic, u8* mac_out, u32 target_ip)
+    u8 mac_out[6];
+    arp_recv(
+        &nics->dev[0],
+        mac_out,
+        ip_to_u32(10, 0, 2, 1)
+    );
+
+    print((uchar*) "\n");
+    print_hex((size_t) mac_out[0]);
+    print((uchar*) ":");
+    print_hex((size_t) mac_out[1]);
+    print((uchar*) ":");
+    print_hex((size_t) mac_out[2]);
+    print((uchar*) ":");
+    print_hex((size_t) mac_out[3]);
+    print((uchar*) ":");
+    print_hex((size_t) mac_out[4]);
+    print((uchar*) ":");
+    print_hex((size_t) mac_out[5]);
+    print((uchar*) "\n");
 
     // inizializzazione shell
-    init_shell();
+    // init_shell();
     
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
