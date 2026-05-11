@@ -66,6 +66,10 @@ O3 static inline u32 pci_read32(u8 bus, u8 slot, u8 func, u8 offset)
 }
 
 
+extern void print_hex(size_t);
+extern void print(const uchar*);
+
+
 O3 static inline void pci_read_bars(struct pci_device *dev, u16 bus, u8 slot, u8 func)
 {
     /* pci_read_bars
@@ -115,7 +119,7 @@ O3 static inline void pci_read_bars(struct pci_device *dev, u16 bus, u8 slot, u8
     while (i < 6) {
         u32 bar_low = pci_read32(bus, slot, func, 0x10 + i * 4);
 
-        if (bar_low == 0) {
+        if (bar_low == 0 || bar_low == 0xFFFFFFFF) {
             dev->bar[i].addr = 0;
             dev->bar[i].type = 0;
             dev->bar[i].is64 = 0;
@@ -358,7 +362,7 @@ O3 void search_all_device_pci()
                 if (DEVICE_INESISTENTE(vendor))
                     continue;
 
-                struct pci_device dev;
+                struct pci_device dev = {0};
 
                 dev.bus         = bus;
                 dev.slot        = slot;

@@ -16,6 +16,9 @@
 /*
 * struct incapsulata da pci_device
 * pci_device->priv = (void*) struct rtl8139_device
+da testare>:
+static u8 rtl_tx_buffer[2048] __attribute__((aligned(16)));
+static u8 rtl_rx_buffer[8192 + 16 + 1500] __attribute__((aligned(16)));
 */
 typedef struct rtl8139_device {
     u32 io_base;

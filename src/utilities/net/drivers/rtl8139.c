@@ -91,12 +91,45 @@ O3 static inline void reset_rtl8139(struct pci_device* nic)
 }
 
 
+O3 static inline void check_isr(struct pci_device* nic)
+{
+    /* Interrupt Status Register
+    * La RTL8139 aggiorna alcuni bit quando succedono eventi:
+    * - pacchetto ricevuto
+    * - trasmissione completata
+    * - errore TX
+    * - errore RX
+    * - buffer overflow
+    *
+    * TX OK: 0x0004
+    * RX OK: 0x0001
+    * TX Error: 0x0008
+    * NIC non sta processando: 0x0000
+    */
+    rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
+
+    if (!rtl)
+        return;
+
+    u16 isr = insw(rtl->io_base + 0x3E);
+
+    print((uchar*) "\nISR: ");
+    print_hex((u32) isr);
+
+    // clear interrupt flags
+    outw(rtl->io_base + 0x3E, isr);
+}
+
+
 O3 static inline i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
 {
     rtl8139_dev_t* rtl = dev->priv;
 
     if (!rtl || !data || len == 0 || len > 1514)
         return -1;
+
+    print((uchar*) "\nbefore send isr: ");
+    check_isr(dev);
 
     memcpy(rtl->tx_buffer, data, len);
 
@@ -106,6 +139,10 @@ O3 static inline i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
     // TSD0 = length + start
     outl(rtl->io_base + TSD0, len);
 
+    print((uchar*) "\nafter send isr: ");
+    check_isr(dev);
+    print((uchar*) "\n");
+    
     return len;
 }
 

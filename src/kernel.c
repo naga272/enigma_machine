@@ -123,22 +123,23 @@ void kernel_main()
     // initialize dats nella struct @t
     rtc_get_time(&t);
 
+    // cls();
+
     // inizializzazione pci
     search_all_device_pci();
-
-    cls();
 
     // inizializzazione scheda di rete
     init_scheda_rete();
 
     // i32 arp_send_request(struct pci_device* nic, u32 target_ip)
-    arp_send_request(
+    /*arp_send_request(
         &nics->dev[0],
         ip_to_u32(10,0,2,2)
     );
+    */
 
     // inizializzazione shell
-    // init_shell();
+    init_shell();
     
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
