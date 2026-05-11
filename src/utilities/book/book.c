@@ -7,13 +7,13 @@
 extern KB_FLAGS f_t;
 
 
-O3 static inline void __page__del__(struct page* self)
+O3 static inline ainline void __page__del__(struct page* self)
 {
     kfree(self);
 }
 
 
-O3 static inline void __book_rm_page(struct book* self, u32 off_page)
+O3 static inline ainline void __book_rm_page(struct book* self, u32 off_page)
 {
     self->pg[off_page]->__del__(self->pg[off_page]);
     self->total_pg--;
@@ -21,7 +21,7 @@ O3 static inline void __book_rm_page(struct book* self, u32 off_page)
 }
 
 
-O3 static inline void try_switch_pg_to_left(struct book* self)
+O3 static inline ainline void try_switch_pg_to_left(struct book* self)
 {
     if (!f_t.change_page_shell_left)
         return;
@@ -31,7 +31,7 @@ O3 static inline void try_switch_pg_to_left(struct book* self)
 } 
 
 
-O3 static inline struct page* init_page()
+O3 static inline ainline struct page* init_page()
 {
     struct page* init = (struct page*) kmalloc(sizeof(struct page));
 
@@ -43,7 +43,7 @@ O3 static inline struct page* init_page()
 }
 
 
-O3 static inline void create_new_page(struct book* self)
+O3 static inline ainline void create_new_page(struct book* self)
 {
     // void* krealloc(void* old_ptr, size_t old_size, size_t new_size);
     self->pg = krealloc(
@@ -57,7 +57,7 @@ O3 static inline void create_new_page(struct book* self)
 }
 
 
-O3 static inline void try_switch_pg_to_right(struct book* self)
+O3 static inline ainline void try_switch_pg_to_right(struct book* self)
 {
     if (!f_t.change_page_shell_right)
         return;
@@ -70,7 +70,7 @@ O3 static inline void try_switch_pg_to_right(struct book* self)
 } 
 
 
-O3 static inline void __book_change_page(struct book* self, u32 off_page)
+O3 static inline ainline void __book_change_page(struct book* self, u32 off_page)
 {
     self->pg[off_page]->cursor_x_pos = terminal_col;
     self->pg[off_page]->cursor_y_pos = terminal_row;
@@ -83,7 +83,7 @@ O3 static inline void __book_change_page(struct book* self, u32 off_page)
 }
 
 
-O3 static inline void __book_del_book(struct book* self)
+O3 static inline ainline void __book_del_book(struct book* self)
 {
     for (u32 counter = 0; counter < self->total_pg; counter++)
         self->pg[counter]->__del__(self->pg[counter]);

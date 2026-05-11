@@ -29,7 +29,7 @@
 */
 
 
-O3 static inline u32 pci_read32(u8 bus, u8 slot, u8 func, u8 offset)
+O3 static inline ainline u32 pci_read32(u8 bus, u8 slot, u8 func, u8 offset)
 {
     /*
     * mi viene da piangere )=
@@ -70,7 +70,7 @@ extern void print_hex(size_t);
 extern void print(const uchar*);
 
 
-O3 static inline void pci_read_bars(struct pci_device *dev, u16 bus, u8 slot, u8 func)
+O3 static inline ainline void pci_read_bars(struct pci_device *dev, u16 bus, u8 slot, u8 func)
 {
     /* pci_read_bars
     *  Scopo:
@@ -165,7 +165,7 @@ O3 static inline void pci_read_bars(struct pci_device *dev, u16 bus, u8 slot, u8
 }
 
 
-O3 static inline u16 pci_get_vendor(u8 bus, u8 slot, u8 func)
+O3 static inline ainline u16 pci_get_vendor(u8 bus, u8 slot, u8 func)
 {
     /*
     *  lettura del Vendor ID (identificativo del produttore hardware)
@@ -199,7 +199,7 @@ O3 static inline u16 pci_get_vendor(u8 bus, u8 slot, u8 func)
 }
 
 
-O3 static inline u16 pci_get_device(u8 bus, u8 slot, u8 func)
+O3 static inline ainline u16 pci_get_device(u8 bus, u8 slot, u8 func)
 {
     /*     
     *   lettura del Device ID (modello specifico del dispositivo)
@@ -229,7 +229,7 @@ O3 static inline u16 pci_get_device(u8 bus, u8 slot, u8 func)
 }
 
 
-O3 static inline u8 pci_get_class(u8 bus, u8 slot, u8 func)
+O3 static inline ainline u8 pci_get_class(u8 bus, u8 slot, u8 func)
 {
     /* 
     *  lettura del Class Code principale del dispositivo PCI
@@ -260,7 +260,7 @@ O3 static inline u8 pci_get_class(u8 bus, u8 slot, u8 func)
 }
 
 
-O3 static inline u8 pci_get_subclass(u8 bus, u8 slot, u8 func)
+O3 static inline ainline u8 pci_get_subclass(u8 bus, u8 slot, u8 func)
 {
     /*
     * lettura della sottocategoria specifica del dispositivo PCI.
@@ -291,7 +291,7 @@ O3 static inline u8 pci_get_subclass(u8 bus, u8 slot, u8 func)
 }
 
 
-O3 static inline pci_dev_list_t* dynamic_insert_in_struct(pci_dev_list_t* array, struct pci_device *dev)
+O3 static inline ainline pci_dev_list_t* dynamic_insert_in_struct(pci_dev_list_t* array, struct pci_device *dev)
 {
     /*
     * Per evitare di scrivere questo codice per tutte le funzioni dei vari dispositiv,
@@ -322,7 +322,7 @@ O3 static inline pci_dev_list_t* dynamic_insert_in_struct(pci_dev_list_t* array,
 }
 
 
-O3 static inline void pci_memorize_device(struct pci_device *dev)
+O3 static inline ainline void pci_memorize_device(struct pci_device *dev)
 {
     /*
     *  classi:

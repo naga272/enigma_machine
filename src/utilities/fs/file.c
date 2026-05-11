@@ -39,7 +39,7 @@ extern void set_message_x_panic(uchar* msg);
 struct filesystem* filesystems[ENIGMAOS_MAX_FILESYSTEMS];
 struct file_descriptor* file_descriptors[ENIGMAOS_MAX_FILE_DESCRIPTORS];
 
-O3 static inline struct filesystem** fs_get_free_filesystem()
+O3 static inline ainline struct filesystem** fs_get_free_filesystem()
 {
     i32 i = 0;
     for (i = 0; i < ENIGMAOS_MAX_FILESYSTEMS; i++)
@@ -63,7 +63,7 @@ void fs_insert_filesystem(struct filesystem* filesystem)
 }
 
 
-O3 static inline void fs_static_load()
+O3 static inline ainline void fs_static_load()
 {
     fs_insert_filesystem(fat16_init());
 }
@@ -83,7 +83,7 @@ void fs_init()
 }
 
 
-static inline i32 file_new_descriptor(struct file_descriptor** desc_out)
+static inline ainline i32 file_new_descriptor(struct file_descriptor** desc_out)
 {
     i32 res = -ENOMEM;
     for (i32 i = 0; i < ENIGMAOS_MAX_FILE_DESCRIPTORS; i++) {
@@ -102,7 +102,7 @@ static inline i32 file_new_descriptor(struct file_descriptor** desc_out)
 }
 
 
-O3 static inline struct file_descriptor* file_get_descriptor(i32 fd)
+O3 static inline ainline struct file_descriptor* file_get_descriptor(i32 fd)
 {
     if (fd <= 0 || fd >= ENIGMAOS_MAX_FILE_DESCRIPTORS)
         return 0;

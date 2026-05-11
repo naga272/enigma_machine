@@ -60,7 +60,7 @@ O3 void no_interrupt_handler()
 }
 
 
-O3 static inline void set_status_reg_before_disaster(struct regs_t *r)
+O3 static inline ainline void set_status_reg_before_disaster(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
@@ -527,7 +527,7 @@ O3 i32 int80h_handler(struct regs_t *r)
 }
 
 
-O3 static inline void idt_set(int interrupt_no, void* address)
+O3 static inline ainline void idt_set(int interrupt_no, void* address)
 {
     /*
     *   @interrupt_no:  Numero dell'interrupt
@@ -542,14 +542,14 @@ O3 static inline void idt_set(int interrupt_no, void* address)
 }
 
 
-O3 static inline void set_default_int()
+O3 static inline ainline void set_default_int()
 {
     for (int i = 0; i < OS_TOTAL_INTERRUPTS; i++)
         idt_set(i, no_interrupt);
 }
 
 
-O3 static inline void init_slave_pic()
+O3 static inline ainline void init_slave_pic()
 {
     // per l'abilitazione dello slave:
     // https://github.com/szhou42/osdev/blob/master/src/kernel/drivers/pic.c
@@ -585,7 +585,7 @@ O3 static inline void init_slave_pic()
 }
 
 
-O3 static inline void init_value_hardware()
+O3 static inline ainline void init_value_hardware()
 {
 
 #ifdef PIC_ALLOW

@@ -84,9 +84,8 @@ i32 diskstreamer_read(struct disk_stream* stream, void* out, i32 total)
     
     i32 total_to_read = total > ENIGMAOS_SECTOR_SIZE ? ENIGMAOS_SECTOR_SIZE : total;
 
-    for (i32 i = 0; i < total_to_read; i++) {
+    for (i32 i = 0; i < total_to_read; i++)
         *(char*) out++ = buf[offset + i];
-    }
 
     stream->pos += total_to_read;
 

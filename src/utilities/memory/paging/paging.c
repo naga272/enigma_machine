@@ -5,7 +5,7 @@
 static u32* current_directory = 0;
 
 
-O3 static inline void init_page_table(u32* page_table, u32 offset, u8 flags)
+O3 static inline ainline void init_page_table(u32* page_table, u32 offset, u8 flags)
 {
     /* inizializza ogni voce puntata dalla page table */
     for (u32 i = 0; i < SIZE_PAGE_TABLE; i++)
@@ -13,7 +13,7 @@ O3 static inline void init_page_table(u32* page_table, u32 offset, u8 flags)
 }
 
 
-O3 static inline struct paging_4gb_chunk* init_page_directory(u8 flags)
+O3 static inline ainline struct paging_4gb_chunk* init_page_directory(u8 flags)
 {
     /* 
     *   inizializza la tabella per la directory page

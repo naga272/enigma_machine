@@ -45,7 +45,7 @@ O3 struct task* get_next_task()
 }
 
 
-O3 static inline void task_list_remove(struct task* task)
+O3 static inline ainline void task_list_remove(struct task* task)
 {
     if (task->prev)
         task->prev->next = task->next;

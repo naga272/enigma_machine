@@ -7,14 +7,14 @@
 #include "utilities/video/video.h"
 
 
-static i32 pathparser_path_valid_format(const char* filename)
+static inline ainline i32 pathparser_path_valid_format(const char* filename)
 {
     i32 len = strnlen(filename, KERNEL_FS_MAX_PATH);
     return (len >= 3 && isdigit(filename[0]) && memcmp((void*) &filename[1], ":/", 2) == 0);
 }
 
 
-O3 static inline i32 pathparser_get_drive_by_path(const char** path)
+O3 static inline ainline i32 pathparser_get_drive_by_path(const char** path)
 {
     /*
     *   @path: puntatore al puntatore del path da elaborare
@@ -36,7 +36,7 @@ O3 static inline i32 pathparser_get_drive_by_path(const char** path)
 }
 
 
-O3 static inline struct path_root* pathparser_create_root(i32 drive_number)
+O3 static inline ainline struct path_root* pathparser_create_root(i32 drive_number)
 {
     /*
     *   @drive_number: numero identificativo del drive associato al path
@@ -53,7 +53,7 @@ O3 static inline struct path_root* pathparser_create_root(i32 drive_number)
 }
 
 
-O3 static inline const char* pathparser_get_path_part(const char** path)
+O3 static inline ainline const char* pathparser_get_path_part(const char** path)
 {
     /*
     *   @path: puntatore al puntatore del path da elaborare

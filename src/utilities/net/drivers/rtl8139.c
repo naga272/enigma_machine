@@ -23,13 +23,13 @@ extern void print_hex(size_t);
 // #undef DEBUG
 
 
-O3 static inline uchar* get_name_dev_rtl8139(struct pci_device* nic)
+O3 static inline ainline uchar* get_name_dev_rtl8139(struct pci_device* nic)
 {
     return (uchar*) "rtl8139";
 }
 
 
-O3 static inline void insert_mac_addr_in_struct(rtl8139_dev_t* rtl)
+O3 static inline ainline void insert_mac_addr_in_struct(rtl8139_dev_t* rtl)
 {
     /*
     * Tramite l'indirizzo di BAR0 ricavato durante lo scan del PCI
@@ -40,14 +40,14 @@ O3 static inline void insert_mac_addr_in_struct(rtl8139_dev_t* rtl)
 }
 
 
-O3 static inline u8* get_mac_addr_dev(struct pci_device* nic)
+O3 static inline ainline u8* get_mac_addr_dev(struct pci_device* nic)
 {
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
     return rtl->mac;
 }
 
 
-O3 static inline void print_mac(struct pci_device* nic)
+O3 static inline ainline void print_mac(struct pci_device* nic)
 {
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
 
@@ -75,7 +75,7 @@ O3 static inline void print_mac(struct pci_device* nic)
 }
 
 
-O3 static inline void reset_rtl8139(struct pci_device* nic)
+O3 static inline ainline void reset_rtl8139(struct pci_device* nic)
 {
     /*
     * A questo punto rtl potrebbe avere i registri ancora sporchi
@@ -91,7 +91,7 @@ O3 static inline void reset_rtl8139(struct pci_device* nic)
 }
 
 
-O3 static inline void check_isr(struct pci_device* nic)
+O3 static inline ainline void check_isr(struct pci_device* nic)
 {
     /* Interrupt Status Register
     * La RTL8139 aggiorna alcuni bit quando succedono eventi:
@@ -121,7 +121,7 @@ O3 static inline void check_isr(struct pci_device* nic)
 }
 
 
-O3 static inline i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
+O3 static inline ainline i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
 {
     rtl8139_dev_t* rtl = dev->priv;
 
@@ -141,7 +141,7 @@ O3 static inline i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
 }
 
 
-O3 static inline i32 recv_rtl8139(struct pci_device* dev, void* out, u32 max_len)
+O3 static inline ainline i32 recv_rtl8139(struct pci_device* dev, void* out, u32 max_len)
 {
     rtl8139_dev_t* rtl = dev->priv;
 
@@ -209,7 +209,7 @@ O3 static inline void init_rx_buffer_rtl8139(struct pci_device* nic)
 */
 
 
-O3 static inline void power_on(struct pci_device* nic)
+O3 static inline ainline void power_on(struct pci_device* nic)
 {
     /* 
     * accensione della scheda di rete tramite CR (command register).

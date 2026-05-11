@@ -41,6 +41,10 @@ struct book* b;
 extern pci_dev_list_t* nics;
 
 
+#define DEBUG
+#undef DEBUG
+
+
 O3 void init_shell()
 {
     uchar buf128[512];
@@ -123,6 +127,7 @@ void kernel_main()
     // initialize dats nella struct @t
     rtc_get_time(&t);
 
+#ifdef DEBUG
     cls();
 
     // inizializzazione pci
@@ -134,7 +139,7 @@ void kernel_main()
     // i32 arp_send_request(struct pci_device* nic, u32 target_ip)
     arp_send_request(
         &nics->dev[0],
-        ip_to_u32(10, 0, 2, 1)
+        ip_to_u32(10, 0, 2, 0)
     );
     
     // i32 arp_recv(struct pci_device* nic, u8* mac_out, u32 target_ip)
@@ -142,7 +147,7 @@ void kernel_main()
     arp_recv(
         &nics->dev[0],
         mac_out,
-        ip_to_u32(10, 0, 2, 1)
+        ip_to_u32(10, 0, 2, 0)
     );
 
     print((uchar*) "\n");
@@ -158,10 +163,10 @@ void kernel_main()
     print((uchar*) ":");
     print_hex((size_t) mac_out[5]);
     print((uchar*) "\n");
-
+#else
     // inizializzazione shell
-    // init_shell();
-    
+    init_shell();
+#endif    
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
     */

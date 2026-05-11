@@ -26,7 +26,7 @@ static volatile u8 extended = 0;
 KB_FLAGS f_t = { 0 };
 
 
-static inline u8 gestisci_special_case(u8 scancode)
+static inline ainline u8 gestisci_special_case(u8 scancode)
 {
     if (extended && scancode == FRECCIA_SINISTRA) {
         if (f_t.ctrlleft)

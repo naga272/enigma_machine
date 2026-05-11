@@ -17,7 +17,7 @@
 *   Questo modulo e' usabile per l'inizializzazione di qualunque processo
 */
 
-static inline i32 heap_validate_table(void* ptr, void* end, struct heap_table* table)
+static inline ainline i32 heap_validate_table(void* ptr, void* end, struct heap_table* table)
 {
     i32 res = 0;
 
@@ -34,7 +34,7 @@ out:
 }
 
 
-O3 static inline i32 heap_validate_alignment(void* ptr)
+O3 static inline ainline i32 heap_validate_alignment(void* ptr)
 {
     /*
     *   Verifica allineamento del blocco.

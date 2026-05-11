@@ -38,7 +38,7 @@ O3 void disable_cursor()
 }
 
 
-static inline void delay(volatile u32 count)
+static inline void ainline delay(volatile u32 count)
 {
     /*
     * @count: indica il "timer"
@@ -74,7 +74,7 @@ O3 void terminal_put_char(i32 x, i32 y, uchar c, char colour)
 }
 
 
-O3 static inline void vga_update_cursor()
+O3 static inline ainline void vga_update_cursor()
 {
     u16 pos = terminal_row * VGA_WIDTH + terminal_col;
     outb(0x3d4, 0x0f);
@@ -96,14 +96,14 @@ O3 void update_cursor_on_x_y_pos(u16 y, u16 x)
 }
 
 
-O3 static inline void write_new_line()
+O3 static inline ainline void write_new_line()
 {
     terminal_row++;
     terminal_col = 0;
 }
 
 
-O3 static inline void write_tab(uchar c, char colour)
+O3 static inline ainline void write_tab(uchar c, char colour)
 {
     for (u8 i = 0; i != NUM_SPACE_TAB; i++)
         terminal_put_char(terminal_col + i, terminal_row, ' ', colour);            
@@ -112,7 +112,7 @@ O3 static inline void write_tab(uchar c, char colour)
 }
 
 
-O3 static inline void do_backspace()
+O3 static inline ainline void do_backspace()
 {
     if (idx_buff == 0 && is_ended_setup)
         return;
@@ -130,7 +130,7 @@ O3 static inline void do_backspace()
 }
 
 
-O3 static inline void write_char(uchar c, char colour)
+O3 static inline ainline void write_char(uchar c, char colour)
 {
     terminal_put_char(terminal_col, terminal_row, c, colour);
     terminal_col++;
@@ -380,7 +380,7 @@ void clean_bff_cmd_line()
 }
 
 
-O3 static inline void start_encryption()
+O3 static inline ainline void start_encryption()
 {
     terminal_writechar('\n', actual_color_terminal);
 
@@ -392,7 +392,7 @@ O3 static inline void start_encryption()
 }
 
 
-O3 static inline void check_status_kb_flags_t()
+O3 static inline ainline void check_status_kb_flags_t()
 {
     if (f_t.change_page_shell_left) {
         print((uchar*) "hello world");

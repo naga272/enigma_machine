@@ -36,6 +36,10 @@ typedef unsigned short ushort;
 #define O3 __attribute__((optimize("O3")))
 #endif
 
+#ifndef ainline
+#define ainline __attribute__((always_inline))
+#endif
+
 #ifndef KERR
 #define KERR "<0>"
 #endif

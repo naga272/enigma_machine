@@ -14,7 +14,7 @@ void* memset(void *ptr, int c, size_t n)
 #ifdef WATER_MARK_ALG
 
 
-static inline void* allocWaterMark(size_t num_bytes)
+static inline ainline void* allocWaterMark(size_t num_bytes)
 {
     /*
     *   Allocazione heap con metodo WaterMark

@@ -8,7 +8,7 @@ extern struct heap kernel_heap;
 extern void print_hex(size_t num);
 
 
-O3 static inline u32 heap_address_to_block(struct heap *heap, void* ptr)
+O3 static inline ainline u32 heap_address_to_block(struct heap *heap, void* ptr)
 {
     /* Funzione per ottenere il blocco gestito dal void* ptr */
     return ((u32) ptr - (u32) heap->saddr) / BLOCK_SIZE_HEAP;
@@ -24,7 +24,7 @@ u32 heap_block_to_address(struct heap* heap, u32 block)
 }
 
 
-O3 static inline u32 heap_align_value_to_upper(u32 val)
+O3 static inline ainline u32 heap_align_value_to_upper(u32 val)
 {
     /*
     *   Allinea una dimensione multipla di BLOCK_SIZE_HEAP
@@ -39,7 +39,7 @@ O3 static inline u32 heap_align_value_to_upper(u32 val)
 }
 
 
-static inline i32 heap_get_entry_type(HEAP_BLOCK_TABLE_ENTRY entry)
+static inline ainline i32 heap_get_entry_type(HEAP_BLOCK_TABLE_ENTRY entry)
 {
     return entry & 0x0f;
 }
@@ -77,7 +77,7 @@ O3 i32 heap_get_start_block(struct heap* heap, u32 total_blocks)
 
 
 
-O3 static inline void heap_mark_blocks_taken(struct heap* heap, u32 start_block, u32 total_blocks_required)
+O3 static inline ainline void heap_mark_blocks_taken(struct heap* heap, u32 start_block, u32 total_blocks_required)
 {
     u32 last_block = start_block + total_blocks_required;
 
@@ -93,7 +93,7 @@ O3 static inline void heap_mark_blocks_taken(struct heap* heap, u32 start_block,
 }
 
 
-O3 static inline void* heap_malloc_blocks(struct heap* heap, u32 total_blocks_required)
+O3 static inline ainline void* heap_malloc_blocks(struct heap* heap, u32 total_blocks_required)
 {
     void* address = 0;
 
@@ -143,7 +143,7 @@ static inline void* heap_alloc(struct heap* heap, size_t size)
 */
 
 
-O3 static inline void* heap_alloc(struct heap* heap, size_t size)
+O3 static inline ainline void* heap_alloc(struct heap* heap, size_t size)
 {
     u32 arrotonda_num_bytes = heap_align_value_to_upper(size);
     u32 total_blocks_required = arrotonda_num_bytes / BLOCK_SIZE_HEAP;
@@ -152,7 +152,7 @@ O3 static inline void* heap_alloc(struct heap* heap, size_t size)
 }
 
 
-O3 static inline void heap_mark_blocks_free(struct heap *heap, u32 num_block)
+O3 static inline ainline void heap_mark_blocks_free(struct heap *heap, u32 num_block)
 {
     /* il problema non richiede solo di liberare il blocco,
     ma anche quelli concatenati a lui */
@@ -166,7 +166,7 @@ O3 static inline void heap_mark_blocks_free(struct heap *heap, u32 num_block)
 }
 
 
-O3 static inline void heap_free(struct heap* heap, void *addrs)
+O3 static inline ainline void heap_free(struct heap* heap, void *addrs)
 {
     heap_mark_blocks_free(
         heap,

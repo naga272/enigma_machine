@@ -242,7 +242,7 @@ struct filesystem* fat16_init()
 }
 
 
-static inline void fat16_init_private(struct disk* disk, struct fat_private* private)
+static inline ainline void fat16_init_private(struct disk* disk, struct fat_private* private)
 {
     memset(private, 0, sizeof(struct fat_private));
     private->cluster_read_stream = diskstreamer_new(disk->id);
@@ -429,25 +429,25 @@ struct fat_directory_item* fat16_clone_directory_item(struct fat_directory_item*
 }
 
 
-O3 static inline u32 fat16_get_first_cluster(struct fat_directory_item* item)
+O3 static inline ainline u32 fat16_get_first_cluster(struct fat_directory_item* item)
 {
     return (item->high_16_bits_first_cluster) | item->low_16_bits_first_cluster;
 };
 
 
-O3 static inline i32 fat16_cluster_to_sector(struct fat_private* private, i32 cluster)
+O3 static inline ainline i32 fat16_cluster_to_sector(struct fat_private* private, i32 cluster)
 {
     return private->root_directory.ending_sector_pos + ((cluster - 2) * private->header.primary_header.sectors_per_cluster);
 }
 
 
-O3 static inline u32 fat16_get_first_fat_sector(struct fat_private* private)
+O3 static inline ainline u32 fat16_get_first_fat_sector(struct fat_private* private)
 {
     return private->header.primary_header.reserved_sectors;
 }
 
 
-O3 static inline i32 fat16_get_fat_entry(struct disk* disk, i32 cluster)
+O3 static inline ainline i32 fat16_get_fat_entry(struct disk* disk, i32 cluster)
 {
     i32 res = -1;
     struct fat_private* private = disk->fs_private;
@@ -474,7 +474,7 @@ out:
 }
 
 
-O3 static inline i32 fat16_get_cluster_for_offset(struct disk* disk, i32 starting_cluster, i32 offset)
+O3 static inline ainline i32 fat16_get_cluster_for_offset(struct disk* disk, i32 starting_cluster, i32 offset)
 {
     /**
     * Gets the correct cluster to use based on the starting cluster and the offset
@@ -520,7 +520,7 @@ out:
 }
 
 
-O3 static inline i32 fat16_read_internal_from_stream(struct disk* disk, struct disk_stream* stream, i32 cluster, i32 offset, i32 total, void* out)
+O3 static inline ainline i32 fat16_read_internal_from_stream(struct disk* disk, struct disk_stream* stream, i32 cluster, i32 offset, i32 total, void* out)
 {
     i32 res = 0;
     struct fat_private* private = disk->fs_private;
@@ -558,7 +558,7 @@ out:
 }
 
 
-O3 static inline i32 fat16_read_internal(struct disk* disk, i32 starting_cluster, i32 offset, i32 total, void* out)
+O3 static inline ainline i32 fat16_read_internal(struct disk* disk, i32 starting_cluster, i32 offset, i32 total, void* out)
 {
     struct fat_private* fs_private = disk->fs_private;
     struct disk_stream* stream = fs_private->cluster_read_stream;

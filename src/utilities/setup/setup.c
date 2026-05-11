@@ -43,7 +43,7 @@ uchar* magic_num_sec_128 = (uchar*) "EnigmaOs";
 uchar buf128[512];
 
 
-O3 static inline void test_disk()
+O3 static inline ainline void test_disk()
 {
     /*
     * Test formattazione serttore 128
@@ -93,7 +93,7 @@ O3 static inline void test_disk()
 }
 
 
-O3 static inline void write_on_sector_128()
+O3 static inline ainline void write_on_sector_128()
 {
     /*
     *                Test formattazione settore 128
@@ -302,7 +302,7 @@ uchar username_written_by_user[32];
 uchar password_written_by_user[32];
 
 
-O3 static inline void cmp_credentials()
+O3 static inline ainline void cmp_credentials()
 {
     i8 credential_valid = 1;
 
@@ -334,7 +334,7 @@ O3 static inline void cmp_credentials()
 }
 
 
-O3 static inline i8 check_username(uchar char_pressed)
+O3 static inline ainline i8 check_username(uchar char_pressed)
 {
     if (!char_pressed)
         return 0;
@@ -367,7 +367,7 @@ O3 static inline i8 check_username(uchar char_pressed)
 }
 
 
-O3 static inline i8 check_password(uchar char_pressed)
+O3 static inline ainline i8 check_password(uchar char_pressed)
 {
     if (!char_pressed)
         return 0;
