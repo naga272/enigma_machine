@@ -85,5 +85,6 @@ pci_dev_list_t* brcs = NULL;
 void search_all_device_pci();
 extern void search_all_device_pci();
 extern void set_message_x_panic(uchar* msg);
+extern pci_dev_list_t* get_nics();
 
 #endif

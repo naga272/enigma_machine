@@ -4,6 +4,8 @@
 #include "utilities/shell/command.h"
 #include "utilities/string/string.h"
 #include "utilities/video/video.h"
+#include "utilities/pci/pci.h"
+#include "utilities/net/net.h"
 
 
 #define OS_X_QEMU
@@ -13,10 +15,12 @@
     #error, "impossibile definire OS_X_QEMU, OS_X_XBOCHS, OS_X_X86 insieme"
 #endif
 
+extern pci_dev_list_t* nics;
 
 uchar* vec_reboot_comm = (uchar*) "RELOAD";
 uchar* vec_power_off_comm = (uchar*) "QUIT";
 uchar* vec_cls_comm = (uchar*) "CLS";
+uchar* vec_ifconfig_comm = (uchar*) "IFCONFIG";
 
 
 u8 reboot()
@@ -64,6 +68,22 @@ u8 cls()
 }
 
 
+u8 ifconfig()
+{
+    for (size_t idx = 0; idx != nics->tot_num_device; idx++) {
+        print((uchar*) "\n=== NIC NUMBER ");
+        print_hex(nics->tot_num_device);    
+        print((uchar*) "===\n");
+
+        struct pci_device* nic = &nics->dev[idx];
+
+        ((net_ops_t*) nic->priv_methods)->print_mac(nic);
+    }
+    print((uchar*) "\n>>> ");
+    return 1;
+}
+
+
 u8 try_execute_comm(uchar* comm_to_execute)
 {
     if (strcmp(comm_to_execute, vec_cls_comm))
@@ -74,6 +94,9 @@ u8 try_execute_comm(uchar* comm_to_execute)
 
     if (strcmp(comm_to_execute, vec_power_off_comm))
         return power_off();
+
+    if (strcmp(comm_to_execute, vec_ifconfig_comm))
+        return ifconfig();
 
     return 0;
 }

@@ -379,3 +379,10 @@ O3 void search_all_device_pci()
         }
     }
 }
+
+
+
+pci_dev_list_t* get_nics()
+{
+    return nics;
+}

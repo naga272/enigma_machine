@@ -52,6 +52,8 @@ O3 static inline ainline void print_mac(struct pci_device* nic)
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
 
 #ifdef DEBUG
+    print((uchar*) "mac address:\n");
+
     // qemu crea una scheda di rete col seguente MAC:
     // 52:54:00:12:34:56
     print_hex(rtl->mac[0]);

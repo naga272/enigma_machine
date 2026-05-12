@@ -419,10 +419,12 @@ void gestisci_char_to_write(uchar tmp_char_container)
     }
 
     if (CHAR_END_PHRASE(tmp_char_container)) {
-        if (is_ended_setup)
+        if (is_ended_setup) {
             if (!try_execute_comm(buffer_line_cmd)) 
                 start_encryption();
-
+            else
+                clean_bff_cmd_line();
+        }
         return;
     }
 

@@ -163,7 +163,15 @@ void kernel_main()
     print((uchar*) ":");
     print_hex((size_t) mac_out[5]);
     print((uchar*) "\n");
+
+    print_hex(nics->tot_num_device);
 #else
+    // inizializzazione pci
+    search_all_device_pci();
+
+    // inizializzazione scheda di rete
+    init_scheda_rete();
+
     // inizializzazione shell
     init_shell();
 #endif    
