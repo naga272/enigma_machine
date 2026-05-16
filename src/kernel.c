@@ -42,7 +42,7 @@ extern pci_dev_list_t* nics;
 
 
 #define DEBUG
-// #undef DEBUG
+#undef DEBUG
 
 
 O3 void init_shell()
