@@ -6,7 +6,7 @@
 
 
 /*
-* ==== modulo per il LIVELLO 2 TCP/IP (ETHERNET) ====
+* ==== modulo per il LIVELLO 2 TCP/IP (link layer) ====
 *
 * ethernet_send()    (ethernet.c)
 *    v
@@ -65,7 +65,6 @@ i32 ethernet_send(struct pci_device* nic, u8* dst, u16 ethertype, void* payload,
     frame->ethertype = htons_16b(ethertype);
 
     memcpy(frame->payload, payload, actual_payload_len);
-    // memcpy(frame->payload, payload, payload_len);
 
     i32 response = vsend_nic(nic, frame, frame_len);
 

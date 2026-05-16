@@ -12,6 +12,9 @@
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
 
 
+extern void set_message_x_panic(uchar* msg);
+
+
 extern uchar core_enigma(uchar);
 extern KB_FLAGS f_t;
 
@@ -19,6 +22,9 @@ extern KB_FLAGS f_t;
 uchar buffer_line_cmd[SIZE_COMMAND_SHELL];
 size_t idx_buff = 0;
 u8 is_ended_setup = 0;
+
+
+book_t* book_shell = NULL;
 
 
 O3 void enable_cursor(u8 start_cursor, u8 end_cursor)
@@ -392,17 +398,66 @@ O3 static inline ainline void start_encryption()
 }
 
 
+void gestisci_char_to_write(uchar tmp_char_container);
+
+
+void display_new_page(page_t* page)
+{
+    for (size_t idx = 0; idx < VGA_WIDTH * VGA_HEIGHT; idx++)
+        gestisci_char_to_write(page->celle[idx]);
+}
+
+
+static inline ainline void create_new_page()
+{
+    book_shell->pages = krealloc(
+        book_shell->pages,
+        book_shell->tot_num_page * sizeof(page_t*) - 1,
+        book_shell->tot_num_page * sizeof(page_t*)
+    );
+
+    if (!book_shell->pages)
+        set_message_x_panic((uchar*) "error realloc create_new_page\n");
+
+    book_shell->pages[book_shell->tot_num_page] = kcalloc(sizeof(page_t));
+}
+
+
+O3 static inline ainline void change_page_shell_inc()
+{
+    if (book_shell->actual_index + 1 == book_shell->tot_num_page) {
+        create_new_page(book_shell);
+    }
+    book_shell->actual_index++;
+    display_new_page(book_shell->pages[book_shell->actual_index]);
+}
+
+
+O3 static inline ainline void change_page_shell_dec()
+{
+    if (book_shell->actual_index == 0)
+        book_shell->actual_index = book_shell->tot_num_page - 1;
+    else 
+        book_shell->actual_index--;
+
+    f_t.change_page_shell_left = 0;
+    f_t.change_page_shell_right = 0;
+    display_new_page(book_shell->pages[book_shell->actual_index]);
+}
+
+
 O3 static inline ainline void check_status_kb_flags_t()
 {
     if (f_t.change_page_shell_left) {
-        print((uchar*) "hello world");
-        f_t.change_page_shell_left = 0;
+        change_page_shell_dec();
     }
 
     if (f_t.change_page_shell_right) {
-        print((uchar*) "hello world");
-        f_t.change_page_shell_right = 0;
+        change_page_shell_inc();
     }
+
+    f_t.change_page_shell_left = 0;
+    f_t.change_page_shell_right = 0;
 }
 
 
@@ -434,4 +489,28 @@ void gestisci_char_to_write(uchar tmp_char_container)
         buffer_line_cmd[idx_buff] = tmp_char_container;
         idx_buff++;
     }
+}
+
+
+void book_init()
+{
+    // creazione libro
+    book_shell = kcalloc(sizeof(book_t));
+
+    if (!book_shell)
+        set_message_x_panic((uchar*) "Impossibile creare il libro per la shell\n");
+
+    book_shell->tot_num_page = 1;
+
+    // creazione dei ptr alle pagine
+    book_shell->pages = kmalloc(sizeof(page_t*) * book_shell->tot_num_page);
+    if (!book_shell->pages)
+        set_message_x_panic((uchar*) "Impossibile creare i ptr per le pagine del libro\n");
+
+    for (size_t idx = 0; idx != book_shell->tot_num_page; idx++) {
+        book_shell->pages[idx] = kcalloc(sizeof(page_t));
+        book_shell->pages[idx]->num_page = idx;
+    }
+
+    display_new_page(book_shell->pages[0]);
 }

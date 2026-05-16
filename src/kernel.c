@@ -42,7 +42,7 @@ extern pci_dev_list_t* nics;
 
 
 #define DEBUG
-#undef DEBUG
+// #undef DEBUG
 
 
 O3 void init_shell()
@@ -62,13 +62,13 @@ O3 void init_shell()
     // altrimenti eseguo il setup
     if (strcmp(magic_num_disk, magic_num_sec_128)) {
         do_config(buf128);
+        book_init();
         return;
     }
 
-    b = init_book(16);
-
     init_setup(b);
     is_ended_setup++;
+    book_init();
 }
 
 
@@ -139,7 +139,7 @@ void kernel_main()
     // i32 arp_send_request(struct pci_device* nic, u32 target_ip)
     arp_send_request(
         &nics->dev[0],
-        ip_to_u32(10, 0, 2, 0)
+        ip_to_u32(10, 0, 2, 2)
     );
     
     // i32 arp_recv(struct pci_device* nic, u8* mac_out, u32 target_ip)

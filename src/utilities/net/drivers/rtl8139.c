@@ -7,11 +7,6 @@
 
 extern void print_hex(size_t);
 
-#define RX_RING 8192
-#define ALIGNMENT 16 
-#define MAXETHFRM 1500
-#define RX_BUFFER RX_RING + ALIGNMENT + MAXETHFRM
-
 
 #define RTL_BUFF_OFFS(nic)      ((u16) (nic->io_base + 0x30)) 
 #define RCR_OFFS(nic)           ((u16) (nic->io_base + 0x44))
@@ -86,10 +81,14 @@ O3 static inline ainline void reset_rtl8139(struct pci_device* nic)
     */
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
 
+    // set the LWAKE + LWPTN to active high. this should essentially *power on* the device.
+    outb(rtl->io_base + 0x52, 0x0);
+
+    // software reset
     outb(rtl->io_base + 0x37, 0x10);
 
     // il reset non e' istantaneo, aspetta che finisca
-    while (insb(rtl->io_base + 0x37) & 0x10);
+    while ((insb(rtl->io_base + 0x37) & 0x10) != 0);
 }
 
 
@@ -130,7 +129,6 @@ O3 static inline ainline i32 send_rtl8139(struct pci_device* dev, void* data, u3
     if (!rtl || !data || len == 0 || len > 1514)
         return -1;
 
-
     memcpy(rtl->tx_buffer, data, len);
 
     // TSAD0 = buffer address
@@ -170,50 +168,60 @@ O3 static inline ainline i32 recv_rtl8139(struct pci_device* dev, void* out, u32
     return len;
 }
 
-/*
-O3 static inline void init_tx_buffer_rtl8139(struct pci_device* nic)
-{
-    rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
-
-    rtl->tx_buffer = kmalloc(1500);
-    if (!rtl->tx_buffer)
-        set_message_x_panic((uchar*) "alloc error tx_buffer");
-}
-
 
 O3 static inline void init_rx_buffer_rtl8139(struct pci_device* nic)
 {
+    /*
      RX Buffer:
     * 8192 + RX ring
     * 16   + alignment
     * 1500 = max Ethernet frame
     * ----
     * 9708
-    
+    */
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
 
-    rtl->rx_buffer = kmalloc(sizeof(char) * RX_BUFFER);
-    if (!rtl->rx_buffer)
-        set_message_x_panic((uchar*) "alloc error rtx->rx_buffer");
+    // comunicazione con l'rtl8139 di dove si trova il buffer rx in ram
+    outl(rtl->io_base + 0x30, (u32) rtl->rx_buffer);
 
-    // comunicazione con l'rtl8139 di dove si trova il buffer in rx in ram
-    outl(RTL_BUFF_OFFS(rtl), (u32) rtl->rx_buffer);
+    //  outportw(ioaddr + 0x3C, 0x0005); // Sets the TOK and ROK bits high
+    outw(rtl->io_base + 0x3C, 0x0005);
 
+    /*
      0x44 = RCR (Receive Configuration Register)
     * RCR decide:
     * - pacchetti da accettare
     * - dimensione buffer (8, 16, 32, 64 kb)
     * - DMA Burst (quanti dati la NIC trasferisce per burst)
     * - wrapping (quando il buffer finisce, torna allo start)
+    *
+    * You can enable different "matching" rules:
+    *   AB - Accept Broadcast: Accept broadcast packets sent to mac ff:ff:ff:ff:ff:ff
+    *   AM - Accept Multicast: Accept multicast packets.
+    *   APM - Accept Physical Match: Accept packets send to NIC's MAC address.
+    *   AAP - Accept All Packets. Accept all packets (run in promiscuous mode).
+    */
+    outl(
+        rtl->io_base + 0x44,
+        (1 << 7) |   // WRAP
+        (1 << 3) |   // AB
+        (1 << 2) |   // AM
+        (1 << 1) |   // APM
+        (0 << 0)
+    );
 
-    outl(RCR_OFFS(rtl), 0x0000E70F);
+    // Reset CAPR
+    outw(rtl->io_base + CAPR, 0);
+
+    // Enable Receive and Transmitter
+    outb(rtl->io_base + 0x37, 0x0C); // Sets the RE and TE bits high
 }
-*/
 
 
 O3 static inline ainline void power_on(struct pci_device* nic)
 {
     /* 
+    * Abilita il CHIP RTL8139 internamente.
     * accensione della scheda di rete tramite CR (command register).
     * 0x04 +  RX Enable
     * 0x08 =  TX Enable
@@ -245,13 +253,12 @@ O3 void init_rtl8139(struct pci_device* device)
 
     ops_rtl8139->get_name_dev = get_name_dev_rtl8139;
     ops_rtl8139->get_mac_addr_dev = get_mac_addr_dev;
-    // ops_rtl8139->init_rx_buffer = init_rx_buffer_rtl8139;
-    // ops_rtl8139->init_tx_buffer = init_tx_buffer_rtl8139;
     ops_rtl8139->reset = reset_rtl8139;
     ops_rtl8139->power_on = power_on;
     ops_rtl8139->send = send_rtl8139;
     ops_rtl8139->recv = recv_rtl8139;
     ops_rtl8139->print_mac = print_mac;
+    ops_rtl8139->init_rx_buffer = init_rx_buffer_rtl8139;
 
     device->priv_methods = (void*) ops_rtl8139;
 }

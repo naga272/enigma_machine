@@ -29,6 +29,10 @@
 */
 
 
+extern void print_hex(size_t);
+extern void print(const uchar*);
+
+
 O3 static inline ainline u32 pci_read32(u8 bus, u8 slot, u8 func, u8 offset)
 {
     /*
@@ -66,8 +70,33 @@ O3 static inline ainline u32 pci_read32(u8 bus, u8 slot, u8 func, u8 offset)
 }
 
 
-extern void print_hex(size_t);
-extern void print(const uchar*);
+O3 void pci_write32(u8 bus, u8 slot, u8 func, u8 offset, u32 value)
+{
+    u32 address =
+        (1U << 31) |
+        ((u32) bus << 16) |
+        ((u32) slot << 11) |
+        ((u32) func << 8) |
+        (offset & 0xFC);
+
+    outl(0xCF8, address);
+    outl(0xCFC, value);
+}
+
+
+O3 void pci_enable_device(struct pci_device* dev)
+{
+    // Abilita il dispositivo sul BUS PCI.
+    u32 reg = pci_read32(dev->bus, dev->slot, dev->func, 0x04);
+
+    // CPU può usare in/out sui BAR I/O
+    reg |= (1 << 0); // I/O Space
+
+    // NIC può fare DMA sulla RAM
+    reg |= (1 << 2); // Bus Master
+
+    pci_write32(dev->bus, dev->slot, dev->func, 0x04, reg);
+}
 
 
 O3 static inline ainline void pci_read_bars(struct pci_device *dev, u16 bus, u8 slot, u8 func)
@@ -375,14 +404,8 @@ O3 void search_all_device_pci()
 
                 pci_read_bars(&dev, bus, slot, func);
                 pci_memorize_device(&dev);
+                pci_enable_device(&dev);
             }
         }
     }
-}
-
-
-
-pci_dev_list_t* get_nics()
-{
-    return nics;
 }

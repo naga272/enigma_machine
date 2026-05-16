@@ -34,14 +34,7 @@
 */
 
 
-
 #define PROTOCOL_ARP  0x0806
-
-
-O3 u32 ip_to_u32(u8 a, u8 b, u8 c, u8 d)
-{
-    return (a << 24) | (b << 16) | (c << 8) | d;
-}
 
 
 O3 i32 arp_send_request(struct pci_device* nic, u32 target_ip)

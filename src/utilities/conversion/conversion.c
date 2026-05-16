@@ -22,7 +22,6 @@ O3 u16 htons_16b(u16 host16)
     /* htons
     *  Host TO Network Short
     *
-    *  Scopo:
     *  Converte un valore a 16 bit dal formato host endian
     *  (x86 = little endian) al formato network endian
     *  (big endian).
