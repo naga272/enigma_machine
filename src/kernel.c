@@ -127,14 +127,14 @@ void kernel_main()
     // initialize dats nella struct @t
     rtc_get_time(&t);
 
-#ifdef DEBUG
-    cls();
-
     // inizializzazione pci
     search_all_device_pci();
 
     // inizializzazione scheda di rete
     init_scheda_rete();
+
+#ifdef DEBUG
+    cls();
 
     // i32 arp_send_request(struct pci_device* nic, u32 target_ip)
     arp_send_request(
@@ -166,12 +166,6 @@ void kernel_main()
 
     print_hex(nics->tot_num_device);
 #else
-    // inizializzazione pci
-    search_all_device_pci();
-
-    // inizializzazione scheda di rete
-    init_scheda_rete();
-
     // inizializzazione shell
     init_shell();
 #endif    

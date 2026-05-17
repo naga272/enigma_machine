@@ -67,3 +67,12 @@ O3 u32 htons_32b(u32 host32)
     */
     return switch_endian32(host32);
 }
+
+
+u32 ip_to_u32(u8 a, u8 b, u8 c, u8 d)
+{
+    return ((u32) a << 24) |
+           ((u32) b << 16) |
+           ((u32) c << 8)  |
+           ((u32) d);
+}
