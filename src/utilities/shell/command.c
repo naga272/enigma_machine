@@ -74,9 +74,13 @@ u8 ifconfig()
         print((uchar*) "\n=== NIC NUMBER ");
         print_hex(nics->tot_num_device);    
         print((uchar*) "===\n");
-
+        
         struct pci_device* nic = &nics->dev[idx];
-
+        print((uchar*) "name: ");
+        print(
+            ((net_ops_t*) nic->priv_methods)->get_name_dev(nic)
+        );
+        print((uchar*) "\n");
         ((net_ops_t*) nic->priv_methods)->print_mac(nic);
     }
     print((uchar*) "\n>>> ");
