@@ -1,4 +1,4 @@
-UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/book/book.o ./build/atomic/atomic.o ./build/conversion/conversion.o
+UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/video/kprintf.o ./build/book/book.o ./build/atomic/atomic.o ./build/conversion/conversion.o
 
 SETUP = ./build/setup/setup.o ./build/markov/markov.o
 
@@ -159,6 +159,10 @@ iso: ./bin/os.bin
 
 ./build/shell/command.o: ./src/utilities/shell/command.c
 	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/shell/command.c -o ./build/shell/command.o
+
+
+./build/video/kprintf.o: ./src/utilities/video/kprintf.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/video/kprintf.c -o ./build/video/kprintf.o
 
 
 ./build/video/video.o: ./src/utilities/video/video.c

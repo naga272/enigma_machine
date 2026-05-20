@@ -28,6 +28,8 @@
 #include "utilities/net/net.h"
 #include "utilities/net/ethernet/arp/arp.h"
 
+#include "utilities/video/kprintf.h"
+
 
 extern void test_int80h(void);
 
@@ -150,6 +152,18 @@ void kernel_main()
         ip_to_u32(10, 0, 2, 0)
     );
 
+    kprintf(
+        "\n%i:%i:%i:%i:%i:%i\n nics num: %i",
+        mac_out[0],
+        mac_out[1],
+        mac_out[2],
+        mac_out[3],
+        mac_out[4],
+        mac_out[5],
+        nics->tot_num_device
+    );
+
+    /*
     print((uchar*) "\n");
     print_hex((size_t) mac_out[0]);
     print((uchar*) ":");
@@ -165,6 +179,7 @@ void kernel_main()
     print((uchar*) "\n");
 
     print_hex(nics->tot_num_device);
+    */
 #else
     // inizializzazione shell
     init_shell();
@@ -173,6 +188,16 @@ void kernel_main()
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
     */
     // trigger_BsOD();
+    kprintf(
+        "\n%i:%i:%i:%i:%i:%i\n nics num: %i",
+        14,
+        22,
+        5,
+        33,
+        5,
+        68,
+        nics->tot_num_device
+    );
 
     while (1) {
         main();
