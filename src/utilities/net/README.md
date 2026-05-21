@@ -7,8 +7,9 @@ L'idea sostanziale in questo progetto e' di far comunicare due macchine enigmaOs
 
 ### Requirements (minimo)
 
+- Inizializzato e configurato il pic (sia master che slave)
 - Heap memory (algoritmo slab allocator, sconsiglio vivamente waterMarker)
-- Paging memory
+- Paging memory (`virt addr` = `phisical addr` per semplicita')
 - Devi modificare il Makefile (l'esecuzione del comando di qemu) in questo modo:
 
 ```Makefile
@@ -35,17 +36,19 @@ run:
 
 # How to get device network interface controllers
 
-All'avvio del kernel non conosce quali dispositivi sono presenti e quali no.
+All'avvio il kernel non conosce quali dispositivi sono presenti e quali no.
 Il nostro obbiettivo quindi e' sapere come ottenere le informazioni di tutti i dispositivi collegati al pci (sapere id vendor, id device, subsystem class).
 
 - id vendor
 - id device
 - subsystem class
 
-Per conoscerli, deve interrogare il pci (collegando la cpu con le periferiche interne usando la scheda madre).
+Per conoscerli, il kernel deve interrogare il pci (collegando la cpu con le periferiche interne usando la scheda madre).
 
 Il pci funziona come un array tridimensionale:
+
 il primo layer è composto da 256 bus, ogni bus è un array di 32 elementi chiamati slot (ogni slot rappresenta un dispositivo).
+
 Ogni slot a sua volta è composto da un array di 8 elementi chiamati functions (funzionalità disponibili di un dispositivo).
 
 Le funzioni base per interrogare il pci sono outl (output long) e insl (input software long).
@@ -91,7 +94,7 @@ u32 pci_read32(u8 bus, u8 slot, u8 func, u8 offset);
 ```
 I dispositivi usano dei registri che si trovano a un determinato offset (detti gate)
 
-I gate in questo contesto possono essere:
+I gate di riferimento in questo contesto sono:
 
 - gate **0xCF8** (CONFIG_ADDRESS) -> Quale device PCI vuoi interrogare?
 - gate **0xCFC** (CONFIG_DATA) -> risultato dell'interrogazione a CONFIG_ADDRESS
@@ -99,6 +102,10 @@ I gate in questo contesto possono essere:
 Quindi:
 
 ```C
+#define CONFIG_ADDRESS 0xCF8
+#define CONFIG_DATA 0xCFC
+
+
 u32 pci_read32(u8 bus, u8 slot, u8 func, u8 offset)
 {
     u32 address;
@@ -109,16 +116,16 @@ u32 pci_read32(u8 bus, u8 slot, u8 func, u8 offset)
         ((u32) func << 8)             |
         ((u32) (offset & 0xFC));
 
-    outl(0xCF8, address);
-    return insl(0xCFC);
+    outl(CONFIG_ADDRESS, address);
+    return insl(CONFIG_DATA);
 }
 ```
 
 Tuttavia, non tutti gli slot di tutti i bus sono effettivamente occupati da un dispositivo.
 
-Questo significa che dobbiamo creare un meccanismo simile bruteforce dove si scorre per tutti gli elementi gli slots presenti sui bus per recuperare informazioni
+Questo significa che dobbiamo creare un meccanismo simile bruteforce dove si scorre per tutti gli slots presenti sui bus per recuperare le informazioni.
 
-Per capire se sono dei dispositivi veri (nel senso che quello slot e' occpato davvero da un dispositivo oppure e' libero), basta ottenere il ```vendorId``` del prodotto, che va a identificare il dispositivo:
+Per capire se sono dei dispositivi veri (nel senso che quello slot e' occupato davvero da un dispositivo), basta ottenere il ```vendorId``` del prodotto, che va a identificare il dispositivo:
 
 ```C
 for (u16 bus = 0; bus < 256; bus++) {
@@ -144,9 +151,7 @@ Il gate per ottenere il vendorId è 0x00.
 
 Quindi, chiamando pci_get_vendor bisogna eseguire un check se è PCI_NONE (0xffff).
 
-
 ```C
-
 #define PCI_NONE 0xFFFF
 #define DEVICE_INESISTENTE(vendor) (vendor == PCI_NONE)
 
@@ -163,7 +168,7 @@ for (u16 bus = 0; bus < 256; bus++) {
 
 Così tutti gli slot vuoti vengono skippati, gli altri invece vengono considerati.
 
-Quello che dobbiamo fare ora è collezionare tutti i dati all'interno del pci, memorizzando bus, slot, func, vendor, device, priv (capirete dopo, un passo alla volta), class_code, subclass, priv_methods (capirete anche questo dopo) e BAR0 a BAR5.
+Quello che dobbiamo fare ora e' collezionare tutti i dati all'interno del pci, memorizzando bus, slot, func, vendor, device, priv (capirete dopo, un passo alla volta), class_code, subclass, priv_methods (capirete anche questo dopo) e BAR0 a BAR5.
 
 ```C
 struct pci_bar {
@@ -216,7 +221,7 @@ struct virt_pci_dev {
 };
 ```
 
-Ora, quello che voglio e' separare i tipi di dispositivi analizzati (gpu, nics, massStocs, brcs) e' man mano che vengono analizzati vengono smistati in questi array dinamici:
+Quello che voglio fare e' separare i tipi di dispositivi analizzati (gpu, nics, massStocs, brcs) e' man mano che smistarli in questi array dinamici:
 
 ```C
 /* pci controller device struct */
@@ -283,7 +288,7 @@ Per ottenere la classe, bisogna interrogare il gate 0x08 del pci
 |-------------|-------------------------|--------------|--------|------------|
 |             |  **```bits 31-24```**   |  bits 23-16  |  15-8  |    7-0     |
 
-quindi, per ottenere tutte le informazioni da gate 0x08:
+quindi, per ottenere tutte le informazioni dal gate 0x08:
 
 ```C
 u8 classCode = (u8) ((pci_read32(bus, slot, func, 0x08) >> 24) & 0xFF);
@@ -439,7 +444,7 @@ Quindi dobbiamo creare dei driver specifici per ogni tipo di scheda di rete.
 
 Io ho risolto questo problema aggiungendo un layer al livello fisico che chiamo "virtuale".
 
-Si occupa lui di capire e instradare verso il driver corretto, permettendomi nei livelli superiori di trattare tutti i dispositivi nic come se fossero un oggetto identico:
+Si occupa lui di capire e instradare verso il driver corretto per il nic, permettendomi nei livelli superiori di trattare tutti i dispositivi nic come se fossero un oggetto identico:
 
 ```C
 /*        mappa concettuale:
@@ -517,7 +522,7 @@ Ogni dispositivo ha i suoi metodi e i suoi attributi e ogni driver fornisce dell
 - **init_rx_buffer**: dice dove depositare in ram i dati ricevuti
 
 
-nella struct sono presenti ```@device->priv``` che è di tipo **void*** che punta a una struct (si esegue il cast di tipo nel driver) specifica del dispositivo.
+nella struct pci_device e' presente ```@device->priv``` che è di tipo **void*** che punta a una struct (si esegue il cast di tipo nel driver) specifica del dispositivo.
 
 Per l'rtl8139 ```@device->priv``` punta a una ```struct rtl8139_device```:
 
@@ -541,6 +546,7 @@ Stessa cosa vale per il ptr di tipo void ```@device->priv_methods```, che punta 
 ```C
 typedef struct net_ops {
     uchar* (*get_name_dev) (struct pci_device* nic);
+    uchar* (*get_vendor_dev) (struct pci_device* nic);
     u8* (*get_mac_addr_dev) (struct pci_device* nic);
     i32 (*send) (struct pci_device* nic, void* data, u32 len);
     i32 (*recv) (struct pci_device* nic, void* out_buffer, u32 max_len);
@@ -549,6 +555,7 @@ typedef struct net_ops {
     void (*init_rx_buffer) (struct pci_device* nic);
     void (*init_tx_buffer) (struct pci_device* nic);
     void (*print_mac) (struct pci_device* nic);
+    i32 (*get_bar0_dev) (struct pci_device* nic);
 } net_ops_t;
 ```
 
@@ -568,13 +575,21 @@ void init_rtl8139(struct pci_device* device)
 
     device->priv = (void*) rtl8139;
 
+    rtl8139->io_base = (u32) device->bar[0].addr;
+    rtl8139->cur_rx = 0;
+
+    insert_mac_addr_in_struct(rtl8139);
+
     ops_rtl8139->get_name_dev = get_name_dev_rtl8139;
+    ops_rtl8139->get_vendor_dev = get_vendor_dev_rtl8139;
     ops_rtl8139->get_mac_addr_dev = get_mac_addr_dev;
     ops_rtl8139->reset = reset_rtl8139;
     ops_rtl8139->power_on = power_on;
     ops_rtl8139->send = send_rtl8139;
     ops_rtl8139->recv = recv_rtl8139;
     ops_rtl8139->print_mac = print_mac;
+    ops_rtl8139->init_rx_buffer = init_rx_buffer_rtl8139;
+    ops_rtl8139->get_bar0_dev = get_bar0_dev;
 
     device->priv_methods = (void*) ops_rtl8139;
 }
@@ -595,6 +610,8 @@ rtl8139->cur_rx = 0;
 insert_mac_addr_in_struct(rtl8139);
 
 // assegnamento dei ptr a funzione
+
+device->priv_methods = (void*) ops_rtl8139;
 ```
 
 Per ottenere il MAC address basta usare l'indirizzo di bar0 + un indice che rappresenta quale coppia stiamo andando a prendere:
@@ -623,6 +640,15 @@ uchar* get_name_dev_rtl8139(struct pci_device* nic)
 }
 ```
 
+- La funzione ```get_vendor_dev_rtl8139``` restituisce l'azienda che ha prodotto il chip
+
+```C
+uchar* get_vendor_dev_rtl8139(struct pci_device* nic)
+{
+    return (uchar*) "Realtek Semiconductor";
+}
+```
+
 - La funzione ```get_mac_addr_dev``` restituisce un puntatore che punta a un array di 8 bytes
 
 ```C
@@ -640,10 +666,10 @@ void reset_rtl8139(struct pci_device* nic)
 {
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
 
-    outb(rtl->io_base + 0x37, 0x10);
+    outb(rtl->io_base + CR, 0x10);
 
     // il reset non e' istantaneo, aspetta che finisca
-    while (insb(rtl->io_base + 0x37) & 0x10);
+    while (insb(rtl->io_base + CR) & 0x10);
 }
 ```
 
@@ -683,6 +709,8 @@ void check_isr(struct pci_device* nic)
 - La funzione ```power_on``` avvia il nic
 
 ```C
+#define CR 0x37
+
 void power_on(struct pci_device* nic)
 {
     /* 
@@ -693,13 +721,16 @@ void power_on(struct pci_device* nic)
     * 0x0C
     */
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
-    outb(POWER_OFFS_RTL(rtl), 0x0C);
+    outb(nic->io_base + CR, 0x0C);
 }
 ```
 
 - La funzione ```send_rtl8139```: **Invio di dati tramite nic**
 
 ```C
+#define TSAD0 0x20
+#define TSD0  0x10
+
 i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
 {
     rtl8139_dev_t* rtl = dev->priv;
@@ -710,7 +741,7 @@ i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
     memcpy(rtl->tx_buffer, data, len);
 
     // TSAD0 = buffer address
-    outl(rtl->io_base + TSAD0, (u32)rtl->tx_buffer);
+    outl(rtl->io_base + TSAD0, (u32) rtl->tx_buffer);
 
     // TSD0 = length + start
     outl(rtl->io_base + TSD0, len);
@@ -719,15 +750,84 @@ i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
 }
 ```
 
+```Attenzione```: quando viene raggiunta l'istruzione ```outl(rtl->io_base + TSD0, len);``` la scheda di rete esegue una irq (numero 11 / 0x02b).
+
+Lo scopo di questo e' di avvertire la cpu che la scheda di rete ha preso tutto quello che era presente nel buffer associato e mandato via cavo.
+
+```Se non fai questa parte, il kernel appena si avvia l'irq BLOCCA TUTTO QUANTO, e' importante fare almeno i passaggi che mostro```
+
+Il settaggio minimo per l'irq#11 e' quindi il seguente:
+
+```C
+void int2bh_handler(struct regs_t* r)
+{
+    /*
+    * Nel momento che si esegue l'istruzione:
+    * "outl(rtl->io_base + TSD0, len);"
+    *
+    * la scheda di rete prende il controllo del bus di sistema,
+    * copia i dati nel buffer e li spara sul cavo di rete
+    *
+    * Fatto queste operazioni, la scheda alza la linea irq#11 (2bh)
+    * per dire che ha finito di inviare i pacchetti e che il buffer tx
+    * e' di nuovo libero ed e' riutilizzabile
+    *
+    * Invece, quando un pacchetto entra dalla scheda di rete dall'esterno,
+    * questo viene scritto nel buffer rx e alza l'irq#11 per dire che rx
+    * contiene qualcosa.
+    *
+    * Bit 0
+    * ROK (Receive OK)
+    * E' appena arrivato un pacchetto nel buffer RX
+    *
+    * Bit 1
+    * RER (Receive Error)
+    * Errore durante la ricezione di un pacchetto.
+    *
+    * Bit 2
+    * TOK (Transmit OK)
+    * La scheda ha finito di inviare il tuo pacchetto!
+    *
+    * Bit 3
+    * TER (Transmit Error)
+    * Errore durante l'invio del pacchetto.
+    *
+    * Bit 4
+    * RXOVW (Rx Overflow)
+    * Il buffer di ricezione è pieno, si stanno perdendo dati.
+    * */
+
+    // 0xc000 = bar0 standard dell'rtl8139
+    u16 status = insw(0xc000 + 0x3E);
+    // reset dei flag sollevati
+    outw(0xc000 + 0x3E, status);
+
+    EOI_SLAVE;
+    EOI_MASTER;
+}
+```
+
 - La funzione ```init_rx_buffer_rtl8139```: **Dico dove scrivere i dati in memoria in arrivo**
 
 ```C
+#define RBSTART 0x30
+#define CAPR    0x38
+#define CR      0x37
+
 void init_rx_buffer_rtl8139(struct pci_device* nic)
 {
+    /*
+     RX Buffer:
+    * 8192 + RX ring
+    * 16   + alignment
+    * 1500 = max Ethernet frame
+    * ----
+    * 9708
+    */
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
 
     // comunicazione con l'rtl8139 di dove si trova il buffer rx in ram
-    outl(rtl->io_base + 0x30, (u32) rtl->rx_buffer);
+    outl(rtl->io_base + RBSTART, (u32) rtl->rx_buffer);
 
     //  outportw(ioaddr + 0x3C, 0x0005); // Sets the TOK and ROK bits high
     outw(rtl->io_base + 0x3C, 0x0005);
@@ -747,22 +847,41 @@ void init_rx_buffer_rtl8139(struct pci_device* nic)
     *   AAP - Accept All Packets. Accept all packets (run in promiscuous mode).
     */
     outl(
-        rtl->io_base + 0x44,
-        (1 << 7) |   // WRAP
-        (1 << 3) |   // AB
-        (1 << 2) |   // AM
-        (1 << 1) |   // APM
-        (0 << 0)
+        rtl->io_base + RCR,
+        (1 << 1) |
+        (1 << 2) |
+        (1 << 3) |
+        (1 << 4) |
+        (1 << 7)
     );
 
     // Reset CAPR
     outw(rtl->io_base + CAPR, 0);
 
     // Enable Receive and Transmitter
-    outb(rtl->io_base + 0x37, 0x0C); // Sets the RE and TE bits high
+    outb(rtl->io_base + CR, 0x0C); // Sets the RE and TE bits high
 }
 ```
 
+- La funzione ```recv_rtl8139```: **Ricezione di dati tramite nic**
+
+```C
+#define CR 0x37
+
+void power_on(struct pci_device* nic)
+{
+    /* 
+    * Abilita il CHIP RTL8139 internamente.
+    * accensione della scheda di rete tramite CR (command register).
+    * 0x04 +  RX Enable
+    * 0x08 =  TX Enable
+    * ------
+    * 0x0C
+    */
+    rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
+    outb(nic->io_base + CR, 0x0C);
+}
+```
 - La funzione ```recv_rtl8139```: **Ricezione di dati tramite nic**
 
 ```C
@@ -859,12 +978,11 @@ O3 static inline void init_nic_driver(struct pci_device* nic)
 out:
     ((net_ops_t*) nic->priv_methods)->reset(nic);
     ((net_ops_t*) nic->priv_methods)->power_on(nic);
-    ((net_ops_t*) nic->priv_methods)->print_mac(nic);
     ((net_ops_t*) nic->priv_methods)->init_rx_buffer(nic);
 }
 ```
 
-# LIVELLO 2 (ETHERNET)
+# LIVELLO 2 (DATA LINK)
 
 Ora che siamo riusciti a uscire dall'inferno possiamo andare seraficamente al purgatorio.
 
@@ -934,7 +1052,7 @@ La rappresentazione logica di questo pacchetto è il seguente:
 
 Es:
 
-**[FF:FF:FF:FF:FF:FF][52:54:00:12:34:56][0x0806][...]**
+**```[FF:FF:FF:FF:FF:FF]``` ```[52:54:00:12:34:56]``` ```[0x0806]``` ```[...]```**
 
 Significa:
 

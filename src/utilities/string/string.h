@@ -17,7 +17,9 @@ extern i32 strncmp(const char* str1, const char* str2, i32 n);
 extern i32 strnlen_terminator(const char* str, u32 max, char terminator);
 extern void* memcpy(void* dest, void* src, i32 len);
 extern i32 istrncmp(const char* s1, const char* s2, u32 n);
+extern char* strdup(char*);
 
+char* strdup(char*);
 char* itoa(i32 value, char* buf);
 u8 strcmp(const uchar* a, const uchar* b);
 uchar* strcat(uchar* ptr1, size_t size_ptr1, uchar* ptr2);

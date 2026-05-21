@@ -486,6 +486,56 @@ O3 void int2ah_handler(struct regs_t* r)
 
 O3 void int2bh_handler(struct regs_t* r)
 {
+    /*
+    * Nel momento che si esegue l'istruzione:
+    * "outl(rtl->io_base + TSD0, len);"
+    *
+    * la scheda di rete prende il controllo del bus di sistema,
+    * copia i dati nel buffer e li spara sul cavo di rete
+    *
+    * Fatto queste operazioni, la scheda alza la linea irq#11 (2bh)
+    * per dire che ha finito di inviare i pacchetti e che il buffer tx
+    * e' di nuovo libero ed e' riutilizzabile
+    *
+    * Invece, quando un pacchetto entra dalla scheda di rete dall'esterno,
+    * questo viene scritto nel buffer rx e alza l'irq#11 per dire che rx
+    * contiene qualcosa.
+    *
+    * Bit 0
+    * ROK (Receive OK)
+    * È appena arrivato un pacchetto nel buffer RX!
+    *
+    * Bit 1
+    * RER (Receive Error)
+    * Errore durante la ricezione di un pacchetto.
+    *
+    * Bit 2
+    * TOK (Transmit OK)
+    * La scheda ha finito di inviare il tuo pacchetto!
+    *
+    * Bit 3
+    * TER (Transmit Error)
+    * Errore durante l'invio del pacchetto.
+    *
+    * Bit 4
+    * RXOVW (Rx Overflow)
+    * Il buffer di ricezione è pieno, si stanno perdendo dati.
+    * */
+
+    // 0xc000 = bar0 dell'rtl8139
+    u16 status = insw(0xc000 + 0x3E);
+    outw(0xc000 + 0x3E, status); // Reset dei flag sollevati
+
+    // 3. Gestisci il pacchetto RICEVUTO
+    if (status & (1 << 0)) { // ROK (bit 0)
+        // Chiama la tua funzione per svuotare il buffer RX della scheda
+    }
+
+    // 4. Gestisci il pacchetto INVIATO
+    if (status & (1 << 2)) { // TOK (bit 2)
+        // Il pacchetto è partito, puoi liberare la memoria o aggiornare le statistiche
+    }
+
     EOI_SLAVE;
     EOI_MASTER;
 }

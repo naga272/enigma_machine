@@ -14,4 +14,11 @@ u8 reboot();
 u8 cls();
 
 
+typedef struct shell_command {
+    char* name;
+    u8 (*handler)();
+    char* help;
+} shell_command_t;
+
+
 #endif

@@ -1,4 +1,6 @@
 #include "utilities/string/string.h"
+#include "utilities/memory/heap/malloc.h"
+
 
 
 O3 i32 tonumericdigit(char c)
@@ -52,8 +54,7 @@ i32 strncmp(const char* str1, const char* str2, i32 n)
 {
     uchar u1, u2;
 
-    while (n-- > 0)
-    {
+    while (n-- > 0) {
         u1 = (uchar)*str1++;
         u2 = (uchar)*str2++;
 
@@ -154,16 +155,14 @@ O3 size_t strlen(const char* string)
 }
 
 
-i32 memcmp(void* s1, void* s2, i32 count)
+O3 i32 memcmp(void* s1, void* s2, i32 count)
 {
     char* c1 = s1;
     char* c2 = s2;
-    while(count-- > 0)
-    {
+
+    while(count-- > 0) {
         if (*c1++ != *c2++)
-        {
             return c1[-1] < c2[-1] ? -1 : 1;
-        }
     }
 
     return 0;
@@ -184,12 +183,25 @@ O3 char* strcpy(char* dest, const char* src)
 }
 
 
-void* memcpy(void* dest, void* src, i32 len)
+O3 void* memcpy(void* dest, void* src, i32 len)
 {
     char *d = dest;
     char *s = src;
-    while (len--) {
+
+    while (len--)
         *d++ = *s++;
-    }
+
     return dest;
+}
+
+
+O3 char* strdup(char* str)
+{
+    size_t idx = strlen(str);
+    char* ptr = kcalloc(idx);
+
+    if (!ptr)
+        return ptr;
+
+    return (char*) memcpy(ptr, str, idx);
 }

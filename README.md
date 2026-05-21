@@ -29,6 +29,7 @@ Ho aggiunto dei comandi base:
 - `QUIT`: spegne la macchina
 - `RELOAD`: riavviare la macchina
 - `CLS`: pulisce la CLI
+- `IFCONFIG`: mostra informazioni riguardo le schede di rete presenti
 
 ## Requisiti
 
@@ -50,7 +51,7 @@ make run
 
 ## Dimostrazione pratica
 
-video dimostrazione: https://youtu.be/5ueIu9ub8yQ
+video dimostrazione: https://youtu.be/-Zd_L_AzzGo
 
 ## Fonti
 

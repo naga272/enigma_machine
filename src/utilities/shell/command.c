@@ -4,6 +4,7 @@
 #include "utilities/shell/command.h"
 #include "utilities/string/string.h"
 #include "utilities/video/video.h"
+#include "utilities/video/kprintf.h"
 #include "utilities/pci/pci.h"
 #include "utilities/net/net.h"
 
@@ -15,7 +16,9 @@
     #error, "impossibile definire OS_X_QEMU, OS_X_XBOCHS, OS_X_X86 insieme"
 #endif
 
+
 extern pci_dev_list_t* nics;
+
 
 uchar* vec_reboot_comm = (uchar*) "RELOAD";
 uchar* vec_power_off_comm = (uchar*) "QUIT";
@@ -71,16 +74,14 @@ u8 cls()
 u8 ifconfig()
 {
     for (size_t idx = 0; idx != nics->tot_num_device; idx++) {
-        print((uchar*) "\n=== NIC NUMBER ");
-        print_hex(nics->tot_num_device);    
-        print((uchar*) "===\n");
-        
         struct pci_device* nic = &nics->dev[idx];
-        print((uchar*) "name: ");
-        print(
-            ((net_ops_t*) nic->priv_methods)->get_name_dev(nic)
+        kprintf(
+            "\n=== NIC NUMBER %i ===\nName: %s\nVendor: %s\nBar 0: %i\n",
+            nics->tot_num_device,
+            ((net_ops_t*) nic->priv_methods)->get_name_dev(nic),
+            ((net_ops_t*) nic->priv_methods)->get_vendor_dev(nic),
+            ((net_ops_t*) nic->priv_methods)->get_bar0_dev(nic)
         );
-        print((uchar*) "\n");
         ((net_ops_t*) nic->priv_methods)->print_mac(nic);
     }
     print((uchar*) "\n>>> ");

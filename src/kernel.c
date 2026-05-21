@@ -3,32 +3,6 @@
 
 #include "config.h"
 #include "kernel.h"
-#include "utilities/stdlib/stdlib.h"
-#include "utilities/string/string.h"
-#include "utilities/video/video.h"
-#include "utilities/memory/heap/malloc.h"
-#include "utilities/memory/heap/kheap_creation.h"
-#include "utilities/memory/paging/paging.h"
-#include "utilities/io/io.h"
-#include "utilities/idt/idt.h"
-#include "utilities/idt/body_int/slave/rtc_orologio.h"
-
-#include "utilities/setup/setup.h"
-#include "utilities/book/book.h"
-#include "utilities/markov/markov.h"
-#include "utilities/gdt/gdt.h"
-
-#include "utilities/disk/disk.h"
-#include "utilities/disk/streamer.h"
-#include "utilities/fs/pparser.h"
-#include "utilities/fs/file.h"
-
-#include "utilities/shell/command.h"
-#include "utilities/pci/pci.h"
-#include "utilities/net/net.h"
-#include "utilities/net/ethernet/arp/arp.h"
-
-#include "utilities/video/kprintf.h"
 
 
 extern void test_int80h(void);
@@ -131,74 +105,25 @@ void kernel_main()
 
     // inizializzazione pci
     search_all_device_pci();
-
+    
     // inizializzazione scheda di rete
     init_scheda_rete();
-
-#ifdef DEBUG
-    cls();
+    
+    // inizializzazione shell
+    init_shell();
 
     // i32 arp_send_request(struct pci_device* nic, u32 target_ip)
     arp_send_request(
         &nics->dev[0],
         ip_to_u32(10, 0, 2, 2)
     );
-    
-    // i32 arp_recv(struct pci_device* nic, u8* mac_out, u32 target_ip)
-    u8 mac_out[6];
-    arp_recv(
-        &nics->dev[0],
-        mac_out,
-        ip_to_u32(10, 0, 2, 0)
-    );
 
-    kprintf(
-        "\n%i:%i:%i:%i:%i:%i\n nics num: %i",
-        mac_out[0],
-        mac_out[1],
-        mac_out[2],
-        mac_out[3],
-        mac_out[4],
-        mac_out[5],
-        nics->tot_num_device
-    );
-
-    /*
-    print((uchar*) "\n");
-    print_hex((size_t) mac_out[0]);
-    print((uchar*) ":");
-    print_hex((size_t) mac_out[1]);
-    print((uchar*) ":");
-    print_hex((size_t) mac_out[2]);
-    print((uchar*) ":");
-    print_hex((size_t) mac_out[3]);
-    print((uchar*) ":");
-    print_hex((size_t) mac_out[4]);
-    print((uchar*) ":");
-    print_hex((size_t) mac_out[5]);
-    print((uchar*) "\n");
-
-    print_hex(nics->tot_num_device);
-    */
-#else
-    // inizializzazione shell
-    init_shell();
-#endif    
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
     */
     // trigger_BsOD();
-    kprintf(
-        "\n%i:%i:%i:%i:%i:%i\n nics num: %i",
-        14,
-        22,
-        5,
-        33,
-        5,
-        68,
-        nics->tot_num_device
-    );
 
+    test_int80h();
     while (1) {
         main();
         asm volatile("hlt");

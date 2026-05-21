@@ -108,7 +108,6 @@ O3 static inline void init_nic_driver(struct pci_device* nic)
 out:
     ((net_ops_t*) nic->priv_methods)->reset(nic);
     ((net_ops_t*) nic->priv_methods)->power_on(nic);
-    ((net_ops_t*) nic->priv_methods)->print_mac(nic);
     ((net_ops_t*) nic->priv_methods)->init_rx_buffer(nic);
 }
 

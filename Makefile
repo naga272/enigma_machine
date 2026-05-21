@@ -269,3 +269,4 @@ clean:
 	rm -rf ./bin/os.bin
 	rm -rf ${FILES}
 	rm -rf ./build/kernel
+	rm -rf packets.pcap

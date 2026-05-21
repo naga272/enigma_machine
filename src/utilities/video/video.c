@@ -206,6 +206,32 @@ void print_hex(u32 val)
 }
 
 
+void print_num_hex_no_pad(u32 val)
+{
+    // 10 cifre + '\0'
+    uchar hex[11];
+    hex[0] = '0';
+    hex[1] = '0';
+
+    for (i32 i = 0; i < 10; i++) {
+        u8 nibble = (val >> (28 - i * 4)) & 0xF;
+
+        if (nibble < 10)
+            hex[2 + i] = '0' + nibble;
+        else
+            hex[2 + i] = 'A' + (nibble - 10);
+    }
+    hex[10] = '\0';
+    uchar* ptr = hex;
+
+    // salto gli zeri in eccesso
+    while (*ptr == '0')
+        ptr++;
+
+    print(ptr);
+}
+
+
 O3 void panic(const uchar* msg, struct regs_t* status_reg)
 {
     /*
