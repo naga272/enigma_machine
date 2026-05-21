@@ -10,9 +10,6 @@ extern void print_hex(size_t);
 #define RTL_RX_OK   (1 << 0)
 #define RTL_RX_ERR  (1 << 1)
 
-#define DEBUG
-#undef DEBUG
-
 
 O3 static inline ainline uchar* get_name_dev_rtl8139(struct pci_device* nic)
 {
@@ -131,10 +128,8 @@ O3 static inline ainline i32 send_rtl8139(struct pci_device* dev, void* data, u3
 
 O3 static inline ainline i32 recv_rtl8139(struct pci_device* dev, void* out, u32 max_len)
 {
+    /* Not yet ready */
     rtl8139_dev_t* rtl = dev->priv;
-
-    // 1. Controlla se il buffer è vuoto prima di leggere
-    // Se il bit di buffer vuoto (CR_BUFE) nel registro Command (0x37) è attivo, non c'è nulla da leggere
 
     print((uchar*)"Aspetto pacchetto...\n");
     int timeout = 10000000;
@@ -151,55 +146,42 @@ O3 static inline ainline i32 recv_rtl8139(struct pci_device* dev, void* out, u32
     u32 offset = rtl->cur_rx;
     u8* rx_buf = rtl->rx_buffer;
 
-    // Leggi l'header in modo sicuro (gestendo l'eventuale wrap-around dell'header stesso)
-    u16 status = *(u16*)(rx_buf + offset);
-    u16 len    = *(u16*)(rx_buf + ((offset + 2) % RX_BUFFER));
+    u16 status = *(u16*) (rx_buf + offset);
+    u16 len    = *(u16*) (rx_buf + ((offset + 2) % RX_BUFFER));
 
-    // Verifica il bit ROK (Receive OK) dello stato del pacchetto
-    print((uchar*) "test");
     if (!(status & RTL_RX_OK))
         return -1;
 
-    // Verifica bit di errore (es. CRC, Frame alignment, RUNT)
     if (status & (1 << 1)) // RER (Receive Error) o altri bit di errore dell'header
         set_message_x_panic((uchar*) "recv status error");
 
-    // Limita la lunghezza per evitare overflow del buffer di destinazione 'out'
     u16 copy_len = (len > max_len) ? max_len : len;
 
-    // 2. GESTIONE WRAP-AROUND PER IL MEMCPY
-    // Il pacchetto vero e proprio inizia a (offset + 4)
     u32 data_offset = (offset + 4) % RX_BUFFER;
 
     if (data_offset + len > RX_BUFFER) {
-        // Il pacchetto è spezzato in due parti!
         u32 first_part_len = RX_BUFFER - data_offset;
-        // u32 second_part_len = len - first_part_len;
 
-        // Copia la prima parte dalla fine del buffer
         memcpy(out, rx_buf + data_offset, (first_part_len > copy_len) ? copy_len : first_part_len);
         
-        // Copia la seconda parte dall'inizio del buffer
-        if (copy_len > first_part_len) {
-            memcpy((u8*)out + first_part_len, rx_buf, copy_len - first_part_len);
-        }
+        if (copy_len > first_part_len)
+            memcpy(
+                (u8*) out + first_part_len,
+                rx_buf,
+                copy_len - first_part_len
+            );
     } else {
-        // Il pacchetto è contiguo, una sola memcpy standard
         memcpy(out, rx_buf + data_offset, copy_len);
     }
 
-    // 3. AGGIORNAMENTO DEL PUNTATORE LOCALE (Allineamento a 4 byte)
-    // Includi i 4 byte di header (status + len) e i 4 byte di CRC inseriti dall'hardware
     rtl->cur_rx = (offset + len + 4 + 3) & ~3;
     rtl->cur_rx %= RX_BUFFER;
 
-    // 4. AGGIORNAMENTO CORRETTO DI CAPR
-    // La RTL8139 richiede l'offset corrente meno 16 (0x10) per evitare il counter overflow hardware
-    int32_t capr_val = (int32_t)rtl->cur_rx - 16;
-    if (capr_val < 0) {
+    i32 capr_val = (i32) rtl->cur_rx - 16;
+    if (capr_val < 0)
         capr_val += RX_BUFFER;
-    }
-    outw(rtl->io_base + CAPR, (u16)capr_val);
+
+    outw(rtl->io_base + CAPR, (u16) capr_val);
 
     return len;
 }
