@@ -83,13 +83,12 @@ i32 ethernet_recv(struct pci_device* nic, void* out, u32 max_len)
 
     struct ethernet_frame* eth = (void*) frame;
 
-    u16 type = eth->ethertype;
-    if (type == htons_16b(PROTOCOL_ARP))
-        print((uchar*) "protocollo ARP\n");
+    // u16 type = eth->ethertype;
 
     u32 payload_len = len - 14;
 
-    if (payload_len > max_len) return -1;
+    if (payload_len > max_len)
+        return -1;
 
     memcpy(out, eth->payload, payload_len);
 

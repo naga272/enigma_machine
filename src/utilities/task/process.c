@@ -88,8 +88,6 @@ O3 i32 process_load_for_slot(const char* filename, struct process** process, i32
 
     if (res < 0)
         return res;
-    
-    
 
     return res;
 }

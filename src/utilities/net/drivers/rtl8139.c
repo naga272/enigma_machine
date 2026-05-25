@@ -131,7 +131,7 @@ O3 static inline ainline i32 recv_rtl8139(struct pci_device* dev, void* out, u32
     /* Not yet ready */
     rtl8139_dev_t* rtl = dev->priv;
 
-    print((uchar*)"Aspetto pacchetto...\n");
+    print((uchar*) "Aspetto pacchetto...\n");
     int timeout = 10000000;
 
     // 0x01 è il bit BUFE (Buffer Empty)

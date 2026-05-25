@@ -1,6 +1,7 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
+#include "config.h"
 #include "utilities/stdlib/stdlib.h"
 #include "utilities/string/string.h"
 #include "utilities/video/video.h"

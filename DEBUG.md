@@ -10,11 +10,7 @@ add-symbol-file ../build/kernelfull.o 0x100000
 
 break kernel.c: <num_row>
 
-target remote | qemu-system-x86_64 -hda ./os.bin -S -gdb stdio \
-                -netdev tap,id=net0,ifname=tap0,script=no,downscript=no \
-                -device rtl8139,netdev=net0 \
-                -vga std \
-                -d guest_errors,unimp
+target remote | qemu-system-x86_64 -hda ./os.bin -S -gdb stdio -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -device rtl8139,netdev=net0
 
 
 c                   // significa continue

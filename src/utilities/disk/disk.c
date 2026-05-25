@@ -145,7 +145,6 @@ void disk_search_and_init()
     disk.type = ENIGMAOS_DISK_TYPE_REAL;
     disk.sector_size = ENIGMAOS_SECTOR_SIZE;
     disk.filesystem = fs_resolve(&disk);
-
 }
 
 

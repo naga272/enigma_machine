@@ -1,6 +1,7 @@
 #ifndef ARP_H
 #define ARP_H
 
+
 struct arp_packet {
     u16 htype;   // Ethernet = 1
     u16 ptype;   // IPv4 = 0x0800
@@ -14,6 +15,14 @@ struct arp_packet {
     u8  tha[6];  // target MAC (0 in request)
     u32 tpa;     // target IP
 } __attribute__((packed));
+
+
+typedef struct arp_cache_entry { 
+    u32 ip; // host byte order 
+    u8 mac[6];
+    u32 last_seen_ticks;
+    u8 valid; 
+} arp_cache_entry_t;
 
 
 i32 arp_send_request(struct pci_device* nic, u32 target_ip);

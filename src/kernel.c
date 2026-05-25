@@ -1,7 +1,6 @@
 #define OS_X_QEMU
 // #define DISPLAY_START_MSG
 
-#include "config.h"
 #include "kernel.h"
 
 
@@ -67,9 +66,19 @@ O3 static inline void main()
 }
 
 
+O3 static inline ainline void test_net()
+{
+    // i32 arp_send_request(struct pci_device* nic, u32 target_ip)
+    arp_send_request(&nics->dev[0], ip_to_u32(10, 0, 2, 2));
+}
+
+
 void kernel_main()
 {
     disable_interrupts();
+    
+    // init gdt
+    gdt_init();
 
     // inizializzazione heap
     kheap_init();
@@ -80,9 +89,6 @@ void kernel_main()
     );
 
     kernel_directory->switch_directory(kernel_directory);
-
-    // inizializzazione + caricamento della gdt del kernel
-    gdt_init();
 
     // inizializzazione idt + settings hardware components
     idt_init();
@@ -104,22 +110,23 @@ void kernel_main()
     
     // inizializzazione scheda di rete
     init_scheda_rete();
-    
-    // inizializzazione shell
-    init_shell();
 
-    // i32 arp_send_request(struct pci_device* nic, u32 target_ip)
-    arp_send_request(
-        &nics->dev[0],
-        ip_to_u32(10, 0, 2, 2)
-    );
+    test_net();
 
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
     */
     // trigger_BsOD();
 
-    test_int80h();
+    // test_int80h();
+
+    // inizializzazione shell
+    init_shell();
+
+    i32 fd = fopen("0:/hello.txt", "r");
+    if (!fd)
+        kprintf("\nerror, fd value: %i\n", fd);
+
     while (1) {
         main();
         asm volatile("hlt");

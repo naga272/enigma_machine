@@ -7,7 +7,11 @@
 #include "utilities/video/video.h"
 
 
-static inline ainline i32 pathparser_path_valid_format(const char* filename)
+extern void print_hex(size_t);
+extern int kprintf(const char*, ...);
+
+
+O3 static inline ainline i32 pathparser_path_valid_format(const char* filename)
 {
     i32 len = strnlen(filename, KERNEL_FS_MAX_PATH);
     return (len >= 3 && isdigit(filename[0]) && memcmp((void*) &filename[1], ":/", 2) == 0);
@@ -29,7 +33,6 @@ O3 static inline ainline i32 pathparser_get_drive_by_path(const char** path)
     }
 
     i32 drive_no = tonumericdigit(*path[0]);
-
     // Add 3 bytes to skip drive number 0:/ 1:/ 2:/
     *path += 3;
     return drive_no;
@@ -53,25 +56,11 @@ O3 static inline ainline struct path_root* pathparser_create_root(i32 drive_numb
 }
 
 
-O3 static inline ainline const char* pathparser_get_path_part(const char** path)
+O3 static inline ainline char* pathparser_get_path_part(const char** path)
 {
-    /*
-    *   @path: puntatore al puntatore del path da elaborare
-    *
-    *   Estrae una singola parte del path fino al prossimo slash o
-    *   alla fine della stringa. Ad ogni chiamata restituisce una
-    *   nuova porzione del path e avanza il puntatore originale.
-    *   es:
-    *   path = bin/bash.bin 
-    *   char* porzione = pathparser_get_path_part(path);    // porzione = "bin"
-    *   porzione = pathparser_get_path_part(porzione);      // porzione = "bash.bin"
-    **/
-
     char* result_path_part = kcalloc(KERNEL_FS_MAX_PATH);
-    if (result_path_part == 0)
-        print((uchar*) "error nell'allocare result_path_part\n");
+    i32 i = 0;
 
-    int i = 0;
     while (**path != '/' && **path != 0x00) {
         result_path_part[i] = **path;
         *path += 1;
@@ -94,25 +83,17 @@ O3 static inline ainline const char* pathparser_get_path_part(const char** path)
 
 O3 struct path_part* pathparser_parse_path_part(struct path_part* last_part, const char** path)
 {
-    /*
-    *   @last_part: ultimo nodo della lista concatenata già creato
-    *   @path: puntatore al puntatore del path da elaborare
-    *
-    *   Crea una nuova struttura path_part contenente la prossima
-    *   parte del path. Se esiste un nodo precedente, collega il
-    *   nuovo nodo alla lista concatenata.
-    */
     const char* path_part_str = pathparser_get_path_part(path);
-    if (!path_part_str) {
-        print((uchar*) "error in pathparser_get_path_part\n");
+    
+    if (!path_part_str)
+        return 0;
+
+    struct path_part* part = kcalloc(sizeof(struct path_part));
+    if (!part) {
+        print((uchar*) "error: kcalloc failed in pathparser_parse_path_part\n");
         return 0;
     }
 
-    struct path_part* part = kcalloc(sizeof(struct path_part));
-    if (!path_part_str) {
-        print((uchar*) "error in path_part* part\n");
-        return 0;
-    }
     part->part = path_part_str;
     part->next = 0x00;
 
@@ -143,17 +124,8 @@ O3 void pathparser_free(struct path_root* root)
 }
 
 
-O3 struct path_root* pathparser_parse(const char* path, const char* current_dir)
+struct path_root* pathparser_parse(const char* path, const char* current_directory_path)
 {
-    /*
-    *   @path: path assoluto da convertire in una struttura interna
-    *   @current_dir: directory corrente utilizzata per eventuali path relativi
-    *
-    *   Analizza il path ricevuto, estrae il numero del drive e divide
-    *   il resto del path nelle sue singole componenti. Restituisce una
-    *   struttura path_root contenente il drive e una lista concatenata
-    *   delle directory o file presenti nel path.
-    */
     int res = 0;
     const char* tmp_path = path;
     struct path_root* path_root = 0;
@@ -163,23 +135,26 @@ O3 struct path_root* pathparser_parse(const char* path, const char* current_dir)
 
     res = pathparser_get_drive_by_path(&tmp_path);
     if (res < 0) {
-        print((uchar*) "error in pathparser_get_drive_by_path\n");
+        print((uchar*) "pathparser_get_drive_by_path error\n");
         goto out;
     }
 
     path_root = pathparser_create_root(res);
+    if (!path_root) {
+        print((uchar*) "pathparser_create_root error\n");
+        goto out;
+    }
 
     struct path_part* first_part = pathparser_parse_path_part(NULL, &tmp_path);
     if (!first_part) {
-        print((uchar*) "error in pathparser_parse_path_part\n");
+        print((uchar*) "pathparser_parse_path_part error\n");
         goto out;
     }
 
     path_root->first = first_part;
     struct path_part* part = pathparser_parse_path_part(first_part, &tmp_path);
-    while (part) {
+    while (part)
         part = pathparser_parse_path_part(part, &tmp_path);
-    }
     
 out:
     return path_root;

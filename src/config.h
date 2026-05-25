@@ -94,7 +94,7 @@ typedef unsigned short ushort;
 
 #define ENIGMAOS_SECTOR_SIZE 512
 
-#define KERNEL_FS_MAX_PATH 100
+#define KERNEL_FS_MAX_PATH 108
 
 #define ENIGMAOS_MAX_FILESYSTEMS 12
 

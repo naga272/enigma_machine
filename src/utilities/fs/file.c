@@ -10,6 +10,8 @@
 #include "config.h"
 #include "utilities/video/video.h"
 
+extern void print_hex(size_t);
+extern int kprintf(const char*, ...);
 
 /* VFS
 * Gestisce i filesystem registrati e i file descriptor globali.
@@ -83,7 +85,7 @@ void fs_init()
 }
 
 
-static inline ainline i32 file_new_descriptor(struct file_descriptor** desc_out)
+O3 static inline ainline i32 file_new_descriptor(struct file_descriptor** desc_out)
 {
     i32 res = -ENOMEM;
     for (i32 i = 0; i < ENIGMAOS_MAX_FILE_DESCRIPTORS; i++) {
@@ -123,7 +125,7 @@ struct filesystem* fs_resolve(struct disk* disk)
             break;
         }
     }
-
+    print_hex((size_t) fs);
     return fs;
 }
 
@@ -145,9 +147,6 @@ FILE_MODE file_get_mode_by_string(const char* str)
 
 i32 fopen(const char* filename, const char* mode_str)
 {
-    print((uchar*) filename);
-    print((uchar*) "\n");
-
     i32 res = 0;
     struct path_root* root_path = pathparser_parse(filename, NULL);
 
@@ -159,6 +158,7 @@ i32 fopen(const char* filename, const char* mode_str)
 
     // We cannot have just a root path with 0:/
     if (!root_path->first) {
+        kprintf("We cannot have just a root path with 0:/\n");
         res = -EINVARG;
         goto out;
     }
@@ -166,11 +166,13 @@ i32 fopen(const char* filename, const char* mode_str)
     // Ensure the disk we are reading from exists
     struct disk* disk = disk_get(root_path->drive_no);
     if (!disk) {
+        kprintf("Ensure the disk we are reading from exists\n");
         res = -EIO;
         goto out;
     }
 
     if (!disk->filesystem) {
+        kprintf("!disk->filesystem\n");
         res = -EIO;
         goto out;
     }
@@ -204,4 +206,24 @@ out:
         res = 0;
 
     return res;
+}
+
+
+i32 fread(void* ptr, u32 size, u32 nmemb, i32 fd)
+{
+    if (size == 0 || nmemb == 0 || fd < 1)
+        return -1;
+
+    struct file_descriptor* descriptor = file_get_descriptor(fd);
+
+    if (!descriptor)
+        return -1;
+
+    return descriptor->filesystem->read(
+        descriptor->disk,
+        descriptor->private,
+        size,
+        nmemb,
+        (char*) ptr
+    );
 }
