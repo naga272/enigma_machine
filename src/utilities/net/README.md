@@ -1000,7 +1000,6 @@ Il ragionamento è di impacchettare tutto quello che arriva in ethernet_send, pa
 *    v
 *  send_rtl8139()    (rtl8139.c)
 *
-*
 * es:
 *
 *           ethernet_send()    -> layer 2
@@ -1260,7 +1259,7 @@ Il pacchetto che dobbiamo formattare deve essere fatto in questo modo:
 Dobbiamo quindi prima preoccuparci di scrivere il contenuto ARP e poi incapsularlo dentro al frame ethernet.
 
 ```C
-#define IPv4 0x0800
+#define PROTOCOL_IPv4 0x0800
 #define PROTOCOL_ARP 0x0806
 
 

@@ -207,23 +207,3 @@ out:
 
     return res;
 }
-
-
-i32 fread(void* ptr, u32 size, u32 nmemb, i32 fd)
-{
-    if (size == 0 || nmemb == 0 || fd < 1)
-        return -1;
-
-    struct file_descriptor* descriptor = file_get_descriptor(fd);
-
-    if (!descriptor)
-        return -1;
-
-    return descriptor->filesystem->read(
-        descriptor->disk,
-        descriptor->private,
-        size,
-        nmemb,
-        (char*) ptr
-    );
-}

@@ -13,7 +13,8 @@
 
 
 extern void set_message_x_panic(uchar* msg);
-
+void gestisci_char_to_write(uchar tmp_char_container);
+extern i32 kprintf(const char* fmt, ...);
 
 extern uchar core_enigma(uchar);
 extern KB_FLAGS f_t;
@@ -22,6 +23,7 @@ extern KB_FLAGS f_t;
 uchar buffer_line_cmd[SIZE_COMMAND_SHELL];
 size_t idx_buff = 0;
 u8 is_ended_setup = 0;
+u8 first_rendering = 1;
 
 
 book_t* book_shell = NULL;
@@ -44,7 +46,7 @@ O3 void disable_cursor()
 }
 
 
-static inline void ainline delay(volatile u32 count)
+O3 static inline void ainline delay(volatile u32 count)
 {
     /*
     * @count: indica il "timer"
@@ -131,7 +133,7 @@ O3 static inline ainline void do_backspace()
     terminal_col--;
     terminal_writechar(' ', actual_color_terminal);
     terminal_col--;
-    // print((uchar*) buffer_line_cmd);
+
     vga_update_cursor();
 }
 
@@ -187,7 +189,7 @@ O3 void print(const uchar* string)
 }
 
 
-void print_hex(u32 val)
+O3 void print_hex(u32 val)
 {
     // "0x" + 8 cifre + '\0'
     uchar hex[11];
@@ -210,6 +212,7 @@ void print_num_hex_no_pad(u32 val)
 {
     // 10 cifre + '\0'
     uchar hex[11];
+
     hex[0] = '0';
     hex[1] = '0';
 
@@ -221,6 +224,7 @@ void print_num_hex_no_pad(u32 val)
         else
             hex[2 + i] = 'A' + (nibble - 10);
     }
+
     hex[10] = '\0';
     uchar* ptr = hex;
 
@@ -251,65 +255,30 @@ O3 void panic(const uchar* msg, struct regs_t* status_reg)
     terminal_col = 0;
     terminal_row = 0;
 
-    // show a message that explain what happened
-    print(msg);
+    char* msg_fmt = "%s%seax=%i\tebx=%i\tecx=%i\tedx=%i\tedi=%i\tesi=%i\tebp=%i\tesp=%i\teflags=%i\teip=%i\tcs=%i\tint.no.=%i\t";
 
-    // show panic face
-    print(panic_face);
-
-    // show status register
-    print((uchar*) "eax=");
-    print_hex(status_reg->eax);
-    print((uchar*) "\t");
-
-    print((uchar*) "ebx=");
-    print_hex(status_reg->ebx);
-    print((uchar*) "\t");
-
-    print((uchar*) "ecx=");
-    print_hex(status_reg->ecx);
-    print((uchar*) "\t");
-
-    print((uchar*) "edx=");
-    print_hex(status_reg->edx);
-    print((uchar*) "\n");
-
-    print((uchar*) "edi=");
-    print_hex(status_reg->edi);
-    print((uchar*) "\t");
-
-    print((uchar*) "esi=");
-    print_hex(status_reg->esi);
-    print((uchar*) "\t");
-
-    print((uchar*) "ebp=");
-    print_hex(status_reg->ebp);
-    print((uchar*) "\t");
-
-    print((uchar*) "esp=");
-    print_hex(status_reg->esp);
-    print((uchar*) "\n");
-
-    print((uchar*) "eflags=");
-    print_hex(status_reg->eflags);
-    print((uchar*) "\t");
-
-    print((uchar*) "eip=");
-    print_hex(status_reg->eip);
-    print((uchar*) "\t");
-
-    print((uchar*) "cs=");
-    print_hex(status_reg->cs);
-    print((uchar*) "\t");
-    
-    print((uchar*) "intno=");
-    print_hex(status_reg->int_no);
+    kprintf(
+        msg_fmt,
+        msg,
+        panic_face,
+        status_reg->eax,
+        status_reg->ebx,
+        status_reg->ecx,
+        status_reg->edx,
+        status_reg->edi,
+        status_reg->esi,
+        status_reg->ebp,
+        status_reg->esp,
+        status_reg->eflags,
+        status_reg->eip,
+        status_reg->cs,
+        status_reg->int_no
+    );
 
     disable_cursor();
 }
 
 
-u8 first_rendering = 1;
 O3 void render_time()
 {
     if (!t.rtc_dirty && !first_rendering)
@@ -327,10 +296,9 @@ O3 void render_time()
         t.ore++;
     }
 
-    if (t.ore == 24) {
-        // per evitare troppi casini, tanto capita una sola volta in 24h
+    // per evitare troppi casini, tanto capita una sola volta in 24h    
+    if (t.ore == 24)
         rtc_get_time(&t);
-    }
 
     u8 tmp_terminal_col = terminal_col;
     u8 tmp_terminal_row = terminal_row;
@@ -358,7 +326,7 @@ O3 void render_time()
     time_formatted[13] = '0' + (t.ore / 10);
     time_formatted[14] = '0' + (t.ore % 10);
     time_formatted[15] = ':';
-    
+
     time_formatted[16] = '0' + (t.min / 10);
     time_formatted[17] = '0' + (t.min % 10);
     time_formatted[18] = ':';
@@ -401,11 +369,10 @@ O3 void terminal_initialize(u8 colore)
     memset(buffer_line_cmd, 0, SIZE_COMMAND_SHELL);
     idx_buff = 0;
     enable_cursor((u8) 1, (u8) 0);
-
 }
 
 
-void clean_bff_cmd_line()
+O3 void clean_bff_cmd_line()
 {
     memset(buffer_line_cmd, 0, idx_buff);
     idx_buff = 0;
@@ -424,17 +391,14 @@ O3 static inline ainline void start_encryption()
 }
 
 
-void gestisci_char_to_write(uchar tmp_char_container);
-
-
-void display_new_page(page_t* page)
+O3 void display_new_page(page_t* page)
 {
     for (size_t idx = 0; idx < VGA_WIDTH * VGA_HEIGHT; idx++)
         gestisci_char_to_write(page->celle[idx]);
 }
 
 
-static inline ainline void create_new_page()
+O3 static inline ainline void create_new_page()
 {
     book_shell->pages = krealloc(
         book_shell->pages,
@@ -451,9 +415,9 @@ static inline ainline void create_new_page()
 
 O3 static inline ainline void change_page_shell_inc()
 {
-    if (book_shell->actual_index + 1 == book_shell->tot_num_page) {
+    if (book_shell->actual_index + 1 == book_shell->tot_num_page)
         create_new_page(book_shell);
-    }
+
     book_shell->actual_index++;
     display_new_page(book_shell->pages[book_shell->actual_index]);
 }
@@ -468,19 +432,18 @@ O3 static inline ainline void change_page_shell_dec()
 
     f_t.change_page_shell_left = 0;
     f_t.change_page_shell_right = 0;
+
     display_new_page(book_shell->pages[book_shell->actual_index]);
 }
 
 
 O3 static inline ainline void check_status_kb_flags_t()
 {
-    if (f_t.change_page_shell_left) {
+    if (f_t.change_page_shell_left)
         change_page_shell_dec();
-    }
 
-    if (f_t.change_page_shell_right) {
+    if (f_t.change_page_shell_right)
         change_page_shell_inc();
-    }
 
     f_t.change_page_shell_left = 0;
     f_t.change_page_shell_right = 0;
@@ -500,12 +463,8 @@ void gestisci_char_to_write(uchar tmp_char_container)
     }
 
     if (CHAR_END_PHRASE(tmp_char_container)) {
-        if (is_ended_setup) {
-            if (!try_execute_comm(buffer_line_cmd)) 
-                start_encryption();
-            else
-                clean_bff_cmd_line();
-        }
+        if (is_ended_setup)
+            (!try_execute_comm(buffer_line_cmd))? start_encryption() : clean_bff_cmd_line();
         return;
     }
 

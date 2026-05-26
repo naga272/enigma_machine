@@ -14,7 +14,6 @@
 extern void set_message_x_panic(uchar* msg);
 i32 fat16_resolve(struct disk* disk);
 void* fat16_open(struct disk* disk, struct path_part* path, FILE_MODE mode);
-i32 fat16_read(struct disk* disk, void* descriptor, u32 size, u32 nmemb, char* out_ptr);
 
 
 extern void print_hex(size_t);
@@ -236,7 +235,6 @@ struct fat_private
 struct filesystem fat16_fs = {
     .resolve = fat16_resolve,
     .open = fat16_open,
-    .read = fat16_read
 };
 
 
@@ -727,26 +725,4 @@ void* fat16_open(struct disk* disk, struct path_part* path, FILE_MODE mode)
 
     descriptor->pos = 0;
     return descriptor;
-}
-
-
-
-extern void cls();
-
-i32 fat16_read(struct disk* disk, void* descriptor, u32 size, u32 nmemb, char* out_ptr)
-{
-    i32 res = 0;
-
-    struct fat_file_descriptor* fat_desc = descriptor;
-
-    struct fat_directory_item* item = fat_desc->item->item;
-
-    i32 offset = fat_desc->pos;
-
-    for (u32 i = 0; i < nmemb; i++) {
-        res = fat16_read_internal(disk, fat16_get_first_cluster(item), offset, size, out_ptr);
-        if (res < 0)
-            return res;
-    }
-    return res;
 }

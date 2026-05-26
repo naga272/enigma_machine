@@ -107,7 +107,7 @@ void kernel_main()
 
     // inizializzazione pci
     search_all_device_pci();
-    
+
     // inizializzazione scheda di rete
     init_scheda_rete();
 
