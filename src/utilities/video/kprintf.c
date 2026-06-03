@@ -1,18 +1,33 @@
 #include "utilities/video/kprintf.h"
 #include "utilities/memory/heap/malloc.h"
+#include "utilities/string/string.h"
 #include <stdarg.h>
 
 
 // void terminal_writechar(uchar, char);
+volatile i8 lvl_info_support = 4;
 
 
-void putchar(char c) {
+volatile uchar kprintd_color[4] = {
+    ROSSO,
+    GIALLO,
+    VERDE,
+    BIANCO
+};
+
+
+void putchar(char c)
+{
     terminal_writechar((uchar) c, actual_color_terminal);
 }
 
 
 O3 char* int_to_bin(i32 num, char* c)
 {
+    /* 
+    * dato @num intero inserisco quel numero in formato binario
+    * all'interno dell'array puntato da @c
+    * */
     if (num == 0) {
         c[0] = '0';
         return c;
@@ -116,4 +131,42 @@ O3 i32 kprintf(const char* fmt, ...)
 
     va_end(args_list);
     return len;
+}
+
+
+O3 i32 kprintd(char* fmt)
+{
+    /*
+    * kernel print debug
+    * i primi char devono essere formattati in questo modo:
+    * "<n>resto del messaggio"
+    * La funzione va a prendere n (numero intero) per scegliere il colore da usare
+    * per stampare i char a schermo (vedi config.h).
+    * In caso di mal formattazione della stringa viene stampato a schermo un allert.
+    * Se n possiede un valore uguale o inferio di lvl_info_support il messaggio
+    * viene considerato e stampato, altrimento viene ignorato
+    */
+    if ((fmt[0] != '<' && fmt[2] != '>') || !isdigit(fmt[1]))
+        return kprintd(KWARN "\nkprintd bad formatted\n");
+
+    u8 level_log = fmt[1] - 48;
+
+    if (level_log < 0 && level_log > 4)
+        return kprintd(KWARN "kprintd bad formatted (number error)\n");
+
+    if (level_log > lvl_info_support)
+        return 0;
+
+    uchar tmp_col_term = actual_color_terminal;
+
+    actual_color_terminal = kprintd_color[level_log];
+
+    // push (rdi + 3),
+    // rdi quando esce tiene sempre offset base di fmt
+    print((uchar*) (fmt + 3));
+
+    // ripristino
+    actual_color_terminal = tmp_col_term;
+
+    return 0;
 }

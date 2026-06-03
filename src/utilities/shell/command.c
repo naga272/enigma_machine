@@ -65,6 +65,7 @@ u8 power_off()
 
 u8 cls()
 {
+    // clean shell
     terminal_initialize(actual_color_terminal);
     print((uchar*) ">>> ");
     return 1;
@@ -73,16 +74,24 @@ u8 cls()
 
 u8 ifconfig()
 {
+    /*
+    * funzione che consente la visualizzazione di tutte le caratteristiche
+    * delle nic trovate collegate al pci
+    * */
     for (size_t idx = 0; idx != nics->tot_num_device; idx++) {
         struct pci_device* nic = &nics->dev[idx];
+
+        // meno accessi in ram
+        net_ops_t* methods_nic = (net_ops_t*) nic->priv_methods;
+
         kprintf(
             "\n=== NIC NUMBER %i ===\nName: %s\nVendor: %s\nBar 0: %i\n",
             nics->tot_num_device,
-            ((net_ops_t*) nic->priv_methods)->get_name_dev(nic),
-            ((net_ops_t*) nic->priv_methods)->get_vendor_dev(nic),
-            ((net_ops_t*) nic->priv_methods)->get_bar0_dev(nic)
+            methods_nic->get_name_dev(nic),
+            methods_nic->get_vendor_dev(nic),
+            methods_nic->get_bar0_dev(nic)
         );
-        ((net_ops_t*) nic->priv_methods)->print_mac(nic);
+        methods_nic->print_mac(nic);
     }
     print((uchar*) "\n>>> ");
     return 1;

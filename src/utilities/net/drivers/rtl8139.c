@@ -99,8 +99,7 @@ O3 static inline ainline void check_isr(struct pci_device* nic)
 
     u16 isr = insw(rtl->io_base + 0x3E);
 
-    print((uchar*) "\nISR: ");
-    print_hex((u32) isr);
+    kprintf("\nISR: %i\n", (u32) isr);
 
     // clear interrupt flags
     outw(rtl->io_base + 0x3E, isr);
@@ -128,17 +127,18 @@ O3 static inline ainline i32 send_rtl8139(struct pci_device* dev, void* data, u3
 
 O3 static inline ainline i32 recv_rtl8139(struct pci_device* dev, void* out, u32 max_len)
 {
-    /* Not yet ready */
     rtl8139_dev_t* rtl = dev->priv;
 
-    print((uchar*) "Aspetto pacchetto...\n");
-    int timeout = 10000000;
+    /* Not yet ready */
+    kprintd(KMSG "Aspetto pacchetto...\n");
+
+    i32 timeout = 10000000;
 
     // 0x01 è il bit BUFE (Buffer Empty)
     while (!(insw(rtl->io_base + 0x3E) & 0x01)) { 
         timeout--;
         if (timeout <= 0) {
-            print((uchar*)"Timeout! Nessun pacchetto ricevuto.\n");
+            kprintd(KWARN "Timeout! Nessun pacchetto ricevuto.\n");
             return 0;
         }
     }
@@ -153,7 +153,7 @@ O3 static inline ainline i32 recv_rtl8139(struct pci_device* dev, void* out, u32
         return -1;
 
     if (status & (1 << 1)) // RER (Receive Error) o altri bit di errore dell'header
-        set_message_x_panic((uchar*) "recv status error");
+        kprintd(KERR "recv status error");
 
     u16 copy_len = (len > max_len) ? max_len : len;
 
@@ -187,7 +187,7 @@ O3 static inline ainline i32 recv_rtl8139(struct pci_device* dev, void* out, u32
 }
 
 
-O3 static inline void init_rx_buffer_rtl8139(struct pci_device* nic)
+O3 static inline ainline void init_rx_buffer_rtl8139(struct pci_device* nic)
 {
     /*
      RX Buffer:

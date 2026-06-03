@@ -40,22 +40,6 @@ typedef unsigned short ushort;
 #define ainline __attribute__((always_inline))
 #endif
 
-#ifndef KERR
-#define KERR "<0>"
-#endif
-
-#ifndef KWARN
-#define KWARN "<1>"
-#endif
-
-#ifndef KINFO
-#define KINFO "<2>"
-#endif
-
-#ifndef KDBG
-#define KDBG "<3>"
-#endif
-
 /* STANDARD COLOR */
 #define NERO            0
 #define BLU             1

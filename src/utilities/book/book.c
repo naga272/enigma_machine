@@ -2,6 +2,7 @@
 #include "utilities/memory/heap/malloc.h"
 #include "utilities/video/video.h"
 #include "utilities/book/book.h"
+#include "utilities/video/kprintf.h"
 
 
 extern KB_FLAGS f_t;
@@ -95,7 +96,12 @@ O3 static inline ainline void __book_del_book(struct book* self)
 
 struct book* init_book(u32 num_pg)
 {
-    struct book* init = (struct book*) kmalloc(sizeof(struct book));
+    struct book* init = (struct book*) kcalloc(sizeof(struct book));
+    if (!init) {
+        kprintd(KWARN "Error allocation in init_book\n");
+        return NULL;
+    }
+
     init->total_pg = num_pg;
     init->idx_last_pg = 0;
     init->idx_pg = 0;
@@ -107,8 +113,13 @@ struct book* init_book(u32 num_pg)
 
     init->pg = kmalloc(sizeof(struct page*) * init->total_pg);
 
-    for (u32 counter = 0; counter < num_pg; counter++)
-        init->pg[counter] = init_page();
+    for (u32 counter = 0; counter < num_pg; counter++) {
+        struct page* pg = init_page();
+        if (!pg)
+            kprintd(KWARN "error allocation page in init_book\n");
+    
+        init->pg[counter] = pg;
+    }
 
     return init;
 }

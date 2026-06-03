@@ -3,13 +3,19 @@
 
 #include "utilities/io/io.h"
 #include "utilities/memory/heap/malloc.h"
-#include "utilities/video/video.h"
+#include "utilities/video/kprintf.h"
 
 
 #define CONFIG_ADDRESS 0xCF8
 #define CONFIG_DATA 0xCFC
 #define PCI_NONE 0xFFFF
 #define DEVICE_INESISTENTE(vendor) (vendor == PCI_NONE)
+
+#define ID_ERR 0x00
+#define ID_MSC 0x01
+#define ID_NIC 0x02
+#define ID_DC 0x03
+#define ID_BD 0x06
 
 
 struct pci_bar {

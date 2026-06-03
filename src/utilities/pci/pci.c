@@ -323,18 +323,18 @@ O3 static inline ainline u8 pci_get_subclass(u8 bus, u8 slot, u8 func)
 O3 static inline ainline pci_dev_list_t* dynamic_insert_in_struct(pci_dev_list_t* array, struct pci_device *dev)
 {
     /*
-    * Per evitare di scrivere questo codice per tutte le funzioni dei vari dispositiv,
+    * Per evitare di scrivere questo codice per tutte le funzioni dei vari dispositivi,
     * ho deciso di astrarre.
     * */
     if (array == NULL) {
         array = kmalloc(sizeof(pci_dev_list_t));
 
         if (!array)
-            set_message_x_panic((uchar*) "Error alloc in insert_in_network_controller (nic == null)");
+            kprintd((uchar*) "Error alloc in insert_in_network_controller (nic == null)");
 
         array->dev = kmalloc(sizeof(struct pci_device));
         array->tot_num_device = 0;
-    } else {
+    } else {    
         array->dev = krealloc(
             array->dev,
             array->tot_num_device * sizeof(struct pci_device),
@@ -343,7 +343,7 @@ O3 static inline ainline pci_dev_list_t* dynamic_insert_in_struct(pci_dev_list_t
     }
 
     if (!array->dev)
-        set_message_x_panic((uchar*) "Error realloc in insert_in_network_controller (nic == null)");
+        kprintd((uchar*) "Error realloc in insert_in_network_controller (nic == null)");
 
     array->dev[array->tot_num_device] = *dev;
     array->tot_num_device++;
@@ -355,24 +355,24 @@ O3 static inline ainline void pci_memorize_device(struct pci_device *dev)
 {
     /*
     *  classi:
-    *      0x01 -> Mass Storage Controller (dispositivo di archiviazione)
-    *      0x02 -> Network Controller
-    *      0x03 -> Display Controller
-    *      0x06 -> Bridge Device
+    *      0x01 (ID_MSC) -> Mass Storage Controller (dispositivo di archiviazione)
+    *      0x02 (ID_NIC) -> Network Controller
+    *      0x03 (ID_DC) -> Display Controller
+    *      0x06 (ID_BD) -> Bridge Device
     */
     switch (dev->class_code) {
-        case 0x00:
+        case ID_ERR:
             break;  // dispositivo non riconosciuto
-        case 0x01:
+        case ID_MSC:
             massStocs = dynamic_insert_in_struct(massStocs, dev);
             break;
-        case 0x02:
+        case ID_NIC:
             nics = dynamic_insert_in_struct(nics, dev);
             break;
-        case 0x03:
+        case ID_DC:
             gpus = dynamic_insert_in_struct(gpus, dev);
             break;
-        case 0x06:
+        case ID_BD:
             brcs = dynamic_insert_in_struct(brcs, dev);
             break;    
         default:
@@ -391,7 +391,7 @@ O3 void search_all_device_pci()
                 if (DEVICE_INESISTENTE(vendor))
                     continue;
 
-                struct pci_device dev = {0};
+                struct pci_device dev = { 0 };
 
                 dev.bus         = bus;
                 dev.slot        = slot;
