@@ -45,7 +45,7 @@ O3 struct task* get_next_task()
 }
 
 
-O3 static inline ainline void task_list_remove(struct task* task)
+O3 ainline void task_list_remove(struct task* task)
 {
     if (task->prev)
         task->prev->next = task->next;
@@ -61,7 +61,7 @@ O3 static inline ainline void task_list_remove(struct task* task)
 }
 
 
-O3 int task_free(struct task* task) 
+O3 i32 task_free(struct task* task) 
 {
     task->page_directory->__del__(task->page_directory);
     task_list_remove(task);
@@ -70,7 +70,7 @@ O3 int task_free(struct task* task)
 }
 
 
-O3 int task_init(struct task* task)
+O3 i32 task_init(struct task* task)
 {
     memset(task, 0, sizeof(struct task));
     // remap di tutti i 4 gb del task
@@ -91,7 +91,7 @@ O3 int task_init(struct task* task)
 
 O3 struct task* task_new()
 {
-    int res = 0;
+    i32 res = 0;
     struct task* task = kcalloc(sizeof(struct task));
     
     if (!task)

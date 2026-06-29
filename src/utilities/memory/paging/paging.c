@@ -2,10 +2,16 @@
 #include "utilities/memory/heap/malloc.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione per il paging (di tipo identity mapped)");
+
+
 static u32* current_directory = 0;
+extern void set_message_x_panic(uchar* msg);
 
 
-O3 static inline ainline void init_page_table(u32* page_table, u32 offset, u8 flags)
+O3 ainline void init_page_table(u32* page_table, u32 offset, u8 flags)
 {
     /* inizializza ogni voce puntata dalla page table */
     for (u32 i = 0; i < SIZE_PAGE_TABLE; i++)
@@ -13,7 +19,7 @@ O3 static inline ainline void init_page_table(u32* page_table, u32 offset, u8 fl
 }
 
 
-O3 static inline ainline struct paging_4gb_chunk* init_page_directory(u8 flags)
+O3 ainline struct paging_4gb_chunk* init_page_directory(u8 flags)
 {
     /* 
     *   inizializza la tabella per la directory page
@@ -64,7 +70,7 @@ O3 void __del_paging_directory(struct paging_4gb_chunk* self)
         u32 entry = self->directory_entry[idx];
         u32 *table = (u32*) (entry & 0xfffff000);
         kfree(table);
-    }        
+    }
     kfree(self->directory_entry);
     kfree(self);
 }
@@ -73,6 +79,10 @@ O3 void __del_paging_directory(struct paging_4gb_chunk* self)
 struct paging_4gb_chunk* paging_new_4gb(u8 flags)
 {
     struct paging_4gb_chunk* chunk = init_page_directory(flags);
+
+    if (!chunk)
+        set_message_x_panic((uchar*) "init_page_directory fail");
+
     chunk->get_paging_directory = __get_paging_directory;
     chunk->switch_directory = __switch_directory;
     chunk->__del__ = __del_paging_directory;

@@ -5,25 +5,30 @@
 #include "utilities/string/string.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("driver per la gestione e configurazione dei dispositivi rtl8139");
+
+
 extern void print_hex(size_t);
 
 #define RTL_RX_OK   (1 << 0)
 #define RTL_RX_ERR  (1 << 1)
 
 
-O3 static inline ainline uchar* get_name_dev_rtl8139(struct pci_device* nic)
+O3 ainline uchar* get_name_dev_rtl8139(struct pci_device* nic)
 {
     return (uchar*) "rtl8139";
 }
 
 
-O3 static inline ainline uchar* get_vendor_dev_rtl8139(struct pci_device* nic)
+O3 ainline uchar* get_vendor_dev_rtl8139(struct pci_device* nic)
 {
     return (uchar*) "Realtek Semiconductor";
 }
 
 
-O3 static inline ainline void insert_mac_addr_in_struct(rtl8139_dev_t* rtl)
+O3 ainline void insert_mac_addr_in_struct(rtl8139_dev_t* rtl)
 {
     /*
     * Tramite l'indirizzo di BAR0 ricavato durante lo scan del PCI
@@ -34,14 +39,14 @@ O3 static inline ainline void insert_mac_addr_in_struct(rtl8139_dev_t* rtl)
 }
 
 
-O3 static inline ainline u8* get_mac_addr_dev(struct pci_device* nic)
+O3 ainline u8* get_mac_addr_dev(struct pci_device* nic)
 {
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
     return rtl->mac;
 }
 
 
-O3 static inline ainline void print_mac(struct pci_device* nic)
+O3 ainline void print_mac(struct pci_device* nic)
 {
     rtl8139_dev_t* rtl = (rtl8139_dev_t*) nic->priv;
 
@@ -57,7 +62,7 @@ O3 static inline ainline void print_mac(struct pci_device* nic)
 }
 
 
-O3 static inline ainline void reset_rtl8139(struct pci_device* nic)
+O3 ainline void reset_rtl8139(struct pci_device* nic)
 {
     /*
     * A questo punto rtl potrebbe avere i registri ancora sporchi
@@ -77,7 +82,7 @@ O3 static inline ainline void reset_rtl8139(struct pci_device* nic)
 }
 
 
-O3 static inline ainline void check_isr(struct pci_device* nic)
+O3 ainline void check_isr(struct pci_device* nic)
 {
     /* Interrupt Status Register
     * La RTL8139 aggiorna alcuni bit quando succedono eventi:
@@ -107,7 +112,7 @@ O3 static inline ainline void check_isr(struct pci_device* nic)
 }
 
 
-O3 static inline ainline i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
+O3 ainline i32 send_rtl8139(struct pci_device* dev, void* data, u32 len)
 {
     rtl8139_dev_t* rtl = dev->priv;
 
@@ -126,7 +131,7 @@ O3 static inline ainline i32 send_rtl8139(struct pci_device* dev, void* data, u3
 }
 
 
-O3 static inline ainline i32 recv_rtl8139(struct pci_device* dev, void* out, u32 max_len)
+O3 ainline i32 recv_rtl8139(struct pci_device* dev, void* out, u32 max_len)
 {
     /* Not yet ready */
     rtl8139_dev_t* rtl = dev->priv;
@@ -187,7 +192,7 @@ O3 static inline ainline i32 recv_rtl8139(struct pci_device* dev, void* out, u32
 }
 
 
-O3 static inline void init_rx_buffer_rtl8139(struct pci_device* nic)
+O3 ainline void init_rx_buffer_rtl8139(struct pci_device* nic)
 {
     /*
      RX Buffer:
@@ -236,7 +241,7 @@ O3 static inline void init_rx_buffer_rtl8139(struct pci_device* nic)
 }
 
 
-O3 static inline ainline void power_on(struct pci_device* nic)
+O3 ainline void power_on(struct pci_device* nic)
 {
     /* 
     * Abilita il CHIP RTL8139 internamente.

@@ -12,6 +12,11 @@
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione schermo con vga controller");
+
+
 extern void set_message_x_panic(uchar* msg);
 
 
@@ -44,7 +49,7 @@ O3 void disable_cursor()
 }
 
 
-static inline void ainline delay(volatile u32 count)
+void ainline delay(volatile u32 count)
 {
     /*
     * @count: indica il "timer"
@@ -80,7 +85,7 @@ O3 void terminal_put_char(i32 x, i32 y, uchar c, char colour)
 }
 
 
-O3 static inline ainline void vga_update_cursor()
+O3 ainline void vga_update_cursor()
 {
     u16 pos = terminal_row * VGA_WIDTH + terminal_col;
     outb(0x3d4, 0x0f);
@@ -102,14 +107,23 @@ O3 void update_cursor_on_x_y_pos(u16 y, u16 x)
 }
 
 
-O3 static inline ainline void write_new_line()
+O3 ainline void go_start_line()
 {
-    terminal_row++;
     terminal_col = 0;
 }
 
 
-O3 static inline ainline void write_tab(uchar c, char colour)
+O3 ainline void write_new_line()
+{
+    terminal_row++;
+    if (terminal_row >= VGA_HEIGHT)
+        terminal_initialize(actual_color_terminal);
+
+    go_start_line();
+}
+
+
+O3 ainline void write_tab(uchar c, char colour)
 {
     for (u8 i = 0; i != NUM_SPACE_TAB; i++)
         terminal_put_char(terminal_col + i, terminal_row, ' ', colour);            
@@ -118,7 +132,7 @@ O3 static inline ainline void write_tab(uchar c, char colour)
 }
 
 
-O3 static inline ainline void do_backspace()
+O3 ainline void do_backspace()
 {
     if (idx_buff == 0 && is_ended_setup)
         return;
@@ -136,7 +150,7 @@ O3 static inline ainline void do_backspace()
 }
 
 
-O3 static inline ainline void write_char(uchar c, char colour)
+O3 ainline void write_char(uchar c, char colour)
 {
     terminal_put_char(terminal_col, terminal_row, c, colour);
     terminal_col++;
@@ -153,6 +167,9 @@ O3 void terminal_writechar(uchar c, char colour)
     */
 
     switch (c) {
+        case '\r':
+            go_start_line();
+            break;    
         case '\n':
             write_new_line();
             break;
@@ -327,10 +344,9 @@ O3 void render_time()
         t.ore++;
     }
 
-    if (t.ore == 24) {
-        // per evitare troppi casini, tanto capita una sola volta in 24h
+    // per evitare troppi casini, tanto capita una sola volta in 24h
+    if (t.ore == 24)
         rtc_get_time(&t);
-    }
 
     u8 tmp_terminal_col = terminal_col;
     u8 tmp_terminal_row = terminal_row;
@@ -401,7 +417,6 @@ O3 void terminal_initialize(u8 colore)
     memset(buffer_line_cmd, 0, SIZE_COMMAND_SHELL);
     idx_buff = 0;
     enable_cursor((u8) 1, (u8) 0);
-
 }
 
 
@@ -412,7 +427,7 @@ void clean_bff_cmd_line()
 }
 
 
-O3 static inline ainline void start_encryption()
+O3 ainline void start_encryption()
 {
     terminal_writechar('\n', actual_color_terminal);
 
@@ -434,7 +449,7 @@ void display_new_page(page_t* page)
 }
 
 
-static inline ainline void create_new_page()
+O3 ainline void create_new_page()
 {
     book_shell->pages = krealloc(
         book_shell->pages,
@@ -449,7 +464,7 @@ static inline ainline void create_new_page()
 }
 
 
-O3 static inline ainline void change_page_shell_inc()
+O3 ainline void change_page_shell_inc()
 {
     if (book_shell->actual_index + 1 == book_shell->tot_num_page) {
         create_new_page(book_shell);
@@ -459,7 +474,7 @@ O3 static inline ainline void change_page_shell_inc()
 }
 
 
-O3 static inline ainline void change_page_shell_dec()
+O3 ainline void change_page_shell_dec()
 {
     if (book_shell->actual_index == 0)
         book_shell->actual_index = book_shell->tot_num_page - 1;
@@ -472,7 +487,7 @@ O3 static inline ainline void change_page_shell_dec()
 }
 
 
-O3 static inline ainline void check_status_kb_flags_t()
+O3 ainline void check_status_kb_flags_t()
 {
     if (f_t.change_page_shell_left) {
         change_page_shell_dec();

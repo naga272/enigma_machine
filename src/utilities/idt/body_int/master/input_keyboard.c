@@ -5,6 +5,11 @@
 #include "utilities/idt/body_int/master/keyboard_layer.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione e configurazione della tastiera");
+
+
 uchar keyboard_map_QZERTY[128] = {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '\'', 141, '\b', '\t', /* 0x00 - 0x0F */
     'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 138, '+', '\n', 0,             /* 0x10 - 0x1F */
@@ -26,7 +31,7 @@ static volatile u8 extended = 0;
 KB_FLAGS f_t = { 0 };
 
 
-static inline ainline u8 gestisci_special_case(u8 scancode)
+O3 ainline u8 gestisci_special_case(u8 scancode)
 {
     if (extended && scancode == FRECCIA_SINISTRA) {
         if (f_t.ctrlleft)

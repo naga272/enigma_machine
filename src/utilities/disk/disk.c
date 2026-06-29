@@ -6,6 +6,11 @@
 #include "errors_no.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestion driver ATA");
+
+
 /*
  * Driver ATA PIO per accesso a basso livello al disco.
  *
@@ -53,7 +58,7 @@
 struct disk disk;
 
 
-O3 static inline ainline void ata_wait_ready(void)
+O3 ainline void ata_wait_ready(void)
 {
     u8 s;
     do {
@@ -64,7 +69,7 @@ O3 static inline ainline void ata_wait_ready(void)
 }
 
 
-O3 static inline ainline void ata_wait_drq(void)
+O3 ainline void ata_wait_drq(void)
 {
     u8 s;
     for (;;) {

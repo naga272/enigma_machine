@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include "config.h"
+#include "utilities/memory/heap/malloc.h"
 
 extern char* itoa(i32 value, char* buf);
 extern u8 strcmp(const uchar* ptr1, const uchar* ptr2);
@@ -18,6 +19,15 @@ extern i32 strnlen_terminator(const char* str, u32 max, char terminator);
 extern void* memcpy(void* dest, void* src, i32 len);
 extern i32 istrncmp(const char* s1, const char* s2, u32 n);
 extern char* strdup(char*);
+extern void* memmove(void *dest, const void *src, u32 n);
+extern u8 starts_with(char* str, char* prefix);
+extern size_t common_prefix(char* a, char* b);
+
+u8 starts_with(char* str, char* prefix);
+size_t common_prefix(char* a, char* b);
+
+// richiesto dal compilatore usando il flag O3 per certe funzioni
+void* memmove(void *dest, const void *src, u32 n);
 
 char* strdup(char*);
 char* itoa(i32 value, char* buf);

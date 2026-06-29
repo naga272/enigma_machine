@@ -53,7 +53,6 @@ extern void render_time();
 extern void print_hex(u32 val);
 extern void print_num_hex_no_pad(u32 val);
 
-
 extern u8 flag_x_colour_shell;
 extern uchar actual_color_terminal;
 extern volatile u16 terminal_row;

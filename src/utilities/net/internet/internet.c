@@ -1,7 +1,7 @@
 #include "utilities/net/internet/internet.h"
 
 
-static u16 ip_checksum16(const void* data, u32 len) {
+ainline u16 ip_checksum16(const void* data, u32 len) {
     const u16* p = (const u16*) data;
     u32 sum = 0;
 

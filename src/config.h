@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "errors_no.h"
+#include "utilities/module_license.h"
 
 #define EXIT_SUCCESS 0x00
 
@@ -37,7 +38,7 @@ typedef unsigned short ushort;
 #endif
 
 #ifndef ainline
-#define ainline __attribute__((always_inline))
+#define ainline static inline __attribute__((always_inline))
 #endif
 
 #ifndef KERR
@@ -91,6 +92,7 @@ typedef unsigned short ushort;
 
 
 // filesystems
+#define SECTOR_CONFIG 134
 
 #define ENIGMAOS_SECTOR_SIZE 512
 

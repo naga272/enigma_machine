@@ -4,6 +4,11 @@
 #include "utilities/idt/idt.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione dispositivo programmable interrupt timer");
+
+
 // usato in int20h_handler
 u8 num_color = 0;
 

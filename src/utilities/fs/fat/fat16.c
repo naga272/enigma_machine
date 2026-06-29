@@ -9,6 +9,11 @@
 #include "config.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione driver fat16");
+
+
 /* NOT YET READY */
 
 extern void set_message_x_panic(uchar* msg);
@@ -19,6 +24,7 @@ i32 fat16_read(struct disk* disk, void* descriptor, u32 size, u32 nmemb, char* o
 
 extern void print_hex(size_t);
 extern int kprintf(const char*, ...);
+extern void cls();
 
 #define ENIGMAOS_FAT16_SIGNATURE 0x29
 #define ENIGMAOS_FAT16_ENTRY_SIZE 0x02
@@ -247,7 +253,7 @@ struct filesystem* fat16_init()
 }
 
 
-static inline ainline void fat16_init_private(struct disk* disk, struct fat_private* private)
+ainline void fat16_init_private(struct disk* disk, struct fat_private* private)
 {
     memset(private, 0, sizeof(struct fat_private));
     private->cluster_read_stream = diskstreamer_new(disk->id);
@@ -435,25 +441,25 @@ struct fat_directory_item* fat16_clone_directory_item(struct fat_directory_item*
 }
 
 
-O3 static inline ainline u32 fat16_get_first_cluster(struct fat_directory_item* item)
+O3 ainline u32 fat16_get_first_cluster(struct fat_directory_item* item)
 {
     return (item->high_16_bits_first_cluster) | item->low_16_bits_first_cluster;
 };
 
 
-O3 static inline ainline i32 fat16_cluster_to_sector(struct fat_private* private, i32 cluster)
+O3 ainline i32 fat16_cluster_to_sector(struct fat_private* private, i32 cluster)
 {
     return private->root_directory.ending_sector_pos + ((cluster - 2) * private->header.primary_header.sectors_per_cluster);
 }
 
 
-O3 static inline ainline u32 fat16_get_first_fat_sector(struct fat_private* private)
+O3 ainline u32 fat16_get_first_fat_sector(struct fat_private* private)
 {
     return private->header.primary_header.reserved_sectors;
 }
 
 
-O3 static inline ainline i32 fat16_get_fat_entry(struct disk* disk, i32 cluster)
+O3 ainline i32 fat16_get_fat_entry(struct disk* disk, i32 cluster)
 {
     i32 res = -1;
     struct fat_private* private = disk->fs_private;
@@ -480,7 +486,7 @@ out:
 }
 
 
-static i32 fat16_get_cluster_for_offset(struct disk *disk, i32 starting_cluster, i32 offset)
+O3 ainline i32 fat16_get_cluster_for_offset(struct disk *disk, i32 starting_cluster, i32 offset)
 {
     i32 res = 0;
     struct fat_private *private = disk->fs_private;
@@ -522,7 +528,7 @@ out:
 }
 
 
-O3 static inline ainline i32 fat16_read_internal_from_stream(struct disk* disk, struct disk_stream* stream, i32 cluster, i32 offset, i32 total, void* out)
+O3 ainline i32 fat16_read_internal_from_stream(struct disk* disk, struct disk_stream* stream, i32 cluster, i32 offset, i32 total, void* out)
 {
     i32 res = 0;
     struct fat_private* private = disk->fs_private;
@@ -542,7 +548,7 @@ O3 static inline ainline i32 fat16_read_internal_from_stream(struct disk* disk, 
 
     // here there is a bug to fix, don't touch this goto
     // i need to debug the next code and find the bug
-    goto out;
+    // goto out;
 
     res = diskstreamer_seek(stream, starting_pos);
     if (res != 0)
@@ -562,7 +568,7 @@ out:
 }
 
 
-O3 static inline ainline i32 fat16_read_internal(struct disk* disk, i32 starting_cluster, i32 offset, i32 total, void* out)
+O3 ainline i32 fat16_read_internal(struct disk* disk, i32 starting_cluster, i32 offset, i32 total, void* out)
 {
     struct fat_private* fs_private = disk->fs_private;
     struct disk_stream* stream = fs_private->cluster_read_stream;
@@ -729,9 +735,6 @@ void* fat16_open(struct disk* disk, struct path_part* path, FILE_MODE mode)
     return descriptor;
 }
 
-
-
-extern void cls();
 
 i32 fat16_read(struct disk* disk, void* descriptor, u32 size, u32 nmemb, char* out_ptr)
 {

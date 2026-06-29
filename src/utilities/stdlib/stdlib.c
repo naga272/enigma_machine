@@ -1,11 +1,16 @@
 #include "utilities/stdlib/stdlib.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione funzionalita' base + algoritmo WATER_MARK per malloc");
+
+
 void* memset(void *ptr, int c, size_t n)
 {
     char *p = (char *) ptr;
     for (size_t i = 0; i < n; i++)
-        p[i] = (char)c;
+        p[i] = (char) c;
 
     return ptr;
 }
@@ -14,7 +19,7 @@ void* memset(void *ptr, int c, size_t n)
 #ifdef WATER_MARK_ALG
 
 
-static inline ainline void* allocWaterMark(size_t num_bytes)
+O3 ainline void* allocWaterMark(size_t num_bytes)
 {
     /*
     *   Allocazione heap con metodo WaterMark

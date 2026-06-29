@@ -3,6 +3,11 @@
 #include <stdarg.h>
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("stampa a schermo di stringhe formattate");
+
+
 // void terminal_writechar(uchar, char);
 
 
@@ -41,7 +46,7 @@ O3 char* int_to_bin(i32 num, char* c)
 }
 
 
-O3 static inline ainline void gestisci_segnaposto(char segnaposto, va_list* args_list, i32* len)
+O3 ainline void gestisci_segnaposto(char segnaposto, va_list* args_list, i32* len)
 {
     switch (segnaposto) {
         case 's': {

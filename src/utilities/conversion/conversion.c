@@ -2,13 +2,13 @@
 #include "utilities/conversion/conversion.h"
 
 
-O3 static inline ainline u16 switch_endian16(u16 nb)
+O3 ainline u16 switch_endian16(u16 nb)
 {
     return (nb >> 8) | (nb << 8);
 }
 
 
-O3 static inline ainline u32 switch_endian32(u32 nb)
+O3 ainline u32 switch_endian32(u32 nb)
 {
     return ((nb >> 24) & 0xff)       |
             ((nb << 8) & 0xff0000)   |

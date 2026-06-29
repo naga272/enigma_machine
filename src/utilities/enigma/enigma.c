@@ -3,9 +3,15 @@
 #define ENIGMA_SET  // rende possibile la dichiarazione di variabili di enigma/enigma.h
 #include "utilities/enigma/enigma.h"
 #include "utilities/stdlib/stdlib.h"
+#include "utilities/string/string.h"
 
 
-O3 static inline const uchar m_plugboard(const uchar c)
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("modulo per la crittografia di caratteri seguendo la logica della macchina enigma");
+
+
+O3 ainline const uchar m_plugboard(const uchar c)
 {
     /*
         FASE Plugboard:
@@ -23,7 +29,7 @@ O3 static inline const uchar m_plugboard(const uchar c)
             'I' : 'R', 'R' : 'I',   # 'I' == 'R' <--> 'R' == 'i'
             'J' : 'Q', 'Q' : 'J'    # 'J' == 'Q' <--> 'Q' == 'J'
 
-        Se nel testo da criptare, quindi compare un carattere di quelli mappati in questa tabella, verra' sostituito col suo equivalente
+        Se nel testo da criptare compare un carattere di quelli mappati in questa tabella, verra' sostituito col suo equivalente
 
         testo input:
         CIAO
@@ -49,7 +55,7 @@ O3 static inline const uchar m_plugboard(const uchar c)
 }
 
 
-O3 static inline const uchar m_riflettore(const uchar c)
+O3 ainline const uchar m_riflettore(const uchar c)
 {
     // stesso concetto della plugboaqrd
     for (size_t i = 0; i < 26; i++)
@@ -63,7 +69,7 @@ O3 static inline const uchar m_riflettore(const uchar c)
 }
 
 
-static inline uchar* gira_rotore(uchar *rotore)
+O3 ainline uchar* gira_rotore(uchar *rotore)
 {
     // @*rotore: mantiene l'indirizzo dell'inizio dell'array
     
@@ -78,7 +84,7 @@ static inline uchar* gira_rotore(uchar *rotore)
 }
 
 
-O3 static inline uchar rotore_reverse(uchar *rotor, uchar c)
+O3 ainline uchar rotore_reverse(uchar *rotor, uchar c)
 {
     for (u8 i = 0; i < 26; i++)
         if (rotor[i] == c)
@@ -89,7 +95,7 @@ O3 static inline uchar rotore_reverse(uchar *rotor, uchar c)
 }
 
 
-O3 static inline void update_stato_rotori()
+O3 ainline void update_stato_rotori()
 {
     rotore1 = gira_rotore(rotore1);
     count_rotore1++;
@@ -115,7 +121,7 @@ O3 static inline void update_stato_rotori()
 
 O3 uchar core_enigma(uchar container)
 {
-    if (!container)
+    if (!container || container > 'Z' || container < 'A')
         return 0;
 
     container = m_plugboard(container);

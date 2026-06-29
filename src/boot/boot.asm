@@ -89,7 +89,7 @@ gdt_descriptor:
 [BITS 32]
 load32:
     mov eax, 1          ; comincia a leggere dal primo settore del disco
-    mov ecx, 127        ; NB: al variare delle dimensioni del kernel bisogna cambiare il valore di ecx
+    mov ecx, 134        ; NB: al variare delle dimensioni del kernel bisogna cambiare il valore di ecx
     mov edi, 0x0100000  ; carica i settori in ram a partire dall'indirizzo 0x0100000
     call ata_lba_read
 

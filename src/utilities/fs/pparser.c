@@ -7,18 +7,23 @@
 #include "utilities/video/video.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione dei path");
+
+
 extern void print_hex(size_t);
 extern int kprintf(const char*, ...);
 
 
-O3 static inline ainline i32 pathparser_path_valid_format(const char* filename)
+O3 ainline i32 pathparser_path_valid_format(const char* filename)
 {
     i32 len = strnlen(filename, KERNEL_FS_MAX_PATH);
     return (len >= 3 && isdigit(filename[0]) && memcmp((void*) &filename[1], ":/", 2) == 0);
 }
 
 
-O3 static inline ainline i32 pathparser_get_drive_by_path(const char** path)
+O3 ainline i32 pathparser_get_drive_by_path(const char** path)
 {
     /*
     *   @path: puntatore al puntatore del path da elaborare
@@ -39,7 +44,7 @@ O3 static inline ainline i32 pathparser_get_drive_by_path(const char** path)
 }
 
 
-O3 static inline ainline struct path_root* pathparser_create_root(i32 drive_number)
+O3 ainline struct path_root* pathparser_create_root(i32 drive_number)
 {
     /*
     *   @drive_number: numero identificativo del drive associato al path
@@ -56,7 +61,7 @@ O3 static inline ainline struct path_root* pathparser_create_root(i32 drive_numb
 }
 
 
-O3 static inline ainline char* pathparser_get_path_part(const char** path)
+O3 ainline char* pathparser_get_path_part(const char** path)
 {
     char* result_path_part = kcalloc(KERNEL_FS_MAX_PATH);
     i32 i = 0;

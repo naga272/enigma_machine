@@ -6,6 +6,14 @@
 #include "utilities/string/string.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione protocollo ARP");
+
+
+extern i32 kprintf(const char* fmt, ...);
+
+
 /*
 * ==== modulo per il LIVELLO 2 TCP/IP (ETHERNET) ====
 * arp_send_request() (arp.c)
@@ -76,16 +84,18 @@ O3 i32 arp_recv(struct pci_device* nic, u8* mac_out, u32 target_ip)
     if (len <= 0)
         return -1;
 
-    struct ethernet_frame* eth = (struct ethernet_frame*)buffer;
+    struct ethernet_frame* eth = (struct ethernet_frame*) buffer;
 
+    kprintf("analisi ethertype\n");
     if (eth->ethertype != 0x0806)
         return -1;
 
-    struct arp_packet* arp = (struct arp_packet*)eth->payload;
-
+    kprintf("analisi payload\n");
+    struct arp_packet* arp = (struct arp_packet*) eth->payload;
     if (htons_16b(arp->oper) != 2)
         return -1;
 
+    kprintf("check arp->spa\n");
     if (arp->spa != htons_32b(target_ip))
         return -1;
 

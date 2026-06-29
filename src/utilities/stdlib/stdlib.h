@@ -2,6 +2,7 @@
 #define STDLIB_H
 
 #include <stddef.h>
+#include "config.h"
 
 extern void* memset(void *ptr, int, size_t);
 

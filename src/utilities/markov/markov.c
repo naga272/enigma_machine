@@ -3,6 +3,11 @@
 #include "utilities/markov/markov.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("markov model di primo grado (predizione di eventi)");
+
+
 /*
 *   Idea generale
 *   transition del file markov.py
@@ -68,7 +73,7 @@ extern void print_hex(size_t);
 extern void print(uchar*);
 
 
-O3 static inline ainline void panic_table_prediction_idt()
+O3 ainline void panic_table_prediction_idt()
 {
     /*
     *   Se resetto tutta la tabella all'inizio comincera'
@@ -83,7 +88,7 @@ O3 static inline ainline void panic_table_prediction_idt()
 }
 
 
-O3 static inline ainline void check_status_table(uchar before, uchar actual)
+O3 ainline void check_status_table(uchar before, uchar actual)
 {
     /**
      * Uno dei possibili problemi e' che se raggiunge il valore max per un intero
@@ -143,7 +148,7 @@ O3 void insert_markov_entry(uchar new_entry)
 }
 
 
-O3 static inline ainline void init_matrix()
+O3 ainline void init_matrix()
 {
     /*
     * matrice 7x7.

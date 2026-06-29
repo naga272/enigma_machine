@@ -2,6 +2,11 @@
 #include "utilities/video/video.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("scrittura a schermo da lato user-land");
+
+
 i32 do_write(u32 fd, void* buf, size_t count)
 {
     /* 

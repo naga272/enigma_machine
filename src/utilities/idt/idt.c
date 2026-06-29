@@ -18,8 +18,14 @@
 #include "utilities/markov/markov.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione del registro idtr, gestione interrupt e configurazione del pic");
+
+
 #define PIC_ALLOW
 
+extern struct tempo_t t;
 
 struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
 struct idtr_desc idtr_descriptor;                       // rappresenta il registro idtr (interrupt descriptor table register)
@@ -60,7 +66,7 @@ O3 void no_interrupt_handler()
 }
 
 
-O3 static inline ainline void set_status_reg_before_disaster(struct regs_t *r)
+O3 ainline void set_status_reg_before_disaster(struct regs_t *r)
 {
     if (!trigger_exception)
         trigger_exception++;
@@ -454,9 +460,6 @@ O3 void int27h_handler(struct regs_t* r)
 }
 
 
-extern struct tempo_t t;
-
-
 O3 void int28h_handler(struct regs_t* r)
 {
     // vado a disabilitare NMI mentre eseguo l'accesso
@@ -577,7 +580,7 @@ O3 i32 int80h_handler(struct regs_t *r)
 }
 
 
-O3 static inline ainline void idt_set(int interrupt_no, void* address)
+O3 ainline void idt_set(int interrupt_no, void* address)
 {
     /*
     *   @interrupt_no:  Numero dell'interrupt
@@ -592,14 +595,14 @@ O3 static inline ainline void idt_set(int interrupt_no, void* address)
 }
 
 
-O3 static inline ainline void set_default_int()
+O3 ainline void set_default_int()
 {
     for (int i = 0; i < OS_TOTAL_INTERRUPTS; i++)
         idt_set(i, no_interrupt);
 }
 
 
-O3 static inline ainline void init_slave_pic()
+O3 ainline void init_slave_pic()
 {
     // per l'abilitazione dello slave:
     // https://github.com/szhou42/osdev/blob/master/src/kernel/drivers/pic.c
@@ -635,7 +638,7 @@ O3 static inline ainline void init_slave_pic()
 }
 
 
-O3 static inline ainline void init_value_hardware()
+O3 ainline void init_value_hardware()
 {
 
 #ifdef PIC_ALLOW

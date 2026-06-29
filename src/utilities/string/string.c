@@ -1,6 +1,26 @@
 #include "utilities/string/string.h"
-#include "utilities/memory/heap/malloc.h"
 
+
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("permette la gestione elementare di stringhe e caratteri");
+
+
+O3 void *memmove(void *dest, const void *src, u32 n)
+{
+    uchar *d = dest;
+    const uchar *s = src;
+
+    if (d < s) {
+        for (u32 i = 0; i < n; i++)
+            d[i] = s[i];
+    } else {
+        for (u32 i = n; i > 0; i--)
+            d[i - 1] = s[i - 1];
+    }
+
+    return dest;
+}
 
 
 O3 i32 tonumericdigit(char c)
@@ -204,4 +224,29 @@ O3 char* strdup(char* str)
         return ptr;
 
     return (char*) memcpy(ptr, str, idx);
+}
+
+
+u8 starts_with(char* str, char* prefix)
+{
+    while(*prefix) {
+        if (*str != *prefix)
+            return 0;
+
+        str++;
+        prefix++;
+    }
+
+    return 1;
+}
+
+
+size_t common_prefix(char* a, char* b)
+{
+    size_t i = 0;
+
+    while (a[i] && b[i] && a[i] == b[i])
+        i++;
+
+    return i;
 }

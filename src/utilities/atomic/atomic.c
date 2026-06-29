@@ -1,7 +1,9 @@
 #include "utilities/atomic/atomic.h"
 
 
-/* ha rotto le palle la concorrenza */
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione concorrenza tra thread");
 
 
 void atomic_inc(atomic_t *x)

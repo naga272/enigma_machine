@@ -1,12 +1,12 @@
 #include "config.h"
 
 #include "utilities/io/io.h"
-#include "utilities/shell/command.h"
-#include "utilities/string/string.h"
-#include "utilities/video/video.h"
 #include "utilities/video/kprintf.h"
+#include "utilities/shell/command.h"
 #include "utilities/pci/pci.h"
 #include "utilities/net/net.h"
+#include "utilities/patricia_tree/patricia_tree.h"
+#include "utilities/idt/body_int/slave/rtc_orologio.h"
 
 
 #define OS_X_QEMU
@@ -17,13 +17,21 @@
 #endif
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione comandi per la shell");
+
+
 extern pci_dev_list_t* nics;
+extern struct tempo_t t;
 
 
-uchar* vec_reboot_comm = (uchar*) "RELOAD";
-uchar* vec_power_off_comm = (uchar*) "QUIT";
-uchar* vec_cls_comm = (uchar*) "CLS";
-uchar* vec_ifconfig_comm = (uchar*) "IFCONFIG";
+uchar* vec_reload_time_comm = (uchar*) "RELOAD_TIME";
+uchar* vec_reboot_comm      = (uchar*) "REBOOT";
+uchar* vec_power_off_comm   = (uchar*) "QUIT";
+uchar* vec_cls_comm         = (uchar*) "CLS";
+uchar* vec_ifconfig_comm    = (uchar*) "IFCONFIG";
+
 
 
 u8 reboot()
@@ -75,33 +83,130 @@ u8 ifconfig()
 {
     for (size_t idx = 0; idx != nics->tot_num_device; idx++) {
         struct pci_device* nic = &nics->dev[idx];
+        
+        // riduzione accessi in ram
+        net_ops_t* priv_methods = (net_ops_t*) nic->priv_methods;
+
         kprintf(
             "\n=== NIC NUMBER %i ===\nName: %s\nVendor: %s\nBar 0: %i\n",
             nics->tot_num_device,
-            ((net_ops_t*) nic->priv_methods)->get_name_dev(nic),
-            ((net_ops_t*) nic->priv_methods)->get_vendor_dev(nic),
-            ((net_ops_t*) nic->priv_methods)->get_bar0_dev(nic)
+            priv_methods->get_name_dev(nic),
+            priv_methods->get_vendor_dev(nic),
+            priv_methods->get_bar0_dev(nic)
         );
-        ((net_ops_t*) nic->priv_methods)->print_mac(nic);
+
+        priv_methods->print_mac(nic);
     }
+
     print((uchar*) "\n>>> ");
     return 1;
 }
 
 
+u8 reload_time()
+{
+    kprintf("Hello, sono in reload_time\n");
+    return 1;
+}
+
+
+O3 ainline void count_occurrence(size_t* num_occurence, char* string, size_t max_len_string, char pattern)
+{
+    for (size_t idx = 0; idx < max_len_string; idx++) {
+        if (string[idx] == '\0') {
+            (*num_occurence)++;
+            return;
+        }
+
+        if (string[idx] == pattern)
+            (*num_occurence)++;
+    }
+}
+
+
+O3 ainline void parse_prompt(char* name_command, size_t* argc, char** argv, uchar* comm_to_exec)
+{
+    char* tmp_comm_to_exec = (char*) comm_to_exec;
+
+    size_t tot_len_command = strlen(tmp_comm_to_exec);
+    size_t len_command = strnlen_terminator(tmp_comm_to_exec, tot_len_command, ' ');
+
+    name_command = kcalloc(len_command);
+    if (!name_command) {
+        kprintf("error data pool for name_command\n");
+        argv = NULL;
+        name_command = NULL;
+    }
+
+    memcpy(name_command, comm_to_exec, len_command);
+
+    if (comm_to_exec[len_command - 1] == '\0') {
+        argv = NULL;
+        return;
+    }
+
+    // ora devo calcolare il numero di argomenti presenti per capire quanti ptr devo usare
+    // sposto ptr al primo char dopo ' '
+    comm_to_exec += len_command;
+    size_t num_space = 1;
+
+    count_occurrence(
+        &num_space,
+        (char*) comm_to_exec,
+        tot_len_command - len_command,
+        ' '
+    );
+
+    *argc = num_space;
+
+    // numero ptr a stringhe
+    argv = kcalloc(num_space);
+    if (!argv)
+        kprintf("error data pool for argv");
+}
+
+
+O3 ainline void free_argv(i32 argc, char** argv)
+{
+    for (size_t idx = 0; idx < argc; idx++)
+        kfree(argv[idx]);
+}
+
+
 u8 try_execute_comm(uchar* comm_to_execute)
 {
-    if (strcmp(comm_to_execute, vec_cls_comm))
-        return cls();
+    // char* name_command;
+    // i32 argc = 0;
+    // char** argv;
 
-    if (strcmp(comm_to_execute, vec_reboot_comm))
-        return reboot();
+    // parse_prompt(name_command, &argc, argv, comm_to_execute);
+ 
+    command_func_t func;
 
-    if (strcmp(comm_to_execute, vec_power_off_comm))
-        return power_off();
+    func = patricia_search(
+        command_tree,
+        (char*) comm_to_execute
+    );
 
-    if (strcmp(comm_to_execute, vec_ifconfig_comm))
-        return ifconfig();
+    if (func)
+        return func();
 
+    // kfree_argv(argc, argv);
     return 0;
+}
+
+
+void init_commands()
+{
+    command_tree = create_node("");
+
+    patricia_insert(command_tree, "CLS", cls);
+
+    patricia_insert(command_tree, "REBOOT", reboot);
+
+    patricia_insert(command_tree, "QUIT", power_off);
+
+    patricia_insert(command_tree, "IFCONFIG", ifconfig);
+
+    patricia_insert(command_tree, "RELOAD_TIME", reload_time);
 }

@@ -13,8 +13,13 @@
 extern void print_hex(size_t);
 extern int kprintf(const char*, ...);
 
+
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione dei filesystem registrati e i file descriptor globali.");
+
+
 /* VFS
-* Gestisce i filesystem registrati e i file descriptor globali.
 *
 * Memorizza:
 *   - la lista dei filesystem disponibili nel kernel
@@ -41,7 +46,7 @@ extern void set_message_x_panic(uchar* msg);
 struct filesystem* filesystems[ENIGMAOS_MAX_FILESYSTEMS];
 struct file_descriptor* file_descriptors[ENIGMAOS_MAX_FILE_DESCRIPTORS];
 
-O3 static inline ainline struct filesystem** fs_get_free_filesystem()
+O3 ainline struct filesystem** fs_get_free_filesystem()
 {
     i32 i = 0;
     for (i = 0; i < ENIGMAOS_MAX_FILESYSTEMS; i++)
@@ -65,7 +70,7 @@ void fs_insert_filesystem(struct filesystem* filesystem)
 }
 
 
-O3 static inline ainline void fs_static_load()
+O3 ainline void fs_static_load()
 {
     fs_insert_filesystem(fat16_init());
 }
@@ -85,7 +90,7 @@ void fs_init()
 }
 
 
-O3 static inline ainline i32 file_new_descriptor(struct file_descriptor** desc_out)
+O3 ainline i32 file_new_descriptor(struct file_descriptor** desc_out)
 {
     i32 res = -ENOMEM;
     for (i32 i = 0; i < ENIGMAOS_MAX_FILE_DESCRIPTORS; i++) {
@@ -104,7 +109,7 @@ O3 static inline ainline i32 file_new_descriptor(struct file_descriptor** desc_o
 }
 
 
-O3 static inline ainline struct file_descriptor* file_get_descriptor(i32 fd)
+O3 ainline struct file_descriptor* file_get_descriptor(i32 fd)
 {
     if (fd <= 0 || fd >= ENIGMAOS_MAX_FILE_DESCRIPTORS)
         return 0;
@@ -211,19 +216,21 @@ out:
 
 i32 fread(void* ptr, u32 size, u32 nmemb, i32 fd)
 {
+    i32 res = 0;
     if (size == 0 || nmemb == 0 || fd < 1)
-        return -1;
+    {
+        res = -EINVARG;
+        goto out;
+    }
 
-    struct file_descriptor* descriptor = file_get_descriptor(fd);
+    struct file_descriptor* desc = file_get_descriptor(fd);
+    if (!desc)
+    {
+        res = -EINVARG;
+        goto out;
+    }
 
-    if (!descriptor)
-        return -1;
-
-    return descriptor->filesystem->read(
-        descriptor->disk,
-        descriptor->private,
-        size,
-        nmemb,
-        (char*) ptr
-    );
+    res = desc->filesystem->read(desc->disk, desc->private, size, nmemb, (char*) ptr);
+out:
+    return res;
 }

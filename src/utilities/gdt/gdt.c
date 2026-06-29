@@ -3,6 +3,11 @@
 #include "utilities/task/tss.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("ridefinizione della gdt per il kernel");
+
+
 /* 
 * La GDT del bootloader e' usa e getta. Bisogna crearne un'altra per il kernel
 * che verra' usata per il resto dell'eseucizione.

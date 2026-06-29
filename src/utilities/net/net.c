@@ -2,6 +2,11 @@
 #include "utilities/net/drivers/rtl8139.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("driver manager che si occupa di instradare ai driver corretti dei nic i pacchetti");
+
+
 /*
 * ==== modulo per il LIVELLO 1 TCP/IP (FISICO) ====
 * questo file ha il compito di instradare al driver corretto della scheda di rete
@@ -67,7 +72,7 @@ O3 i32 vsend_nic(struct pci_device* nic, void* data, u32 len)
 }
 
 
-O3 static inline ainline u32 pci_read32(u8 bus, u8 slot, u8 func, u8 offset)
+O3 ainline u32 pci_read32(u8 bus, u8 slot, u8 func, u8 offset)
 {
     u32 address;
 
@@ -82,7 +87,7 @@ O3 static inline ainline u32 pci_read32(u8 bus, u8 slot, u8 func, u8 offset)
 }
 
 
-O3 static inline void init_nic_driver(struct pci_device* nic)
+O3 ainline void init_nic_driver(struct pci_device* nic)
 {
     /*
     * Ogni nic ha il suo modo per funzionare,

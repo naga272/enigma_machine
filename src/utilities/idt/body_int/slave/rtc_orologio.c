@@ -2,7 +2,12 @@
 #include "utilities/idt/body_int/slave/rtc_orologio.h"
 
 
-O3 static inline ainline void rtc_wait_update_end()
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione dispositivo rtc (real time clock)");
+
+
+O3 ainline void rtc_wait_update_end()
 {
     while (1) {
         outb(0x70, 0x0A);
@@ -12,57 +17,57 @@ O3 static inline ainline void rtc_wait_update_end()
 }
 
 
-O3 static inline ainline u8 rtc_read(u8 reg)
+O3 ainline u8 rtc_read(u8 reg)
 {
     outb(0x70, reg);
     return insb(0x71);
 }
 
 
-O3 static inline ainline u8 bcd_to_bin(u8 v)
+O3 ainline u8 bcd_to_bin(u8 v)
 {
     // converte i dati da binary-coded-decimal in binario
     return (v & 0x0F) + ((v >> 4) * 10);
 }
 
 
-O3 static inline ainline u8 rtc_get_sec_utc()
+O3 ainline u8 rtc_get_sec_utc()
 {
     return bcd_to_bin(rtc_read(0x00));
 }
 
 
-O3 static inline ainline u8 rtc_get_min_utc()
+O3 ainline u8 rtc_get_min_utc()
 {
     return bcd_to_bin(rtc_read(0x02));
 }
 
 
-O3 static inline ainline u8 rtc_get_ore_utc()
+O3 ainline u8 rtc_get_ore_utc()
 {
     return bcd_to_bin(rtc_read(0x04));
 }
 
 
-O3 static inline ainline u8 rtc_get_giorno_of_week_utc()
+O3 ainline u8 rtc_get_giorno_of_week_utc()
 {
     return bcd_to_bin(rtc_read(0x06));
 }
 
 
-O3 static inline ainline u8 rtc_get_giorno_mese_utc()
+O3 ainline u8 rtc_get_giorno_mese_utc()
 {
     return bcd_to_bin(rtc_read(0x07));
 }
 
 
-O3 static inline ainline u8 rtc_get_mese_utc()
+O3 ainline u8 rtc_get_mese_utc()
 {
     return bcd_to_bin(rtc_read(0x08));
 }
 
 
-O3 static inline ainline u8 rtc_get_anno_utc()
+O3 ainline u8 rtc_get_anno_utc()
 {
     return bcd_to_bin(rtc_read(0x09));
 }

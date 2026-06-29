@@ -4,35 +4,29 @@
 #include "kernel.h"
 
 
-extern void test_int80h(void);
-
-extern volatile uchar tmp_char_container;
-extern uchar* magic_num_sec_128;
-extern u8 is_ended_setup;
-
-static struct paging_4gb_chunk *kernel_directory = 0;
-struct book* b;
-
-extern pci_dev_list_t* nics;
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("Entry point del kernel");
 
 
 O3 void init_shell()
 {
-    uchar buf128[512];
+    uchar buf_config[512];
 
-    disk_read_sector(128, 1, buf128);
+    disk_read_sector(SECTOR_CONFIG, 1, buf_config);
 
     uchar magic_num_disk[9];
 
     for (i8 i = 0; i < 9; i++)
-        magic_num_disk[i] = buf128[i];
+        magic_num_disk[i] = buf_config[i];
 
-    magic_num_disk[8] = '\0';  // non si sa mai
+    // non si sa mai
+    magic_num_disk[8] = '\0';
 
     // combacia la firma? se si leggo i dati dal disco,
     // altrimenti eseguo il setup
-    if (strcmp(magic_num_disk, magic_num_sec_128)) {
-        do_config(buf128);
+    if (strcmp(magic_num_disk, magic_num_sec_config)) {
+        do_config(buf_config);
         book_init();
         return;
     }
@@ -43,7 +37,7 @@ O3 void init_shell()
 }
 
 
-O3 static inline void trigger_BsOD()
+O3 ainline void trigger_BsOD()
 {
     // 1 / 0 = panic()
     asm volatile (
@@ -57,19 +51,33 @@ O3 static inline void trigger_BsOD()
 }
 
 
-O3 static inline void main()
+O3 ainline void main()
 {
-    gestisci_char_to_write(tmp_char_container);
-    tmp_char_container = 0;
+    CASE_CHAR_WRITTEN;
+
     render_time();
     prevedi_markov();
 }
 
 
-O3 static inline ainline void test_net()
+O3 ainline void test_net()
 {
     // i32 arp_send_request(struct pci_device* nic, u32 target_ip)
     arp_send_request(&nics->dev[0], ip_to_u32(10, 0, 2, 2));
+    
+    /*
+    u8 mac_out[6] = {0};
+    // i32 arp_recv(struct pci_device* nic, u32 target_ip)
+
+    kprintf(
+        "risposta da arp_recv() -> %i\n",
+        arp_recv(
+            &nics->dev[0],
+            mac_out,
+            ip_to_u32(10, 0, 2, 2)
+        )
+    );
+    */
 }
 
 
@@ -111,8 +119,6 @@ void kernel_main()
     // inizializzazione scheda di rete
     init_scheda_rete();
 
-    test_net();
-
     /*
     === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
     */
@@ -123,9 +129,9 @@ void kernel_main()
     // inizializzazione shell
     init_shell();
 
-    i32 fd = fopen("0:/hello.txt", "r");
-    if (!fd)
-        kprintf("\nerror, fd value: %i\n", fd);
+    init_commands();
+
+    test_net();
 
     while (1) {
         main();

@@ -2,9 +2,12 @@
 #include "utilities/memory/heap/malloc.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("modulo per leggere dati da un disco come se fosse uno stream lineare");
+
+
 /*
-*   Modulo per leggere dati da un disco come se fosse uno stream lineare.
-*
 *   Invece di lavorare direttamente con settori e offset manuali,
 *   mantiene internamente una posizione corrente nel disco.
 *

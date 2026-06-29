@@ -1,4 +1,5 @@
-UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/video/kprintf.o ./build/book/book.o ./build/atomic/atomic.o ./build/conversion/conversion.o
+# ./build/book/book.o
+UTILITIES = ./build/stdlib/stdlib.o ./build/string/string.o ./build/shell/command.o ./build/video/video.o ./build/video/kprintf.o ./build/atomic/atomic.o ./build/conversion/conversion.o ./build/patricia_tree/patricia_tree.o
 
 SETUP = ./build/setup/setup.o ./build/markov/markov.o
 
@@ -34,7 +35,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
 	sudo mount -t vfat ./bin/os.bin /mnt/d
 	# Copy a file over
-	sudo cp ./hello.txt /mnt/d
+	sudo cp ./config.con /mnt/d
 	sudo umount /mnt/d
 ./bin/kernel.bin: $(FILES)
 	i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
@@ -151,8 +152,9 @@ iso: ./bin/os.bin
 	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/atomic/atomic.c -o ./build/atomic/atomic.o
 
 
-./build/conversion/conversion.o: ./src/utilities/conversion/conversion.c
-	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/conversion/conversion.c -o ./build/conversion/conversion.o
+./build/patricia_tree/patricia_tree.o: ./src/utilities/patricia_tree/patricia_tree.c
+	i686-elf-gcc $(INCLUDES) -I./src/stdlib $(FLAGS) -std=gnu99 -c ./src/utilities/patricia_tree/patricia_tree.c -o ./build/patricia_tree/patricia_tree.o
+
 
 ####
 

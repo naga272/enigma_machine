@@ -5,6 +5,11 @@
 #include "utilities/net/net.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("gestione del livello 2 del tcp/ip (link layer)");
+
+
 /*
 * ==== modulo per il LIVELLO 2 TCP/IP (link layer) ====
 *

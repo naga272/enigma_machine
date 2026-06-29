@@ -29,7 +29,7 @@ struct process* current_process = 0;
 struct process* scheduler[MAX_PROCESS_X_QUEUE] = {0};
 
 
-O3 static inline void process_init(struct process* process)
+O3 ainline void process_init(struct process* process)
 {
     memset(process, 0x00, sizeof(struct process));
 }
@@ -50,14 +50,14 @@ O3 i32 process_get(i32 pid)
 }
 
 
-O3 static inline i32 process_load_binary(const char* filename, struct process* process)
+O3 ainline i32 process_load_binary(const char* filename, struct process* process)
 {
     i32 res = 0;
     return res;
 }
 
 
-O3 static inline i32 process_load_data(const char* filename, struct process* process)
+O3 ainline i32 process_load_data(const char* filename, struct process* process)
 {
     i32 res = 0;
     res = process_load_binary(filename, process);

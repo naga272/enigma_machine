@@ -38,8 +38,8 @@ struct task {
 
 
 extern struct task* task_new();
-extern int task_init(struct task* task);
-extern int task_free(struct task* task);
+extern i32 task_init(struct task* task);
+extern i32 task_free(struct task* task);
 extern struct task* get_next_task();
 
 #endif

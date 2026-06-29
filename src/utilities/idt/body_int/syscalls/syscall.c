@@ -4,6 +4,11 @@
 #include "utilities/idt/idt.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("elenco funzioni presenti per l'int80h");
+
+
 #define REAL_TOTAL_INT_CREATED 430
 
 
@@ -2504,10 +2509,7 @@ i32 sys_faccessat2(struct regs_t* r)
 }
 
 
-
-
 i32 (*table_syscalls[OS_TOTAL_INTERRUPTS])(struct regs_t *) = {
-
 	[0] = sys_restart_syscall,
 	[1] = sys_exit,
 	[2] = sys_fork,

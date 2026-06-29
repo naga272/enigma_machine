@@ -4,6 +4,11 @@
 #include "utilities/book/book.h"
 
 
+MODULE_LICENSE("GPL-3.0");
+MODULE_AUTHOR("naga272");
+MODULE_DESCRIPTION("not yet ready");
+
+
 extern KB_FLAGS f_t;
 
 
