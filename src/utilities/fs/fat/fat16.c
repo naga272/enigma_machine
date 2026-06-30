@@ -14,7 +14,7 @@ MODULE_AUTHOR("naga272");
 MODULE_DESCRIPTION("gestione driver fat16");
 
 
-/* NOT YET READY */
+/* NOT YET READY, SORRY )= */
 
 extern void set_message_x_panic(uchar* msg);
 i32 fat16_resolve(struct disk* disk);
@@ -253,7 +253,7 @@ struct filesystem* fat16_init()
 }
 
 
-ainline void fat16_init_private(struct disk* disk, struct fat_private* private)
+O3 ainline void fat16_init_private(struct disk* disk, struct fat_private* private)
 {
     memset(private, 0, sizeof(struct fat_private));
     private->cluster_read_stream = diskstreamer_new(disk->id);
@@ -490,11 +490,12 @@ O3 ainline i32 fat16_get_cluster_for_offset(struct disk *disk, i32 starting_clus
 {
     i32 res = 0;
     struct fat_private *private = disk->fs_private;
+
     i32 size_of_cluster_bytes = private->header.primary_header.sectors_per_cluster * disk->sector_size;
     i32 cluster_to_use = starting_cluster;
     i32 clusters_ahead = offset / size_of_cluster_bytes;
-    for (i32 i = 0; i < clusters_ahead; i++)
-    {
+
+    for (i32 i = 0; i < clusters_ahead; i++) {
         i32 entry = fat16_get_fat_entry(disk, cluster_to_use);
         if (entry == 0xFFf8 || entry == 0xFFFF) {
             // We are at the last entry in the file
@@ -547,7 +548,7 @@ O3 ainline i32 fat16_read_internal_from_stream(struct disk* disk, struct disk_st
     i32 total_to_read = total > size_of_cluster_bytes ? size_of_cluster_bytes : total;
 
     // here there is a bug to fix, don't touch this goto
-    // i need to debug the next code and find the bug
+    // I need to debug the next code and find the bug
     // goto out;
 
     res = diskstreamer_seek(stream, starting_pos);
@@ -559,6 +560,7 @@ O3 ainline i32 fat16_read_internal_from_stream(struct disk* disk, struct disk_st
         goto out;
 
     total -= total_to_read;
+
     // We still have more to read
     if (total > 0)
         res = fat16_read_internal_from_stream(disk, stream, cluster, offset+total_to_read, total, out + total_to_read);

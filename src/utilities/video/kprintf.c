@@ -34,11 +34,8 @@ O3 char* int_to_bin(i32 num, char* c)
     c[bits] = '\0';
 
     while (num) {
-
         bits--;
-
         c[bits] = (num & 1) ? '1' : '0';
-
         num >>= 1;
     }
 

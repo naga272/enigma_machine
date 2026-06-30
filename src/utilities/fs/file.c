@@ -114,7 +114,7 @@ O3 ainline struct file_descriptor* file_get_descriptor(i32 fd)
     if (fd <= 0 || fd >= ENIGMAOS_MAX_FILE_DESCRIPTORS)
         return 0;
 
-    // Descriptors start at 1
+    // fd start a t1
     i32 index = fd - 1;
     return file_descriptors[index];
 }
@@ -217,15 +217,13 @@ out:
 i32 fread(void* ptr, u32 size, u32 nmemb, i32 fd)
 {
     i32 res = 0;
-    if (size == 0 || nmemb == 0 || fd < 1)
-    {
+    if (size == 0 || nmemb == 0 || fd < 1) {
         res = -EINVARG;
         goto out;
     }
 
     struct file_descriptor* desc = file_get_descriptor(fd);
-    if (!desc)
-    {
+    if (!desc) {
         res = -EINVARG;
         goto out;
     }

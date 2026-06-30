@@ -26,17 +26,20 @@ MODULE_DESCRIPTION("gestione del registro idtr, gestione interrupt e configurazi
 #define PIC_ALLOW
 
 extern struct tempo_t t;
-
 struct idt_desc idt_descriptors[OS_TOTAL_INTERRUPTS];   // ogni elemento rappresenta un'interrupt
 struct idtr_desc idtr_descriptor;                       // rappresenta il registro idtr (interrupt descriptor table register)
+
 
 // usato in int20_handler per incrementare il flag t->rtc_dirty dopo n avvii del PIT
 u8 ticks_int20_rtc = 0;
 
+
 // usato per la gestione di eccezioni triggherate dalla cpu
 u8 trigger_exception = 0;
 
+
 uchar *ptr_map_error_msg;
+
 
 uchar int0h_error_msg[]     = "Critical Error! Division by zero Exception";
 uchar int2h_error_msg[]     = "Critical Error! Non Maskable Interrupt Exception";
@@ -69,7 +72,7 @@ O3 void no_interrupt_handler()
 O3 ainline void set_status_reg_before_disaster(struct regs_t *r)
 {
     if (!trigger_exception)
-        trigger_exception++;
+        trigger_exception = 1;
     
     // save general register
     val_reg_before_disaster.edi = r->edi;
@@ -115,7 +118,7 @@ O3 void int1h_handler(struct regs_t *r)
     /*
     * Interrupt usato per il debug
     * */
-
+    r->int_no = 1;
     set_status_reg_before_disaster(r);
 }
 
@@ -126,6 +129,7 @@ O3 void int2h_handler(struct regs_t *r)
     *   Interrupt usato per NMI (Non Maskable Interrupt)
     *   Evento generato da hardware per eventi urgenti che non possono venire ignorati.
     * */
+    r->int_no = 2;
     set_status_reg_before_disaster(r);
     ptr_map_error_msg = int2h_error_msg;
 }
@@ -136,6 +140,7 @@ O3 void int3h_handler(struct regs_t *r)
     /*
     * Interrupt usato per casi di overflow
     * */
+    r->int_no = 3;
     set_status_reg_before_disaster(r);
     ptr_map_error_msg = int3h_error_msg;
 }
@@ -146,6 +151,7 @@ O3 void int4h_handler(struct regs_t *r)
     /*
     * Interrupt usato per Bound
     * */
+    r->int_no = 4;
     set_status_reg_before_disaster(r);
 }
 
@@ -155,6 +161,7 @@ O3 void int5h_handler(struct regs_t *r)
     /*
     * Interrupt usato per Invalid opcode
     * */
+    r->int_no = 5;
     set_status_reg_before_disaster(r);
 }
 
@@ -164,6 +171,7 @@ O3 void int6h_handler(struct regs_t *r)
     /*
     * Interrupt usato per Device not available
     * */
+    r->int_no = 6;
     set_status_reg_before_disaster(r);
 }
 
@@ -173,6 +181,7 @@ O3 void int7h_handler(struct regs_t *r)
     /*
     * Interrupt usato per Double fault
     * */
+    r->int_no = 7;
     set_status_reg_before_disaster(r);
 }
 
@@ -182,60 +191,70 @@ O3 void int8h_handler(struct regs_t *r)
     /*
     * Interrupt usato per coprocessor segment 
     * */
+    r->int_no = 8;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int9h_handler(struct regs_t *r)
 {
+    r->int_no = 9;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void intah_handler(struct regs_t *r)
 {
+    r->int_no = 10;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void intbh_handler(struct regs_t *r)
 {
+    r->int_no = 11;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void intch_handler(struct regs_t *r)
 {
+    r->int_no = 12;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void intdh_handler(struct regs_t *r)
 {
+    r->int_no = 13;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void inteh_handler(struct regs_t *r)
 {
+    r->int_no = 14;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void intfh_handler(struct regs_t *r)
 {
+    r->int_no = 15;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int10h_handler(struct regs_t *r)
 {
+    r->int_no = 16;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int11h_handler(struct regs_t *r)
 {
+    r->int_no = 17;
     set_status_reg_before_disaster(r);
 }
 
@@ -252,6 +271,7 @@ O3 void int12h_handler(struct regs_t *r)
     *   - internal Core (execution Unit, register file)
     *   - ECC DRAM propagati alla cpu
     * * */
+    r->int_no = 18;
     set_status_reg_before_disaster(r);
     ptr_map_error_msg = int12h_error_msg;
 }
@@ -259,78 +279,91 @@ O3 void int12h_handler(struct regs_t *r)
 
 O3 void int13h_handler(struct regs_t *r)
 {
+    r->int_no = 19;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int14h_handler(struct regs_t *r)
 {
+    r->int_no = 20;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int15h_handler(struct regs_t *r)
 {
+    r->int_no = 21;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int16h_handler(struct regs_t *r)
 {
+    r->int_no = 22;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int17h_handler(struct regs_t *r)
 {
+    r->int_no = 23;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int18h_handler(struct regs_t *r)
 {
+    r->int_no = 24;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int19h_handler(struct regs_t *r)
 {
+    r->int_no = 25;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1ah_handler(struct regs_t *r)
 {
+    r->int_no = 26;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1bh_handler(struct regs_t *r)
 {
+    r->int_no = 27;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1ch_handler(struct regs_t *r)
 {
+    r->int_no = 28;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1dh_handler(struct regs_t *r)
 {
+    r->int_no = 29;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1eh_handler(struct regs_t *r)
 {
+    r->int_no = 30;
     set_status_reg_before_disaster(r);
 }
 
 
 O3 void int1fh_handler(struct regs_t *r)
 {
+    r->int_no = 31;
     set_status_reg_before_disaster(r);
 }
 
@@ -340,6 +373,7 @@ u8 is_first_rendering_bsod = 1;
 
 O3 void int20h_handler(struct regs_t* r)
 {
+    r->int_no = 32;
     /*
     Triggherata dal PIT, se è stato triggherata una eccezione dalla cpu
     esegue la funzione do_pit()
@@ -381,6 +415,7 @@ extern void gestisci_scancode_from_controller(u8);
 
 O3 void int21h_handler(struct regs_t* r)
 {
+    r->int_no = 33;
     /*
     *   Funzione che gestisce l'interrupt 0x21 (tastiera). 
     *   Quando viene premuto un tasto, questa funzione stampa un messaggio e invia un EOI al PIC.
@@ -420,6 +455,7 @@ out:
 
 O3 void int22h_handler(struct regs_t* r)
 {
+    r->int_no = 34;
     insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
@@ -427,6 +463,7 @@ O3 void int22h_handler(struct regs_t* r)
 
 O3 void int23h_handler(struct regs_t* r)
 {
+    r->int_no = 35;
     insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
@@ -434,6 +471,7 @@ O3 void int23h_handler(struct regs_t* r)
 
 O3 void int24h_handler(struct regs_t* r)
 {
+    r->int_no = 36;
     insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
@@ -441,6 +479,7 @@ O3 void int24h_handler(struct regs_t* r)
 
 O3 void int25h_handler(struct regs_t* r)
 {
+    r->int_no = 37;
     insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
@@ -448,6 +487,7 @@ O3 void int25h_handler(struct regs_t* r)
 
 O3 void int26h_handler(struct regs_t* r)
 {
+    r->int_no = 38;
     insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
@@ -455,6 +495,7 @@ O3 void int26h_handler(struct regs_t* r)
 
 O3 void int27h_handler(struct regs_t* r)
 {
+    r->int_no = 39;
     insert_markov_entry((uchar) r->int_no);
     EOI_MASTER;
 }
@@ -462,6 +503,7 @@ O3 void int27h_handler(struct regs_t* r)
 
 O3 void int28h_handler(struct regs_t* r)
 {
+    r->int_no = 40;
     // vado a disabilitare NMI mentre eseguo l'accesso
     outb(0x70, 0x80 | 0x0C);
     insb(0x71);
@@ -475,6 +517,7 @@ O3 void int28h_handler(struct regs_t* r)
 
 O3 void int29h_handler(struct regs_t* r)
 {
+    r->int_no = 41;
     EOI_SLAVE;
     EOI_MASTER;
 }
@@ -482,6 +525,7 @@ O3 void int29h_handler(struct regs_t* r)
 
 O3 void int2ah_handler(struct regs_t* r)
 {
+    r->int_no = 42;
     EOI_SLAVE;
     EOI_MASTER;
 }
@@ -489,6 +533,7 @@ O3 void int2ah_handler(struct regs_t* r)
 
 O3 void int2bh_handler(struct regs_t* r)
 {
+    r->int_no = 43;
     /*
     * Nel momento che si esegue l'istruzione:
     * "outl(rtl->io_base + TSD0, len);"
@@ -529,12 +574,12 @@ O3 void int2bh_handler(struct regs_t* r)
     u16 status = insw(0xc000 + 0x3E);
     outw(0xc000 + 0x3E, status); // Reset dei flag sollevati
 
-    // 3. Gestisci il pacchetto RICEVUTO
+    // Gestisci il pacchetto RICEVUTO
     if (status & (1 << 0)) { // ROK (bit 0)
         // Chiama la tua funzione per svuotare il buffer RX della scheda
     }
 
-    // 4. Gestisci il pacchetto INVIATO
+    // Gestisci il pacchetto INVIATO
     if (status & (1 << 2)) { // TOK (bit 2)
         // Il pacchetto è partito, puoi liberare la memoria o aggiornare le statistiche
     }
@@ -546,7 +591,7 @@ O3 void int2bh_handler(struct regs_t* r)
 
 O3 void int2ch_handler(struct regs_t* r)
 {
-
+    r->int_no = 44;
     EOI_SLAVE;
     EOI_MASTER;
 }
@@ -554,6 +599,7 @@ O3 void int2ch_handler(struct regs_t* r)
 
 O3 void int2dh_handler(struct regs_t* r)
 {
+    r->int_no = 45;
     EOI_SLAVE;
     EOI_MASTER;
 }
@@ -561,6 +607,7 @@ O3 void int2dh_handler(struct regs_t* r)
 
 O3 void int2eh_handler(struct regs_t* r)
 {
+    r->int_no = 46;
     EOI_SLAVE;
     EOI_MASTER;
 }
@@ -568,6 +615,7 @@ O3 void int2eh_handler(struct regs_t* r)
 
 O3 void int2fh_handler(struct regs_t* r)
 {
+    r->int_no = 47;
     EOI_SLAVE;
     EOI_MASTER;
 }
@@ -576,6 +624,7 @@ O3 void int2fh_handler(struct regs_t* r)
 /* SYSCALLS FOR USER */
 O3 i32 int80h_handler(struct regs_t *r)
 {
+    r->int_no = 80;
     return do_int80h(r);
 }
 

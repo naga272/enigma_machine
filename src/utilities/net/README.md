@@ -1,6 +1,5 @@
 # Kernel network
 
-
 ### Descrizione
 
 L'idea sostanziale in questo progetto e' di far comunicare due macchine enigmaOs in rete per lo scambio di messaggi crittografati. Appena arrivano all'altra macchina (avendo stessi rotori, riflettore, plugboard), ritraduce il messaggio crittografato e lo mostra a schermo
@@ -20,6 +19,7 @@ run:
 		-device rtl8139,netdev=n1 \
 		-object filter-dump,id=f1,netdev=n1,file=packets.pcap \
 		-vga std \
+        -device virtio-gpu \
 		-d guest_errors,unimp
 ```
 

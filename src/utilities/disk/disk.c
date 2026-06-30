@@ -86,24 +86,23 @@ i32 disk_read_sector(i32 lba, i32 total, void* buf)
 {
     outb(0x1F6, (lba >> 24) | 0xE0);
     outb(0x1F2, total);
-    outb(0x1F3, (uchar)(lba & 0xff));
-    outb(0x1F4, (uchar)(lba >> 8));
-    outb(0x1F5, (uchar)(lba >> 16));
+    outb(0x1F3, (uchar) (lba & 0xff));
+    outb(0x1F4, (uchar) (lba >> 8));
+    outb(0x1F5, (uchar) (lba >> 16));
     outb(0x1F7, 0x20);
 
     u16* ptr = (u16*) buf;
-    for (int b = 0; b < total; b++) {
-        // Wait for the buffer to be ready
+    for (i32 b = 0; b < total; b++) {
+        // wait the drive r
         char c = insb(0x1F7);
         while(!(c & 0x08))
             c = insb(0x1F7);
 
-        // Copy from hard disk to memory
+        // memcpy from hard disk to memory
         for (int i = 0; i < 256; i++) {
             *ptr = insw(0x1F0);
             ptr++;
         }
-
     }
     return 0;
 }
@@ -169,4 +168,3 @@ i32 disk_read_block(struct disk* idisk, u32 lba, i32 total, void* buf)
 
     return disk_read_sector(lba, total, buf);
 }
-

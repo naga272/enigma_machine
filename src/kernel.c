@@ -64,7 +64,7 @@ O3 ainline void test_net()
 {
     // i32 arp_send_request(struct pci_device* nic, u32 target_ip)
     arp_send_request(&nics->dev[0], ip_to_u32(10, 0, 2, 2));
-    
+
     /*
     u8 mac_out[6] = {0};
     // i32 arp_recv(struct pci_device* nic, u32 target_ip)
@@ -115,12 +115,12 @@ void kernel_main()
 
     // inizializzazione pci
     search_all_device_pci();
-    
+
     // inizializzazione scheda di rete
     init_scheda_rete();
 
     /*
-    === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead ===
+    === DIVISIONE PER ZERO TRIGGERA LA Blue Screen of the dead (per il meme) ===
     */
     // trigger_BsOD();
 
@@ -132,6 +132,8 @@ void kernel_main()
     init_commands();
 
     test_net();
+
+    // init_gpu();
 
     while (1) {
         main();

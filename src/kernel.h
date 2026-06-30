@@ -24,6 +24,7 @@
 #include "utilities/shell/command.h"
 #include "utilities/pci/pci.h"
 #include "utilities/net/net.h"
+#include "utilities/video/drivers/gpu.h"
 #include "utilities/net/ethernet/arp/arp.h"
 
 #include "utilities/video/kprintf.h"

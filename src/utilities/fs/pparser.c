@@ -19,7 +19,11 @@ extern int kprintf(const char*, ...);
 O3 ainline i32 pathparser_path_valid_format(const char* filename)
 {
     i32 len = strnlen(filename, KERNEL_FS_MAX_PATH);
-    return (len >= 3 && isdigit(filename[0]) && memcmp((void*) &filename[1], ":/", 2) == 0);
+    return (
+        len >= 3 &&
+        isdigit(filename[0]) &&
+        memcmp((void*) &filename[1], ":/", 2) == 0
+    );
 }
 
 
@@ -33,12 +37,11 @@ O3 ainline i32 pathparser_get_drive_by_path(const char** path)
     *   Dopo aver letto il numero del drive, avanza il puntatore
     *   oltre la parte iniziale "0:/".
     */
-    if (!pathparser_path_valid_format(*path)) {
+    if (!pathparser_path_valid_format(*path))
         return -1;
-    }
 
     i32 drive_no = tonumericdigit(*path[0]);
-    // Add 3 bytes to skip drive number 0:/ 1:/ 2:/
+    // add 3 bytes to skip drive number 0:/ 1:/ 2:/
     *path += 3;
     return drive_no;
 }

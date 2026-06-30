@@ -14,7 +14,11 @@ PAGING = ./build/memory/paging.o ./build/memory/paging.asm.o
 
 NET_DRIVERS = ./build/net/drivers/rtl8139.o
 NET = ./build/net/net.o ./build/net/ethernet/ethernet.o ./build/net/ethernet/arp/arp.o $(NET_DRIVERS)
-PCI = ./build/pci/pci.o $(NET)
+
+GPU_DRIVERS = ./build/video/drivers/virtio_gpu/virtio_gpu.o
+GPU = ./build/video/drivers/gpu.o $(GPU_DRIVERS)
+
+PCI = ./build/pci/pci.o $(NET) $(GPU)
 
 DISK = ./build/fs/pparser.o ./build/disk/disk.o ./build/disk/streamer.o ./build/fs/file.o $(FAT16)
 FAT16 = ./build/fs/fat/fat16.o
@@ -227,6 +231,18 @@ iso: ./bin/os.bin
 ./build/net/drivers/rtl8139.o: ./src/utilities/net/drivers/rtl8139.c
 	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/net/drivers/rtl8139.c -o ./build/net/drivers/rtl8139.o
 
+
+# ==== GPU ====
+./build/video/drivers/gpu.o: ./src/utilities/video/drivers/gpu.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/video/drivers/gpu.c -o ./build/video/drivers/gpu.o
+
+
+# ==== GPU DRIVER ====
+
+./build/video/drivers/virtio_gpu/virtio_gpu.o: ./src/utilities/video/drivers/virtio_gpu/virtio_gpu.c
+	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/video/drivers/virtio_gpu/virtio_gpu.c -o ./build/video/drivers/virtio_gpu/virtio_gpu.o
+
+
 # ==== Markov ====
 ./build/markov/markov.o: ./src/utilities/markov/markov.c
 	i686-elf-gcc $(INCLUDES) -I./src/video $(FLAGS) -std=gnu99 -c ./src/utilities/markov/markov.c -o ./build/markov/markov.o
@@ -257,6 +273,7 @@ run:
 		-device rtl8139,netdev=n1 \
 		-object filter-dump,id=f1,netdev=n1,file=packets.pcap \
 		-vga std \
+		-device virtio-gpu-pci\
 		-d guest_errors,unimp
 
 
